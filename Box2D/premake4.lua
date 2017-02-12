@@ -8,7 +8,7 @@ solution "Box2D"
 	configurations { "Debug", "Release" }
 	
 	configuration "vs*"
-		defines { "_CRT_SECURE_NO_WARNINGS" }	
+		defines { "_CRT_SECURE_NO_WARNINGS","WIN32"}	
 		
 	configuration "Debug"
 		targetdir ( "Build/" .. action .. "/bin/Debug" )
