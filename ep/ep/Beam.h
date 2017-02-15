@@ -48,7 +48,7 @@ public:
 
 		{
 			b2PolygonShape shape;
-			shape.SetAsBox(0.5f, 0.125f);
+			shape.SetAsBox(0.5f, 0.425f);
 
 			b2FixtureDef fd;
 			fd.shape = &shape;
@@ -75,18 +75,18 @@ public:
 
 		{
 			b2PolygonShape shape;
-			shape.SetAsBox(1.0f, 0.125f);
+			shape.SetAsBox(1.0f, 0.25f);
 
 			b2FixtureDef fd;
 			fd.shape = &shape;
 			fd.density = 20.0f;
 
 			b2WeldJointDef jd;
-			jd.frequencyHz = 5.0f;
-			jd.dampingRatio = 0.7f;
+			jd.frequencyHz = 50.0f;
+			jd.dampingRatio = 0.1f;
 
 			b2Body* prevBody = ground;
-			for (int32 i = 0; i < 3; ++i)
+			for (int32 i = 0; i < e_count; ++i)
 			{
 				b2BodyDef bd;
 				bd.type = b2_dynamicBody;
@@ -104,11 +104,11 @@ public:
 
 		{
 			b2PolygonShape shape;
-			shape.SetAsBox(0.5f, 0.125f);
+			shape.SetAsBox(0.5f, 0.5f);
 
 			b2FixtureDef fd;
 			fd.shape = &shape;
-			fd.density = 20.0f;
+			fd.density = 200.0f;
 
 			b2WeldJointDef jd;
 
@@ -134,15 +134,15 @@ public:
 
 		{
 			b2PolygonShape shape;
-			shape.SetAsBox(0.5f, 0.125f);
+			shape.SetAsBox(0.5f, 0.25f);
 
 			b2FixtureDef fd;
 			fd.shape = &shape;
 			fd.density = 20.0f;
 
 			b2WeldJointDef jd;
-			jd.frequencyHz = 8.0f;
-			jd.dampingRatio = 0.7f;
+			jd.frequencyHz = 100.0f;
+			jd.dampingRatio = 0.1f;
 
 			b2Body* prevBody = ground;
 			for (int32 i = 0; i < e_count; ++i)
@@ -176,7 +176,7 @@ public:
 
 			b2FixtureDef fd;
 			fd.shape = &shape;
-			fd.density = 1.0f;
+			fd.density = 3.0f;
 
 			b2BodyDef bd;
 			bd.type = b2_dynamicBody;
@@ -192,7 +192,7 @@ public:
 
 			b2FixtureDef fd;
 			fd.shape = &shape;
-			fd.density = 1.0f;
+			fd.density = 3.0f;
 
 			b2BodyDef bd;
 			bd.type = b2_dynamicBody;

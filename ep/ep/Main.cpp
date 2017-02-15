@@ -78,7 +78,7 @@ static void sCreateUI(GLFWwindow* window)
 	ui.showMenu = true;
 
 	// Init UI
-	const char* fontPath = "DroidSans.ttf";
+	const char* fontPath = "../Data/DroidSans.ttf";
 	if (canRead(fontPath)){
 		ImGui::GetIO().Fonts->AddFontFromFileTTF(fontPath, 15.f);
 	}
@@ -377,7 +377,7 @@ static void sInterface()
 	{
 		ImGui::SetNextWindowPos(ImVec2((float)g_camera.m_width - menuWidth - 10, 10));
 		ImGui::SetNextWindowSize(ImVec2((float)menuWidth, (float)g_camera.m_height - 20));
-		ImGui::Begin("ElasticPlastic Controls", 
+		ImGui::Begin("Common Controls",
 			&ui.showMenu, ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoCollapse);
 		ImGui::PushAllowKeyboardFocus(false); // Disable TAB
 
