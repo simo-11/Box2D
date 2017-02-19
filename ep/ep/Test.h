@@ -172,7 +172,9 @@ public:
 	}
 
 	void ShiftOrigin(const b2Vec2& newOrigin);
-
+	// ep-start
+	virtual void Ui(){};
+	// ep-end
 protected:
 	friend class DestructionListener;
 	friend class BoundaryListener;

@@ -20,19 +20,20 @@
 
 #ifndef BEAM_H
 #define BEAM_H
-
+#include <imgui/imgui.h>
 // It is difficult to make a cantilever made of links completely rigid with weld joints.
 // You will have to use a high number of iterations to make them stiff.
 // So why not go ahead and use soft weld joints? They behave like a revolute
 // joint with a rotational spring.
+
+namespace {
+	int so_count = 8;
+	float baseHz = 1;
+	float density = 7800;
+}
 class Beam : public Test
 {
 public:
-
-	enum
-	{
-		e_count = 8
-	};
 
 	Beam()
 	{
@@ -52,12 +53,12 @@ public:
 
 			b2FixtureDef fd;
 			fd.shape = &shape;
-			fd.density = 20.0f;
+			fd.density = density;
 
 			b2WeldJointDef jd;
 
 			b2Body* prevBody = ground;
-			for (int32 i = 0; i < e_count; ++i)
+			for (int32 i = 0; i < so_count; ++i)
 			{
 				b2BodyDef bd;
 				bd.type = b2_dynamicBody;
@@ -79,14 +80,14 @@ public:
 
 			b2FixtureDef fd;
 			fd.shape = &shape;
-			fd.density = 20.0f;
+			fd.density = density;
 
 			b2WeldJointDef jd;
-			jd.frequencyHz = 50.0f;
+			jd.frequencyHz = baseHz;
 			jd.dampingRatio = 0.1f;
 
 			b2Body* prevBody = ground;
-			for (int32 i = 0; i < e_count; ++i)
+			for (int32 i = 0; i < so_count; ++i)
 			{
 				b2BodyDef bd;
 				bd.type = b2_dynamicBody;
@@ -108,12 +109,12 @@ public:
 
 			b2FixtureDef fd;
 			fd.shape = &shape;
-			fd.density = 200.0f;
+			fd.density = density;
 
 			b2WeldJointDef jd;
 
 			b2Body* prevBody = ground;
-			for (int32 i = 0; i < e_count; ++i)
+			for (int32 i = 0; i < so_count; ++i)
 			{
 				b2BodyDef bd;
 				bd.type = b2_dynamicBody;
@@ -138,14 +139,14 @@ public:
 
 			b2FixtureDef fd;
 			fd.shape = &shape;
-			fd.density = 20.0f;
+			fd.density = density;
 
 			b2WeldJointDef jd;
-			jd.frequencyHz = 100.0f;
+			jd.frequencyHz = baseHz;
 			jd.dampingRatio = 0.1f;
 
 			b2Body* prevBody = ground;
-			for (int32 i = 0; i < e_count; ++i)
+			for (int32 i = 0; i < so_count; ++i)
 			{
 				b2BodyDef bd;
 				bd.type = b2_dynamicBody;
@@ -176,7 +177,7 @@ public:
 
 			b2FixtureDef fd;
 			fd.shape = &shape;
-			fd.density = 3.0f;
+			fd.density = density;
 
 			b2BodyDef bd;
 			bd.type = b2_dynamicBody;
@@ -192,7 +193,7 @@ public:
 
 			b2FixtureDef fd;
 			fd.shape = &shape;
-			fd.density = 3.0f;
+			fd.density = density;
 
 			b2BodyDef bd;
 			bd.type = b2_dynamicBody;
@@ -201,7 +202,25 @@ public:
 			body->CreateFixture(&fd);
 		}
 	}
+	bool showMenu=true;
+	virtual void Ui(){
+		int menuWidth = 200;
+		if (showMenu)
+		{
+			ImGui::SetNextWindowPos(ImVec2((float)g_camera.m_width - 2*menuWidth - 10, 10));
+			ImGui::SetNextWindowSize(ImVec2((float)menuWidth, 200 /* (float)g_camera.m_height - 20 */));
+			if (ImGui::Begin("Beam Controls##Bean", &showMenu)){
+				ImGui::Text("sub body count");
+				ImGui::SliderInt("##sub body count", &so_count, 0, 50);
+				ImGui::Text("Frequency of soft joints");
+				ImGui::SliderFloat("Hz##Hertz", &baseHz, 1.f, 60.f, "%.0f");
+				ImGui::Text("density");
+				ImGui::SliderFloat("kg/m^3##density", &density, 1000.f, 20000.f, "%.0f");
+			}
+			ImGui::End();
+		}
 
+	}
 	static Test* Create()
 	{
 		return new Beam;

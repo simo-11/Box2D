@@ -377,8 +377,8 @@ static void sInterface()
 	{
 		ImGui::SetNextWindowPos(ImVec2((float)g_camera.m_width - menuWidth - 10, 10));
 		ImGui::SetNextWindowSize(ImVec2((float)menuWidth, (float)g_camera.m_height - 20));
-		ImGui::Begin("Common Controls",
-			&ui.showMenu, ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoCollapse);
+		ImGui::Begin("Common Controls##cc",
+			&ui.showMenu, ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize);
 		ImGui::PushAllowKeyboardFocus(false); // Disable TAB
 
 		ImGui::PushItemWidth(-1.0f);
@@ -435,7 +435,7 @@ static void sInterface()
 		ImGui::PopAllowKeyboardFocus();
 		ImGui::End();
 	}
-
+	test->Ui();
 	//ImGui::ShowTestWindow(NULL);
 }
 
@@ -531,14 +531,14 @@ int main(int, char**)
 		ImGui_ImplGlfwGL3_NewFrame();
 		ImGui::SetNextWindowPos(ImVec2(0,0));
 		ImGui::SetNextWindowSize(ImVec2((float)g_camera.m_width, (float)g_camera.m_height));
-		ImGui::Begin("Overlay", NULL, ImVec2(0,0), 0.0f, 
+		ImGui::Begin("Overlay##ol", NULL, ImVec2(0,0), 0.0f, 
 			ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoInputs|
 			ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoScrollbar);
 		ImGui::SetCursorPos(ImVec2(5, (float)g_camera.m_height - 20));
 		ImGui::Text("%.1f ms", 1000.0 * frameTime);
-		ImGui::End();
 
 		sSimulate();
+		ImGui::End();
 		sInterface();
 
 		// Measure speed
