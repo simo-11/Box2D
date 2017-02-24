@@ -518,39 +518,33 @@ int main(int, char**)
 
 	double time1 = glfwGetTime();
 	double frameTime = 0.0;
-   
-	glClearColor(0.3f, 0.3f, 0.3f, 1.f);
-	
 	while (!glfwWindowShouldClose(mainWindow))
 	{
+		bool opened;
 		glfwGetWindowSize(mainWindow, &g_camera.m_width, &g_camera.m_height);
 		glViewport(0, 0, g_camera.m_width, g_camera.m_height);
-
+		GLclampf clearColor[4];
+		glGetFloatv(GL_COLOR_CLEAR_VALUE, clearColor);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 		ImGui_ImplGlfwGL3_NewFrame();
-		ImGui::SetNextWindowPos(ImVec2(0,0));
+		ImGui::SetNextWindowPos(ImVec2(0, 0));
 		ImGui::SetNextWindowSize(ImVec2((float)g_camera.m_width, (float)g_camera.m_height));
-		ImGui::Begin("Overlay##ol", NULL, ImVec2(0,0), 0.0f, 
-			ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoInputs|
-			ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoScrollbar);
-		ImGui::SetCursorPos(ImVec2(5, (float)g_camera.m_height - 20));
-		ImGui::Text("%.1f ms", 1000.0 * frameTime);
-
-		sSimulate();
+		opened=ImGui::Begin("Overlay##ol", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs |
+			ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
+		if (opened){
+			ImGui::SetCursorPos(ImVec2(5, (float)g_camera.m_height - 20));
+			ImGui::Text("%.1f ms", 1000.0 * frameTime);
+		}
 		ImGui::End();
+		sSimulate();
 		sInterface();
-
 		// Measure speed
 		double time2 = glfwGetTime();
 		double alpha = 0.9f;
 		frameTime = alpha * frameTime + (1.0 - alpha) * (time2 - time1);
 		time1 = time2;
-
 		ImGui::Render();
-
 		glfwSwapBuffers(mainWindow);
-
 		glfwPollEvents();
 	}
 

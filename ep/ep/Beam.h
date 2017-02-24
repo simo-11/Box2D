@@ -209,7 +209,8 @@ public:
 		{
 			ImGui::SetNextWindowPos(ImVec2((float)g_camera.m_width - 2*menuWidth - 10, 10));
 			ImGui::SetNextWindowSize(ImVec2((float)menuWidth, 200 /* (float)g_camera.m_height - 20 */));
-			if (ImGui::Begin("Beam Controls##Bean", &showMenu)){
+			if (ImGui::Begin("Beam Controls##Bean", &showMenu, 
+				ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize)){
 				ImGui::Text("sub body count");
 				ImGui::SliderInt("##sub body count", &so_count, 0, 50);
 				ImGui::Text("Frequency of soft joints");
