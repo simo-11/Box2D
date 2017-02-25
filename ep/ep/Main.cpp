@@ -418,24 +418,30 @@ static void sInterface()
 		ImGui::Checkbox("Center of Masses", &settings.drawCOMs);
 		ImGui::Checkbox("Statistics", &settings.drawStats);
 		ImGui::Checkbox("Profile", &settings.drawProfile);
+		ImGui::Checkbox("Notes", &settings.drawNotes);
 
 		ImVec2 button_sz = ImVec2(-1, 0);
-		if (ImGui::Button("Pause (P)", button_sz))
+		if (ImGui::SmallButton("Pause (P)"))
 			settings.pause = !settings.pause;
-
-		if (ImGui::Button("Single Step (O)", button_sz))
+		ImGui::SameLine();
+		if (ImGui::SmallButton("Single Step (O)"))
 			settings.singleStep = !settings.singleStep;
 
-		if (ImGui::Button("Restart (R)", button_sz))
+		if (ImGui::SmallButton("Restart (R)"))
 			sRestart();
-
-		if (ImGui::Button("Quit", button_sz))
+		ImGui::SameLine();
+		if (ImGui::SmallButton("Reset")){
+			test->reset();
+			sRestart();
+		}
+		ImGui::SameLine();
+		if (ImGui::SmallButton("Quit"))
 			glfwSetWindowShouldClose(mainWindow, GL_TRUE);
 
 		ImGui::PopAllowKeyboardFocus();
 		ImGui::End();
 	}
-	test->Ui();
+	test->Ui(&settings);
 	//ImGui::ShowTestWindow(NULL);
 }
 
@@ -512,24 +518,24 @@ int main(int, char**)
 
 	entry = g_testEntries + testIndex;
 	test = entry->createFcn();
-
+	const ImVec4 bgc=ImVec4(0.0f,0.0f,0.0f,0.7f);
+	// ImGui::PushStyleColor(ImGuiCol_WindowBg,bgc);
 	// Control the frame rate. One draw per monitor refresh.
 	glfwSwapInterval(1);
-
 	double time1 = glfwGetTime();
 	double frameTime = 0.0;
+	glClearColor(0.3f, 0.3f, 0.3f, 1.f);
 	while (!glfwWindowShouldClose(mainWindow))
 	{
 		bool opened;
 		glfwGetWindowSize(mainWindow, &g_camera.m_width, &g_camera.m_height);
 		glViewport(0, 0, g_camera.m_width, g_camera.m_height);
-		GLclampf clearColor[4];
-		glGetFloatv(GL_COLOR_CLEAR_VALUE, clearColor);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		ImGui_ImplGlfwGL3_NewFrame();
 		ImGui::SetNextWindowPos(ImVec2(0, 0));
 		ImGui::SetNextWindowSize(ImVec2((float)g_camera.m_width, (float)g_camera.m_height));
-		opened=ImGui::Begin("Overlay##ol", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs |
+		opened = ImGui::Begin("Overlay", NULL, ImVec2(0, 0), 0.0f,
+			ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs |
 			ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
 		if (opened){
 			ImGui::SetCursorPos(ImVec2(5, (float)g_camera.m_height - 20));

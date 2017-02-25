@@ -75,6 +75,7 @@ struct Settings
 		drawCOMs = false;
 		drawStats = false;
 		drawProfile = false;
+		drawNotes = true;
 		enableWarmStarting = true;
 		enableContinuous = true;
 		enableSubStepping = false;
@@ -96,6 +97,7 @@ struct Settings
 	bool drawCOMs;
 	bool drawStats;
 	bool drawProfile;
+	bool drawNotes;
 	bool enableWarmStarting;
 	bool enableContinuous;
 	bool enableSubStepping;
@@ -173,7 +175,10 @@ public:
 
 	void ShiftOrigin(const b2Vec2& newOrigin);
 	// ep-start
-	virtual void Ui(){};
+	virtual void Ui(Settings* settings){};
+	virtual void drawNotes(){};
+	/** reset configurable settings */
+	virtual void reset(){};
 	// ep-end
 protected:
 	friend class DestructionListener;
