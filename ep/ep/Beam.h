@@ -33,6 +33,7 @@ namespace {
 	float density;
 	float32 hx;
 	float32 hy;
+	bool addSoft, addHard, addParts;
 }
 class Beam : public Test
 {
@@ -46,6 +47,9 @@ public:
 		density = 7800;
 		hx = 1.f;
 		hy = 0.25f;
+		addSoft = true;
+		addHard = true;
+		addParts = true;
 	}
 	Beam()
 	{
@@ -62,6 +66,7 @@ public:
 			ground->CreateFixture(&shape, 0.0f);
 		}
 
+		if (addHard)
 		{
 			b2PolygonShape shape;
 			shape.SetAsBox(hx, hy);
@@ -90,7 +95,7 @@ public:
 				prevBody = body;
 			}
 		}
-
+		if (addSoft)
 		{
 			b2PolygonShape shape;
 			shape.SetAsBox(hx, hy);
@@ -120,7 +125,7 @@ public:
 				prevBody = body;
 			}
 		}
-
+		if (addParts)
 		{
 			b2PolygonShape shape;
 			shape.SetAsBox(hx, hy);
@@ -152,7 +157,7 @@ public:
 				prevBody = body;
 			}
 		}
-
+		if (addParts)
 		{
 			b2PolygonShape shape;
 			shape.SetAsBox(hx, hy);
@@ -185,65 +190,75 @@ public:
 				prevBody = body;
 			}
 		}
+		if (addParts){
+			for (int32 i = 0; i < 2; ++i)
+			{
+				b2Vec2 vertices[3];
+				vertices[0].Set(-0.5f, 0.0f);
+				vertices[1].Set(0.5f, 0.0f);
+				vertices[2].Set(0.0f, 1.5f);
 
-		for (int32 i = 0; i < 2; ++i)
-		{
-			b2Vec2 vertices[3];
-			vertices[0].Set(-0.5f, 0.0f);
-			vertices[1].Set(0.5f, 0.0f);
-			vertices[2].Set(0.0f, 1.5f);
+				b2PolygonShape shape;
+				shape.Set(vertices, 3);
 
-			b2PolygonShape shape;
-			shape.Set(vertices, 3);
+				b2FixtureDef fd;
+				fd.shape = &shape;
+				fd.density = density;
 
-			b2FixtureDef fd;
-			fd.shape = &shape;
-			fd.density = density;
+				b2BodyDef bd;
+				bd.type = b2_dynamicBody;
+				bd.position.Set(-8.0f + 8.0f * i, 12.0f);
+				b2Body* body = m_world->CreateBody(&bd);
+				body->CreateFixture(&fd);
+			}
 
-			b2BodyDef bd;
-			bd.type = b2_dynamicBody;
-			bd.position.Set(-8.0f + 8.0f * i, 12.0f);
-			b2Body* body = m_world->CreateBody(&bd);
-			body->CreateFixture(&fd);
-		}
+			for (int32 i = 0; i < 2; ++i)
+			{
+				b2CircleShape shape;
+				shape.m_radius = 0.5f;
 
-		for (int32 i = 0; i < 2; ++i)
-		{
-			b2CircleShape shape;
-			shape.m_radius = 0.5f;
+				b2FixtureDef fd;
+				fd.shape = &shape;
+				fd.density = density;
 
-			b2FixtureDef fd;
-			fd.shape = &shape;
-			fd.density = density;
-
-			b2BodyDef bd;
-			bd.type = b2_dynamicBody;
-			bd.position.Set(-6.0f + 6.0f * i, 10.0f);
-			b2Body* body = m_world->CreateBody(&bd);
-			body->CreateFixture(&fd);
+				b2BodyDef bd;
+				bd.type = b2_dynamicBody;
+				bd.position.Set(-6.0f + 6.0f * i, 10.0f);
+				b2Body* body = m_world->CreateBody(&bd);
+				body->CreateFixture(&fd);
+			}
 		}
 	}
 	bool showMenu=true;
 	virtual void Ui(Settings* settings){
 		int menuWidth = 200;
+		float menuHeight = 320;
 		if (showMenu)
 		{
 			ImGui::SetNextWindowPos(ImVec2((float)g_camera.m_width - 2*menuWidth - 10, 10));
-			ImGui::SetNextWindowSize(ImVec2((float)menuWidth, 300));
+			ImGui::SetNextWindowSize(ImVec2((float)menuWidth, menuHeight));
 			if (ImGui::Begin("Beam Controls##Bean", &showMenu, 
 				ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize)){
 				ImGui::Text("sub body count");
-				ImGui::SliderInt("##sub body count", &so_count, 0, 50);
+				ImGui::SliderInt("##sub body count", &so_count, 1, 50);
 				ImGui::Text("sub body half length");
 				ImGui::SliderFloat("##sub body half length", &hx, 0.1f, 3, "%.2f");
 				ImGui::Text("sub body half height");
 				ImGui::SliderFloat("##sub body half height", &hy, 0.1f, 3, "%.2f");
-				ImGui::Text("Frequency for soft joints");
-				ImGui::SliderFloat("Hz##Hertz", &baseHz, 1.f, 60.f, "%.0f");
-				ImGui::Text("DampingRatio for soft joints");
-				ImGui::SliderFloat("##dratio", &baseDampingRatio, 0.f, 1.0f, "%.3f");
+				if (addSoft){
+					ImGui::Text("Frequency for soft joints");
+					ImGui::SliderFloat("Hz##Hertz", &baseHz, 1.f, 60.f, "%.0f");
+					ImGui::Text("DampingRatio for soft joints");
+					ImGui::SliderFloat("##dratio", &baseDampingRatio, 0.f, 1.0f, "%.3f");
+				}
 				ImGui::Text("density");
 				ImGui::SliderFloat("kg/m^3##density", &density, 1000.f, 20000.f, "%.0f");
+				ImGui::Separator();
+				ImGui::Checkbox("Soft", &addSoft);
+				ImGui::SameLine();
+				ImGui::Checkbox("Hard", &addHard);
+				ImGui::SameLine();
+				ImGui::Checkbox("Parts", &addParts);
 			}
 			ImGui::End();
 		}
