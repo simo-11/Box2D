@@ -62,6 +62,9 @@ struct Settings
 {
 	Settings()
 	{
+		reset();
+	}
+	void reset(){
 		hz = 60.0f;
 		velocityIterations = 8;
 		positionIterations = 3;
@@ -83,7 +86,6 @@ struct Settings
 		pause = false;
 		singleStep = false;
 	}
-
 	float32 hz;
 	int32 velocityIterations;
 	int32 positionIterations;

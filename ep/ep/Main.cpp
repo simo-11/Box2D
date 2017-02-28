@@ -430,13 +430,15 @@ static void sInterface()
 		if (ImGui::SmallButton("Restart (R)"))
 			sRestart();
 		ImGui::SameLine();
-		if (ImGui::SmallButton("Reset")){
-			test->reset();
-			sRestart();
-		}
-		ImGui::SameLine();
 		if (ImGui::SmallButton("Quit"))
 			glfwSetWindowShouldClose(mainWindow, GL_TRUE);
+		if (ImGui::SmallButton("ResetCommon")){
+			settings.reset();
+		}
+		ImGui::SameLine();
+		if (ImGui::SmallButton("ResetTest")){
+			test->reset();
+		}
 
 		ImGui::PopAllowKeyboardFocus();
 		ImGui::End();
