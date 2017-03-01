@@ -153,7 +153,7 @@ public:
 	virtual void Keyboard(int key) { B2_NOT_USED(key); }
 	virtual void KeyboardUp(int key) { B2_NOT_USED(key); }
 	void ShiftMouseDown(const b2Vec2& p);
-	virtual void MouseDown(const b2Vec2& p);
+	virtual void MouseDown(const b2Vec2& p, int32 mods);
 	virtual void MouseUp(const b2Vec2& p);
 	void MouseMove(const b2Vec2& p);
 	void LaunchBomb();
@@ -181,6 +181,8 @@ public:
 	virtual void drawNotes(){};
 	/** reset configurable settings */
 	virtual void reset(){};
+	virtual float getBombDensity(){ return 1000; }
+	virtual float getBombRadius(){ return 0.3f; }
 	// ep-end
 protected:
 	friend class DestructionListener;
@@ -196,6 +198,8 @@ protected:
 	b2World* m_world;
 	b2Body* m_bomb;
 	b2MouseJoint* m_mouseJoint;
+	// ep
+	b2Body* loggedBody;
 	b2Vec2 m_bombSpawnPoint;
 	bool m_bombSpawning;
 	b2Vec2 m_mouseWorld;

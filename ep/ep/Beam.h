@@ -40,6 +40,12 @@ class Beam : public Test
 public:
 	b2Vec2 noteWeld1;
 	b2Vec2 noteSoftWeld1;
+	virtual float getBombRadius(){
+		return hy;
+	}
+	virtual float getBombDensity(){
+		return density;
+	}
 	virtual void reset(){
 		so_count = 8;
 		baseHz = 30;
@@ -47,9 +53,9 @@ public:
 		density = 7800;
 		hx = 1.f;
 		hy = 0.25f;
-		addSoft = true;
+		addSoft = false;
 		addHard = true;
-		addParts = true;
+		addParts = false;
 	}
 	Beam()
 	{

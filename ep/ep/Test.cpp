@@ -39,6 +39,7 @@ Test::Test()
 	m_bomb = NULL;
 	m_textLine = 30;
 	m_mouseJoint = NULL;
+	loggedBody = NULL;
 	m_pointCount = 0;
 
 	m_destructionListener.test = this;
@@ -135,7 +136,7 @@ public:
 	b2Fixture* m_fixture;
 };
 
-void Test::MouseDown(const b2Vec2& p)
+void Test::MouseDown(const b2Vec2& p, int32 mods)
 {
 	m_mouseWorld = p;
 	
@@ -158,13 +159,19 @@ void Test::MouseDown(const b2Vec2& p)
 	if (callback.m_fixture)
 	{
 		b2Body* body = callback.m_fixture->GetBody();
-		b2MouseJointDef md;
-		md.bodyA = m_groundBody;
-		md.bodyB = body;
-		md.target = p;
-		md.maxForce = 1000.0f * body->GetMass();
-		m_mouseJoint = (b2MouseJoint*)m_world->CreateJoint(&md);
-		body->SetAwake(true);
+		loggedBody = body;
+		if (!(mods&GLFW_MOD_CONTROL)){
+			b2MouseJointDef md;
+			md.bodyA = m_groundBody;
+			md.bodyB = body;
+			md.target = p;
+			md.maxForce = 1000.0f * body->GetMass();
+			m_mouseJoint = (b2MouseJoint*)m_world->CreateJoint(&md);
+			body->SetAwake(true);
+		}
+	}
+	else{
+		loggedBody = NULL;
 	}
 }
 
@@ -247,11 +254,11 @@ void Test::LaunchBomb(const b2Vec2& position, const b2Vec2& velocity)
 	m_bomb->SetLinearVelocity(velocity);
 	
 	b2CircleShape circle;
-	circle.m_radius = 0.3f;
+	circle.m_radius = getBombRadius();
 
 	b2FixtureDef fd;
 	fd.shape = &circle;
-	fd.density = 20.0f;
+	fd.density = getBombDensity();
 	fd.restitution = 0.0f;
 	
 	b2Vec2 minV = position - b2Vec2(0.3f,0.3f);
@@ -394,6 +401,17 @@ void Test::Step(Settings* settings)
 
 		c.Set(0.8f, 0.8f, 0.8f);
 		g_debugDraw.DrawSegment(p1, p2, c);
+	}
+
+	// ep
+	if (loggedBody){
+		const b2Vec2 p = loggedBody->GetWorldPoint(b2Vec2(0, 0));
+		b2Color c;
+		c.Set(0.0f, 0.0f, 1.0f);
+		g_debugDraw.DrawPoint(p, 4.0f, c);
+		g_debugDraw.DrawString(5, m_textLine, "(x,y,a) = %6.2f %6.2f %6.2f",
+			p.x, p.y, loggedBody->GetAngle());
+		m_textLine += DRAW_STRING_NEW_LINE;
 	}
 	
 	if (m_bombSpawning)

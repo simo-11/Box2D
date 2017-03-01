@@ -274,7 +274,7 @@ static void sMouseButton(GLFWwindow* window, int32 button, int32 action, int32 m
 			}
 			else
 			{
-				test->MouseDown(pw);
+				test->MouseDown(pw, mods);
 			}
 		}
 		
