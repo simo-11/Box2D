@@ -40,6 +40,7 @@ Test::Test()
 	m_textLine = 30;
 	m_mouseJoint = NULL;
 	loggedBody = NULL;
+	steppedTime = 0;
 	m_pointCount = 0;
 
 	m_destructionListener.test = this;
@@ -312,6 +313,7 @@ void Test::Step(Settings* settings)
 	if (timeStep > 0.0f)
 	{
 		++m_stepCount;
+		steppedTime += timeStep;
 	}
 
 	if (settings->drawStats)

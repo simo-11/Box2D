@@ -183,6 +183,7 @@ public:
 	virtual void reset(){};
 	virtual float getBombDensity(){ return 1000; }
 	virtual float getBombRadius(){ return 0.3f; }
+	float32 steppedTime;
 	// ep-end
 protected:
 	friend class DestructionListener;
@@ -200,6 +201,7 @@ protected:
 	b2MouseJoint* m_mouseJoint;
 	// ep
 	b2Body* loggedBody;
+	// ep
 	b2Vec2 m_bombSpawnPoint;
 	bool m_bombSpawning;
 	b2Vec2 m_mouseWorld;

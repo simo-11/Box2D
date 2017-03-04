@@ -47,12 +47,12 @@ public:
 		return density;
 	}
 	virtual void reset(){
-		so_count = 8;
+		so_count = 10;
 		baseHz = 30;
 		baseDampingRatio = 0.2f;
 		density = 7800;
 		hx = 1.f;
-		hy = 0.25f;
+		hy = 1.f;
 		addSoft = false;
 		addHard = true;
 		addParts = false;

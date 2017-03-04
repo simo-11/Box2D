@@ -541,7 +541,7 @@ int main(int, char**)
 			ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
 		if (opened){
 			ImGui::SetCursorPos(ImVec2(5, (float)g_camera.m_height - 20));
-			ImGui::Text("%.1f ms", 1000.0 * frameTime);
+			ImGui::Text("%.1f ms, steppedTime=%.4f s", 1000.0 * frameTime, test->steppedTime);
 		}
 		ImGui::End();
 		sSimulate();
