@@ -57,6 +57,7 @@ For discussion please visit http://box2d.org/forum
 #include "Box2D/Dynamics/Joints/b2FrictionJoint.h"
 #include "Box2D/Dynamics/Joints/b2GearJoint.h"
 #include "Box2D/Dynamics/Joints/b2MotorJoint.h"
+#include "Box2D/Dynamics/Joints/b2ElasticPlasticJoint.h"
 #include "Box2D/Dynamics/Joints/b2MouseJoint.h"
 #include "Box2D/Dynamics/Joints/b2PrismaticJoint.h"
 #include "Box2D/Dynamics/Joints/b2PulleyJoint.h"

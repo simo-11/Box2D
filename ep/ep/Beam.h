@@ -33,13 +33,12 @@ namespace {
 	float density;
 	float32 hx;
 	float32 hy;
-	bool addSoft, addHard, addParts;
+	bool addSoft, addHard, addParts, addMotor, addElasticPlastic;
 }
 class Beam : public Test
 {
 public:
-	b2Vec2 noteWeld1;
-	b2Vec2 noteSoftWeld1;
+	b2Vec2 noteWeld1, noteSoftWeld1, noteMotor1, noteElasticPlastic1;
 	virtual float getBombRadius(){
 		return hy;
 	}
@@ -55,6 +54,8 @@ public:
 		hy = 1.f;
 		addSoft = false;
 		addHard = true;
+		addMotor = true;
+		addElasticPlastic = true;
 		addParts = false;
 	}
 	Beam()
@@ -131,6 +132,65 @@ public:
 				prevBody = body;
 			}
 		}
+		if (addMotor)
+		{
+			b2PolygonShape shape;
+			shape.SetAsBox(hx, hy);
+			float32 sy = 25;
+
+			b2FixtureDef fd;
+			fd.shape = &shape;
+			fd.density = density;
+
+			b2MotorJointDef jd;
+
+			b2Body* prevBody = ground;
+			noteMotor1.Set(-15.f, sy + 2 + hy);
+			for (int32 i = 0; i < so_count; ++i)
+			{
+				b2BodyDef bd;
+				bd.type = b2_dynamicBody;
+				bd.position.Set(noteMotor1.x + (2 * i + 1)*hx, sy);
+				b2Body* body = m_world->CreateBody(&bd);
+				body->CreateFixture(&fd);
+
+				b2Vec2 anchor(noteMotor1.x + (2 * i)*hx, sy);
+				jd.Initialize(prevBody, body);
+				m_world->CreateJoint(&jd);
+
+				prevBody = body;
+			}
+		}
+		if (addElasticPlastic)
+		{
+			b2PolygonShape shape;
+			shape.SetAsBox(hx, hy);
+			float32 sy = 25;
+
+			b2FixtureDef fd;
+			fd.shape = &shape;
+			fd.density = density;
+
+			b2ElasticPlasticJointDef jd;
+
+			b2Body* prevBody = ground;
+			noteElasticPlastic1.Set(-15.f, sy + 2 + hy);
+			for (int32 i = 0; i < so_count; ++i)
+			{
+				b2BodyDef bd;
+				bd.type = b2_dynamicBody;
+				bd.position.Set(noteElasticPlastic1.x + (2 * i + 1)*hx, sy);
+				b2Body* body = m_world->CreateBody(&bd);
+				body->CreateFixture(&fd);
+
+				b2Vec2 anchor(noteElasticPlastic1.x + (2 * i)*hx, sy);
+				jd.Initialize(prevBody, body);
+				m_world->CreateJoint(&jd);
+
+				prevBody = body;
+			}
+		}
+
 		if (addParts)
 		{
 			b2PolygonShape shape;
