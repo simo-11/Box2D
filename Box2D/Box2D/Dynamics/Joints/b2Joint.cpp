@@ -28,6 +28,7 @@
 #include "Box2D/Dynamics/Joints/b2FrictionJoint.h"
 #include "Box2D/Dynamics/Joints/b2RopeJoint.h"
 #include "Box2D/Dynamics/Joints/b2MotorJoint.h"
+#include "Box2D/Dynamics/Joints/b2ElasticPlasticJoint.h"
 #include "Box2D/Dynamics/b2Body.h"
 #include "Box2D/Dynamics/b2World.h"
 #include "Box2D/Common/b2BlockAllocator.h"
@@ -114,6 +115,14 @@ b2Joint* b2Joint::Create(const b2JointDef* def, b2BlockAllocator* allocator)
 		{
 			void* mem = allocator->Allocate(sizeof(b2MotorJoint));
 			joint = new (mem) b2MotorJoint(static_cast<const b2MotorJointDef*>(def));
+		}
+		break;
+
+	case e_elasticPlasticJoint:
+		{
+			void* mem = allocator->Allocate(sizeof(b2ElasticPlasticJoint));
+			joint = new (mem)b2ElasticPlasticJoint
+				(static_cast<const b2ElasticPlasticJointDef*>(def));
 		}
 		break;
 

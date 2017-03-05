@@ -33,6 +33,7 @@ namespace {
 	float density;
 	float32 hx;
 	float32 hy;
+	float fy; //MPa
 	bool addSoft, addHard, addParts, addMotor, addElasticPlastic;
 }
 class Beam : public Test
@@ -52,6 +53,7 @@ public:
 		density = 7800;
 		hx = 1.f;
 		hy = 1.f;
+		fy = 350;
 		addSoft = false;
 		addHard = true;
 		addMotor = true;
@@ -85,20 +87,22 @@ public:
 
 			b2WeldJointDef jd;
 
-			b2Body* prevBody = ground;
+			b2Body* prevBody = NULL;
 			noteWeld1.Set(-15.f,sy+2+hy);
 			for (int32 i = 0; i < so_count; ++i)
 			{
 				b2BodyDef bd;
-				bd.type = b2_dynamicBody;
+				if (i != 0){
+					bd.type = b2_dynamicBody;
+				}
 				bd.position.Set(noteWeld1.x+(2*i+1)*hx, sy);
 				b2Body* body = m_world->CreateBody(&bd);
 				body->CreateFixture(&fd);
-
-				b2Vec2 anchor(noteWeld1.x + (2 * i)*hx, sy);
-				jd.Initialize(prevBody, body, anchor);
-				m_world->CreateJoint(&jd);
-
+				if (prevBody != NULL){
+					b2Vec2 anchor(noteWeld1.x + (2 * i)*hx, sy);
+					jd.Initialize(prevBody, body, anchor);
+					m_world->CreateJoint(&jd);
+				}
 				prevBody = body;
 			}
 		}
@@ -116,19 +120,21 @@ public:
 			jd.dampingRatio = baseDampingRatio;
 
 			noteSoftWeld1.Set(-15.f, sy+2+hy);
-			b2Body* prevBody = ground;
+			b2Body* prevBody = NULL;
 			for (int32 i = 0; i < so_count; ++i)
 			{
 				b2BodyDef bd;
-				bd.type = b2_dynamicBody;
+				if (i != 0){
+					bd.type = b2_dynamicBody;
+				}
 				bd.position.Set(noteSoftWeld1.x + (2 * i + 1)*hx, sy);
 				b2Body* body = m_world->CreateBody(&bd);
 				body->CreateFixture(&fd);
-
-				b2Vec2 anchor(noteSoftWeld1.x + (2 * i)*hx, sy);
-				jd.Initialize(prevBody, body, anchor);
-				m_world->CreateJoint(&jd);
-
+				if (prevBody != NULL){
+					b2Vec2 anchor(noteSoftWeld1.x + (2 * i)*hx, sy);
+					jd.Initialize(prevBody, body, anchor);
+					m_world->CreateJoint(&jd);
+				}
 				prevBody = body;
 			}
 		}
@@ -143,21 +149,25 @@ public:
 			fd.density = density;
 
 			b2MotorJointDef jd;
+			jd.maxForce = 2* hy*fy*1e6f;
+			jd.maxTorque = hy*hy /4 * fy*1e6f;
 
-			b2Body* prevBody = ground;
+			b2Body* prevBody = NULL;
 			noteMotor1.Set(-15.f, sy + 2 + hy);
 			for (int32 i = 0; i < so_count; ++i)
 			{
 				b2BodyDef bd;
-				bd.type = b2_dynamicBody;
+				if (i != 0){
+					bd.type = b2_dynamicBody;
+				}
 				bd.position.Set(noteMotor1.x + (2 * i + 1)*hx, sy);
 				b2Body* body = m_world->CreateBody(&bd);
 				body->CreateFixture(&fd);
-
-				b2Vec2 anchor(noteMotor1.x + (2 * i)*hx, sy);
-				jd.Initialize(prevBody, body);
-				m_world->CreateJoint(&jd);
-
+				if (prevBody != NULL){
+					b2Vec2 anchor(noteMotor1.x + (2 * i)*hx, sy);
+					jd.Initialize(prevBody, body);
+					m_world->CreateJoint(&jd);
+				}
 				prevBody = body;
 			}
 		}
@@ -165,28 +175,32 @@ public:
 		{
 			b2PolygonShape shape;
 			shape.SetAsBox(hx, hy);
-			float32 sy = 25;
+			float32 sy = 35;
 
 			b2FixtureDef fd;
 			fd.shape = &shape;
 			fd.density = density;
 
 			b2ElasticPlasticJointDef jd;
+			jd.maxForce=2*hy*fy*1e6f;
+			jd.maxTorque=hy*hy/4*fy*1e6f;
 
-			b2Body* prevBody = ground;
+			b2Body* prevBody = NULL;
 			noteElasticPlastic1.Set(-15.f, sy + 2 + hy);
 			for (int32 i = 0; i < so_count; ++i)
 			{
 				b2BodyDef bd;
-				bd.type = b2_dynamicBody;
+				if (i != 0){
+					bd.type = b2_dynamicBody;
+				}
 				bd.position.Set(noteElasticPlastic1.x + (2 * i + 1)*hx, sy);
 				b2Body* body = m_world->CreateBody(&bd);
 				body->CreateFixture(&fd);
-
-				b2Vec2 anchor(noteElasticPlastic1.x + (2 * i)*hx, sy);
-				jd.Initialize(prevBody, body);
-				m_world->CreateJoint(&jd);
-
+				if (prevBody != NULL){
+					b2Vec2 anchor(noteElasticPlastic1.x + (2 * i)*hx, sy);
+					jd.Initialize(prevBody, body);
+					m_world->CreateJoint(&jd);
+				}
 				prevBody = body;
 			}
 		}
@@ -204,7 +218,7 @@ public:
 
 			b2WeldJointDef jd;
 
-			b2Body* prevBody = ground;
+			b2Body* prevBody = NULL;
 			for (int32 i = 0; i < so_count; ++i)
 			{
 				b2BodyDef bd;
@@ -237,7 +251,7 @@ public:
 			jd.frequencyHz = baseHz;
 			jd.dampingRatio = baseDampingRatio;
 
-			b2Body* prevBody = ground;
+			b2Body* prevBody = NULL;
 			for (int32 i = 0; i < so_count; ++i)
 			{
 				b2BodyDef bd;
@@ -298,7 +312,7 @@ public:
 	bool showMenu=true;
 	virtual void Ui(Settings* settings){
 		int menuWidth = 200;
-		float menuHeight = 320;
+		float menuHeight = 370;
 		if (showMenu)
 		{
 			ImGui::SetNextWindowPos(ImVec2((float)g_camera.m_width - 2*menuWidth - 10, 10));
@@ -319,12 +333,17 @@ public:
 				}
 				ImGui::Text("density");
 				ImGui::SliderFloat("kg/m^3##density", &density, 1000.f, 20000.f, "%.0f");
+				ImGui::Text("yield stress");
+				ImGui::SliderFloat("MPa##fy", &fy, 10.f, 1000.f, "%.0f");
 				ImGui::Separator();
 				ImGui::Checkbox("Soft", &addSoft);
 				ImGui::SameLine();
 				ImGui::Checkbox("Hard", &addHard);
 				ImGui::SameLine();
 				ImGui::Checkbox("Parts", &addParts);
+				ImGui::Checkbox("Motor", &addMotor);
+				ImGui::SameLine();
+				ImGui::Checkbox("ElasticPlastic", &addElasticPlastic);
 			}
 			ImGui::End();
 		}
@@ -335,6 +354,8 @@ public:
 	virtual void drawNotes(){
 		g_debugDraw.DrawString(noteWeld1, "WeldJoint");
 		g_debugDraw.DrawString(noteSoftWeld1, "Soft WeldJoint");
+		g_debugDraw.DrawString(noteMotor1, "MotorJoint");
+		g_debugDraw.DrawString(noteElasticPlastic1, "ElasticPlasticJoint");
 	}
 	static Test* Create()
 	{
