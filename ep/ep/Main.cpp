@@ -410,6 +410,8 @@ static void sInterface()
 
 		ImGui::Checkbox("Shapes", &settings.drawShapes);
 		ImGui::Checkbox("Joints", &settings.drawJoints);
+		ImGui::SameLine();
+		ImGui::Checkbox("Joint Reactions", &settings.drawJointReactions);
 		ImGui::Checkbox("AABBs", &settings.drawAABBs);
 		ImGui::Checkbox("Contact Points", &settings.drawContactPoints);
 		ImGui::Checkbox("Contact Normals", &settings.drawContactNormals);

@@ -41,7 +41,7 @@ class Beam : public Test
 public:
 	b2Vec2 noteWeld1, noteSoftWeld1, noteMotor1, noteElasticPlastic1;
 	virtual float getBombRadius(){
-		return hy;
+		return hx;
 	}
 	virtual float getBombDensity(){
 		return density;
@@ -324,7 +324,7 @@ public:
 				ImGui::Text("sub body half length");
 				ImGui::SliderFloat("##sub body half length", &hx, 0.1f, 3, "%.2f");
 				ImGui::Text("sub body half height");
-				ImGui::SliderFloat("##sub body half height", &hy, 0.1f, 3, "%.2f");
+				ImGui::SliderFloat("##sub body half height", &hy, 0.05f, 3, "%.2f");
 				if (addSoft){
 					ImGui::Text("Frequency for soft joints");
 					ImGui::SliderFloat("Hz##Hertz", &baseHz, 1.f, 60.f, "%.0f");

@@ -294,6 +294,7 @@ void Test::Step(Settings* settings)
 	uint32 flags = 0;
 	flags += settings->drawShapes			* b2Draw::e_shapeBit;
 	flags += settings->drawJoints			* b2Draw::e_jointBit;
+	flags += settings->drawJointReactions	* b2Draw::e_jointReactionBit;
 	flags += settings->drawAABBs			* b2Draw::e_aabbBit;
 	flags += settings->drawCOMs				* b2Draw::e_centerOfMassBit;
 	g_debugDraw.SetFlags(flags);
@@ -306,7 +307,9 @@ void Test::Step(Settings* settings)
 	m_pointCount = 0;
 
 	m_world->Step(timeStep, settings->velocityIterations, settings->positionIterations);
-
+	if (timeStep > 0.f){
+		g_debugDraw.SetTimeStep(timeStep);
+	}
 	m_world->DrawDebugData();
     g_debugDraw.Flush();
 

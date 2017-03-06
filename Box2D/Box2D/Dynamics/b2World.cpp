@@ -1150,6 +1150,53 @@ void b2World::DrawJoint(b2Joint* joint)
 	}
 }
 
+/**
+Scale reaction force and torque to AABox using MaxValues
+*/
+void b2World::DrawJointReaction(b2Joint* joint)
+{
+	b2Body* bodyA = joint->GetBodyA();
+	b2Body* bodyB = joint->GetBodyB();
+	const b2Transform& xf1 = bodyA->GetTransform();
+	const b2Transform& xf2 = bodyB->GetTransform();
+	b2Vec2 x1 = xf1.p;
+	b2Vec2 x2 = xf2.p;
+	b2Vec2 p1 = joint->GetAnchorA();
+	b2Vec2 p2 = joint->GetAnchorB();
+	b2Vec2 f = joint->GetReactionForce(g_debugDraw->GetTimeStep());
+	float32 m = joint->GetReactionTorque(g_debugDraw->GetTimeStep());
+
+	b2Color color(0.5f, 0.8f, 0.8f);
+
+	switch (joint->GetType())
+	{
+	case e_distanceJoint:
+		g_debugDraw->DrawSegment(p1, p2, color);
+		break;
+
+	case e_pulleyJoint:
+	{
+		b2PulleyJoint* pulley = (b2PulleyJoint*)joint;
+		b2Vec2 s1 = pulley->GetGroundAnchorA();
+		b2Vec2 s2 = pulley->GetGroundAnchorB();
+		g_debugDraw->DrawSegment(s1, p1, color);
+		g_debugDraw->DrawSegment(s2, p2, color);
+		g_debugDraw->DrawSegment(s1, s2, color);
+	}
+	break;
+
+	case e_mouseJoint:
+		// don't draw this
+		break;
+
+	default:
+		g_debugDraw->DrawSegment(x1, p1, color);
+		g_debugDraw->DrawSegment(p1, p2, color);
+		g_debugDraw->DrawSegment(x2, p2, color);
+	}
+}
+
+
 void b2World::DrawDebugData()
 {
 	if (g_debugDraw == NULL)
@@ -1195,6 +1242,14 @@ void b2World::DrawDebugData()
 		for (b2Joint* j = m_jointList; j; j = j->GetNext())
 		{
 			DrawJoint(j);
+		}
+	}
+
+	if (flags & b2Draw::e_jointReactionBit)
+	{
+		for (b2Joint* j = m_jointList; j; j = j->GetNext())
+		{
+			DrawJointReaction(j);
 		}
 	}
 

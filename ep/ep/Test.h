@@ -70,6 +70,7 @@ struct Settings
 		positionIterations = 3;
 		drawShapes = true;
 		drawJoints = true;
+		drawJointReactions = true;
 		drawAABBs = false;
 		drawContactPoints = false;
 		drawContactNormals = false;
@@ -91,6 +92,7 @@ struct Settings
 	int32 positionIterations;
 	bool drawShapes;
 	bool drawJoints;
+	bool drawJointReactions;
 	bool drawAABBs;
 	bool drawContactPoints;
 	bool drawContactNormals;

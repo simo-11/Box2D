@@ -53,7 +53,8 @@ public:
 		e_jointBit				= 0x0002,	///< draw joint connections
 		e_aabbBit				= 0x0004,	///< draw axis aligned bounding boxes
 		e_pairBit				= 0x0008,	///< draw broad-phase pairs
-		e_centerOfMassBit		= 0x0010	///< draw center of mass frame
+		e_centerOfMassBit		= 0x0010,	///< draw center of mass frame
+		e_jointReactionBit      = 0x0020	///< draw joint reactions
 	};
 
 	/// Set the drawing flags.
@@ -90,8 +91,11 @@ public:
 	/// Draw a point.
 	virtual void DrawPoint(const b2Vec2& p, float32 size, const b2Color& color) = 0;
 
+	void SetTimeStep(float32 val){ m_timeStep = val; }
+	float32 GetTimeStep(){ return m_timeStep; }
 protected:
 	uint32 m_drawFlags;
+	float32 m_timeStep;
 };
 
 #endif
