@@ -30,6 +30,8 @@
 #include "Box2D/Collision/Shapes/b2ChainShape.h"
 #include "Box2D/Collision/Shapes/b2PolygonShape.h"
 #include "Box2D/Collision/b2TimeOfImpact.h"
+#include "Box2D/Dynamics/Joints/b2ElasticPlasticJoint.h"
+#include "Box2D/Dynamics/Joints/b2MotorJoint.h"
 #include "Box2D/Common/b2Draw.h"
 #include "Box2D/Common/b2Timer.h"
 #include <new>
@@ -1155,45 +1157,39 @@ Scale reaction force and torque to AABox using MaxValues
 */
 void b2World::DrawJointReaction(b2Joint* joint)
 {
-	b2Body* bodyA = joint->GetBodyA();
-	b2Body* bodyB = joint->GetBodyB();
-	const b2Transform& xf1 = bodyA->GetTransform();
-	const b2Transform& xf2 = bodyB->GetTransform();
-	b2Vec2 x1 = xf1.p;
-	b2Vec2 x2 = xf2.p;
-	b2Vec2 p1 = joint->GetAnchorA();
-	b2Vec2 p2 = joint->GetAnchorB();
-	b2Vec2 f = joint->GetReactionForce(g_debugDraw->GetTimeStep());
-	float32 m = joint->GetReactionTorque(g_debugDraw->GetTimeStep());
-
-	b2Color color(0.5f, 0.8f, 0.8f);
-
+	float32 mf,mm;
 	switch (joint->GetType())
 	{
-	case e_distanceJoint:
-		g_debugDraw->DrawSegment(p1, p2, color);
-		break;
-
-	case e_pulleyJoint:
+	case e_elasticPlasticJoint:
 	{
-		b2PulleyJoint* pulley = (b2PulleyJoint*)joint;
-		b2Vec2 s1 = pulley->GetGroundAnchorA();
-		b2Vec2 s2 = pulley->GetGroundAnchorB();
-		g_debugDraw->DrawSegment(s1, p1, color);
-		g_debugDraw->DrawSegment(s2, p2, color);
-		g_debugDraw->DrawSegment(s1, s2, color);
-	}
-	break;
-
-	case e_mouseJoint:
-		// don't draw this
+		b2ElasticPlasticJoint* ej = (b2ElasticPlasticJoint*)(joint);
+		mf = ej->GetMaxForce();
+		mm = ej->GetMaxTorque();
 		break;
-
-	default:
-		g_debugDraw->DrawSegment(x1, p1, color);
-		g_debugDraw->DrawSegment(p1, p2, color);
-		g_debugDraw->DrawSegment(x2, p2, color);
 	}
+	case e_motorJoint:
+	{
+		b2MotorJoint* ej = (b2MotorJoint*)(joint);
+		mf = ej->GetMaxForce();
+		mm = ej->GetMaxTorque();
+		break;
+	}
+	default:
+		return;
+	}
+	b2Body* bodyA = joint->GetBodyA();
+	b2Vec2 p1 = joint->GetAnchorA();
+	b2Vec2 f = joint->GetReactionForce(g_debugDraw->GetTimeStep());
+	float32 m = joint->GetReactionTorque(g_debugDraw->GetTimeStep());
+	m = 0.2*mm;
+	f = b2Vec2(mf, mf);
+	const b2AABB aabb = bodyA->GetFixtureList()->GetAABB(0);
+	float32 size = aabb.GetPerimeter();
+	float32 cs = (size*m / mm);
+	b2Vec2 p2 = p1 + (size / mf)*f;
+	b2Color color(0.8f, 0.08f, 0.08f);
+	g_debugDraw->DrawSegment(p1, p2, color);
+	g_debugDraw->DrawCircle(p1, cs, color);
 }
 
 
