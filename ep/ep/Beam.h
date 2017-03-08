@@ -198,7 +198,7 @@ public:
 				body->CreateFixture(&fd);
 				if (prevBody != NULL){
 					b2Vec2 anchor(noteElasticPlastic1.x + (2 * i)*hx, sy);
-					jd.Initialize(prevBody, body);
+					jd.Initialize(prevBody, body, anchor);
 					m_world->CreateJoint(&jd);
 				}
 				prevBody = body;

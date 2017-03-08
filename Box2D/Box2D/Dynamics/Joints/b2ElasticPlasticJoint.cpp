@@ -34,12 +34,12 @@
 // J = [0 0 -1 0 0 1]
 // K = invI1 + invI2
 
-void b2ElasticPlasticJointDef::Initialize(b2Body* bA, b2Body* bB)
+void b2ElasticPlasticJointDef::Initialize(b2Body* bA, b2Body* bB, const b2Vec2& anchor)
 {
 	bodyA = bA;
 	bodyB = bB;
-	b2Vec2 xB = bodyB->GetPosition();
-	linearOffset = bodyA->GetLocalPoint(xB);
+	localAnchorA = bodyA->GetLocalPoint(anchor);
+	localAnchorB = bodyB->GetLocalPoint(anchor);
 
 	float32 angleA = bodyA->GetAngle();
 	float32 angleB = bodyB->GetAngle();
@@ -49,6 +49,8 @@ void b2ElasticPlasticJointDef::Initialize(b2Body* bA, b2Body* bB)
 b2ElasticPlasticJoint::b2ElasticPlasticJoint(const b2ElasticPlasticJointDef* def)
 : b2Joint(def)
 {
+	m_localAnchorA = def->localAnchorA;
+	m_localAnchorB = def->localAnchorB;
 	m_linearOffset = def->linearOffset;
 	m_angularOffset = def->angularOffset;
 
@@ -84,8 +86,8 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	b2Rot qA(aA), qB(aB);
 
 	// Compute the effective mass matrix.
-	m_rA = b2Mul(qA, -m_localCenterA);
-	m_rB = b2Mul(qB, -m_localCenterB);
+	m_rA = b2Mul(qA, m_localAnchorA - m_localCenterA);
+	m_rB = b2Mul(qB, m_localAnchorB - m_localCenterB);
 
 	// J = [-I -r1_skew I r2_skew]
 	//     [ 0       -1 0       1]
@@ -297,6 +299,8 @@ void b2ElasticPlasticJoint::Dump()
 	b2Log("  jd.bodyA = bodies[%d];\n", indexA);
 	b2Log("  jd.bodyB = bodies[%d];\n", indexB);
 	b2Log("  jd.collideConnected = bool(%d);\n", m_collideConnected);
+	b2Log("  jd.localAnchorA.Set(%.15lef, %.15lef);\n", m_localAnchorA.x, m_localAnchorA.y);
+	b2Log("  jd.localAnchorB.Set(%.15lef, %.15lef);\n", m_localAnchorB.x, m_localAnchorB.y);
 	b2Log("  jd.linearOffset.Set(%.15lef, %.15lef);\n", m_linearOffset.x, m_linearOffset.y);
 	b2Log("  jd.angularOffset = %.15lef;\n", m_angularOffset);
 	b2Log("  jd.maxForce = %.15lef;\n", m_maxForce);

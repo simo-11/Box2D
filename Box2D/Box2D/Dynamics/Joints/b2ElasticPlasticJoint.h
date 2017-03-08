@@ -37,8 +37,13 @@ struct b2ElasticPlasticJointDef : public b2JointDef
 	}
 
 	/// Initialize the bodies and offsets using the current transforms.
-	void Initialize(b2Body* bodyA, b2Body* bodyB);
+	void Initialize(b2Body* bodyA, b2Body* bodyB, const b2Vec2& anchor);
 
+	/// The local anchor point relative to bodyA's origin.
+	b2Vec2 localAnchorA;
+
+	/// The local anchor point relative to bodyB's origin.
+	b2Vec2 localAnchorB;
 	/// Position of bodyB minus the position of bodyA, in bodyA's frame, in meters.
 	b2Vec2 linearOffset;
 
@@ -67,6 +72,11 @@ public:
 	b2Vec2 GetReactionForce(float32 inv_dt) const;
 	float32 GetReactionTorque(float32 inv_dt) const;
 
+	/// The local anchor point relative to bodyA's origin.
+	const b2Vec2& GetLocalAnchorA() const { return m_localAnchorA; }
+
+	/// The local anchor point relative to bodyB's origin.
+	const b2Vec2& GetLocalAnchorB() const  { return m_localAnchorB; }
 	/// Set/get the target linear offset, in frame A, in meters.
 	void SetLinearOffset(const b2Vec2& linearOffset);
 	const b2Vec2& GetLinearOffset() const;
@@ -107,6 +117,8 @@ protected:
 	bool SolvePositionConstraints(const b2SolverData& data);
 
 	// Solver shared
+	b2Vec2 m_localAnchorA;
+	b2Vec2 m_localAnchorB;
 	b2Vec2 m_linearOffset;
 	float32 m_angularOffset;
 	b2Vec2 m_linearImpulse;

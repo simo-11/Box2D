@@ -1181,13 +1181,13 @@ void b2World::DrawJointReaction(b2Joint* joint)
 	b2Vec2 p1 = joint->GetAnchorA();
 	b2Vec2 f = joint->GetReactionForce(g_debugDraw->GetTimeStep());
 	float32 m = joint->GetReactionTorque(g_debugDraw->GetTimeStep());
-	m = 0.2*mm;
+	m = 0.2f*mm;
 	f = b2Vec2(mf, mf);
 	const b2AABB aabb = bodyA->GetFixtureList()->GetAABB(0);
 	float32 size = aabb.GetPerimeter();
 	float32 cs = (size*m / mm);
 	b2Vec2 p2 = p1 + (size / mf)*f;
-	b2Color color(0.8f, 0.08f, 0.08f);
+	b2Color color(0.8f, 0.7f, 0.04f);
 	g_debugDraw->DrawSegment(p1, p2, color);
 	g_debugDraw->DrawCircle(p1, cs, color);
 }
