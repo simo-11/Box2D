@@ -209,12 +209,12 @@ bool b2ElasticPlasticJoint::SolvePositionConstraints(const b2SolverData& data)
 
 b2Vec2 b2ElasticPlasticJoint::GetAnchorA() const
 {
-	return m_bodyA->GetPosition();
+	return m_bodyA->GetWorldPoint(m_localAnchorA);
 }
 
 b2Vec2 b2ElasticPlasticJoint::GetAnchorB() const
 {
-	return m_bodyB->GetPosition();
+	return m_bodyB->GetWorldPoint(m_localAnchorB);
 }
 
 b2Vec2 b2ElasticPlasticJoint::GetReactionForce(float32 inv_dt) const

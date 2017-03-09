@@ -1158,11 +1158,13 @@ Scale reaction force and torque to AABox using MaxValues
 void b2World::DrawJointReaction(b2Joint* joint)
 {
 	float32 mf,mm;
+	const b2Vec2 *anchor=NULL;
 	switch (joint->GetType())
 	{
 	case e_elasticPlasticJoint:
 	{
 		b2ElasticPlasticJoint* ej = (b2ElasticPlasticJoint*)(joint);
+		anchor = &(ej->GetAnchorA());
 		mf = ej->GetMaxForce();
 		mm = ej->GetMaxTorque();
 		break;
@@ -1179,6 +1181,9 @@ void b2World::DrawJointReaction(b2Joint* joint)
 	}
 	b2Body* bodyA = joint->GetBodyA();
 	b2Vec2 p1 = joint->GetAnchorA();
+	if (anchor != NULL){
+		p1 = *anchor;
+	}
 	b2Vec2 f = joint->GetReactionForce(g_debugDraw->GetTimeStep());
 	float32 m = joint->GetReactionTorque(g_debugDraw->GetTimeStep());
 	m = 0.2f*mm;
