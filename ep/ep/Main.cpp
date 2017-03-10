@@ -398,7 +398,9 @@ static void sInterface()
 		ImGui::Text("Pos Iters");
 		ImGui::SliderInt("##Pos Iters", &settings.positionIterations, 0, 50);
 		ImGui::Text("Hertz");
-		ImGui::SliderFloat("##Hertz", &settings.hz, 5.0f, 120.0f, "%.0f hz");
+		ImGui::SliderFloat("##Hertz", &settings.hz, 5.0f, 10000.0f, "%.0f hz",2.0f);
+		ImGui::Text("forceScale");
+		ImGui::SliderFloat("##forceScale", &settings.forceScale, 0.1f, 10000.0f, "%.3f",2.f);
 		ImGui::PopItemWidth();
 
 		ImGui::Checkbox("Sleep", &settings.enableSleep);
@@ -457,8 +459,8 @@ int main(int, char**)
 	_CrtSetDbgFlag(_CRTDBG_LEAK_CHECK_DF | _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG));
 #endif
 
-	g_camera.m_width = 1024;
-	g_camera.m_height = 640;
+	g_camera.m_width = 1280;
+	g_camera.m_height = 840;
 
 	if (glfwInit() == 0)
 	{

@@ -86,6 +86,7 @@ struct Settings
 		enableSleep = true;
 		pause = false;
 		singleStep = false;
+		forceScale = 0.05f;
 	}
 	float32 hz;
 	int32 velocityIterations;
@@ -108,6 +109,7 @@ struct Settings
 	bool enableSleep;
 	bool pause;
 	bool singleStep;
+	float32 forceScale;
 };
 
 struct TestEntry
