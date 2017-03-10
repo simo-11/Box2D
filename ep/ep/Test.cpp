@@ -298,6 +298,7 @@ void Test::Step(Settings* settings)
 	flags += settings->drawAABBs			* b2Draw::e_aabbBit;
 	flags += settings->drawCOMs				* b2Draw::e_centerOfMassBit;
 	g_debugDraw.SetFlags(flags);
+	g_debugDraw.SetForceScale(0.05f*g_camera.m_extent);
 
 	m_world->SetAllowSleeping(settings->enableSleep);
 	m_world->SetWarmStarting(settings->enableWarmStarting);

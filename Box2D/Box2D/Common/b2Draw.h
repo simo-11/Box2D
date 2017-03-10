@@ -90,12 +90,18 @@ public:
 
 	/// Draw a point.
 	virtual void DrawPoint(const b2Vec2& p, float32 size, const b2Color& color) = 0;
-
+	// ep
 	void SetTimeStep(float32 val){ m_timeStep = val; }
 	float32 GetTimeStep(){ return m_timeStep; }
+	// forceScale should be set so that maximum force is visually helpful
+	// e.g. 5-10 % of extents
+	void SetForceScale(float32 scale){ m_forceScale = scale; }
+	float32 GetForceScale(){ return m_forceScale; }
 protected:
 	uint32 m_drawFlags;
+	// ep
 	float32 m_timeStep;
+	float32 m_forceScale;
 };
 
 #endif
