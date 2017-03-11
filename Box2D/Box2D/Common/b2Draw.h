@@ -94,14 +94,15 @@ public:
 	void SetTimeStep(float32 val){ m_timeStep = val; }
 	float32 GetTimeStep(){ return m_timeStep; }
 	// forceScale should be set so that maximum force is visually helpful
-	// e.g. 5-10 % of extents
 	void SetForceScale(float32 scale){ m_forceScale = scale; }
 	float32 GetForceScale(){ return m_forceScale; }
+	void SetMomentScale(float32 scale){ m_momentScale = scale; }
+	float32 GetMomentScale(){ return m_momentScale; }
 protected:
 	uint32 m_drawFlags;
 	// ep
 	float32 m_timeStep;
-	float32 m_forceScale;
+	float32 m_forceScale,m_momentScale;
 };
 
 #endif

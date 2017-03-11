@@ -399,8 +399,10 @@ static void sInterface()
 		ImGui::SliderInt("##Pos Iters", &settings.positionIterations, 0, 50);
 		ImGui::Text("Hertz");
 		ImGui::SliderFloat("##Hertz", &settings.hz, 5.0f, 10000.0f, "%.0f hz",2.0f);
-		ImGui::Text("forceScale");
-		ImGui::SliderFloat("##forceScale", &settings.forceScale, 0.1f, 10000.0f, "%.3f",2.f);
+		ImGui::Text("visual joint reaction force"); 
+		ImGui::SliderFloat("##forceScale", &settings.forceScale, 0.001f, 1000.0f, "%.3f", 2.f);
+		ImGui::Text("visual joint reaction moment");
+		ImGui::SliderFloat("##momentScale", &settings.momentScale, 0.001f, 1000.0f, "%.3f",2.f);
 		ImGui::PopItemWidth();
 
 		ImGui::Checkbox("Sleep", &settings.enableSleep);

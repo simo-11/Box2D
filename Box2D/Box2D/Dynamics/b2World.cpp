@@ -1153,39 +1153,21 @@ void b2World::DrawJoint(b2Joint* joint)
 }
 
 /**
-Scale reaction force and torque to AABox using MaxValues
+Scale reaction force and torque 
 */
 void b2World::DrawJointReaction(b2Joint* joint)
 {
-	float32 mf,mm;
-	switch (joint->GetType())
-	{
-	case e_elasticPlasticJoint:
-	{
-		b2ElasticPlasticJoint* ej = (b2ElasticPlasticJoint*)(joint);
-		mf = ej->GetMaxForce();
-		mm = ej->GetMaxTorque();
-		break;
-	}
-	case e_motorJoint:
-	{
-		b2MotorJoint* ej = (b2MotorJoint*)(joint);
-		mf = ej->GetMaxForce();
-		mm = ej->GetMaxTorque();
-		break;
-	}
-	default:
-		return;
-	}
 	b2Body* bodyA = joint->GetBodyA();
 	b2Vec2 p1 = 0.5f*(joint->GetAnchorA()+joint->GetAnchorB());
 	b2Vec2 f = joint->GetReactionForce(g_debugDraw->GetTimeStep());
 	float32 m = joint->GetReactionTorque(g_debugDraw->GetTimeStep());
-	float32 scale = g_debugDraw->GetForceScale();
-	float32 cs = (scale*m / mm);
-	b2Vec2 p2 = p1 + (scale / mf)*f;
-	b2Color color(0.8f, 0.7f, 0.04f);
+	float32 cs = g_debugDraw->GetMomentScale() / 1.e6f*m;
+	b2Vec2 p2 = p1 + g_debugDraw->GetForceScale()/1.e6f*f;
+	b2Color color(1, 1, 0);
 	g_debugDraw->DrawSegment(p1, p2, color);
+	if (m>0){ // positive moment in green
+		color.Set(0, 1, 0);
+	}
 	g_debugDraw->DrawCircle(p1, cs, color);
 }
 

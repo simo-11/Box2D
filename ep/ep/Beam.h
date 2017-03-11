@@ -55,8 +55,8 @@ public:
 		hy = 1.f;
 		fy = 350;
 		addSoft = false;
-		addHard = true;
-		addMotor = true;
+		addHard = false;
+		addMotor = false;
 		addElasticPlastic = true;
 		addParts = false;
 	}
