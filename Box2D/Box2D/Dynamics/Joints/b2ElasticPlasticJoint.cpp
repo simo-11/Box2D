@@ -22,9 +22,9 @@
 #include "Box2D/Dynamics/b2Body.h"
 #include "Box2D/Dynamics/b2TimeStep.h"
 
-/* 
+/*
 These are smaller than normal b2 limits as
-there are often many connected joints and 
+there are often many connected joints and
 error accumulates.
 These can be tuned.
 */
