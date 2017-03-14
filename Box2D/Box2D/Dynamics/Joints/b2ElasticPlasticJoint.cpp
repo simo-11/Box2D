@@ -40,10 +40,7 @@ void b2ElasticPlasticJointDef::Initialize(b2Body* bA, b2Body* bB, const b2Vec2& 
 	bodyB = bB;
 	localAnchorA = bodyA->GetLocalPoint(anchor);
 	localAnchorB = bodyB->GetLocalPoint(anchor);
-
-	float32 angleA = bodyA->GetAngle();
-	float32 angleB = bodyB->GetAngle();
-	angularOffset = angleB - angleA;
+	referenceAngle = bodyB->GetAngle() - bodyA->GetAngle();
 }
 
 b2ElasticPlasticJoint::b2ElasticPlasticJoint(const b2ElasticPlasticJointDef* def)
@@ -51,15 +48,14 @@ b2ElasticPlasticJoint::b2ElasticPlasticJoint(const b2ElasticPlasticJointDef* def
 {
 	m_localAnchorA = def->localAnchorA;
 	m_localAnchorB = def->localAnchorB;
-	m_linearOffset = def->linearOffset;
-	m_angularOffset = def->angularOffset;
+	m_referenceAngle = def->referenceAngle;
+	m_frequencyHz = def->frequencyHz;
+	m_dampingRatio = def->dampingRatio;
 
-	m_linearImpulse.SetZero();
-	m_angularImpulse = 0.0f;
+	m_impulse.SetZero();
 
 	m_maxForce = def->maxForce;
 	m_maxTorque = def->maxTorque;
-	m_correctionFactor = def->correctionFactor;
 }
 
 void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
@@ -73,19 +69,16 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	m_invIA = m_bodyA->m_invI;
 	m_invIB = m_bodyB->m_invI;
 
-	b2Vec2 cA = data.positions[m_indexA].c;
 	float32 aA = data.positions[m_indexA].a;
 	b2Vec2 vA = data.velocities[m_indexA].v;
 	float32 wA = data.velocities[m_indexA].w;
 
-	b2Vec2 cB = data.positions[m_indexB].c;
 	float32 aB = data.positions[m_indexB].a;
 	b2Vec2 vB = data.velocities[m_indexB].v;
 	float32 wB = data.velocities[m_indexB].w;
 
 	b2Rot qA(aA), qB(aB);
 
-	// Compute the effective mass matrix.
 	m_rA = b2Mul(qA, m_localAnchorA - m_localCenterA);
 	m_rB = b2Mul(qB, m_localAnchorB - m_localCenterB);
 
@@ -101,39 +94,73 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	float32 mA = m_invMassA, mB = m_invMassB;
 	float32 iA = m_invIA, iB = m_invIB;
 
-	b2Mat22 K;
-	K.ex.x = mA + mB + iA * m_rA.y * m_rA.y + iB * m_rB.y * m_rB.y;
-	K.ex.y = -iA * m_rA.x * m_rA.y - iB * m_rB.x * m_rB.y;
-	K.ey.x = K.ex.y;
-	K.ey.y = mA + mB + iA * m_rA.x * m_rA.x + iB * m_rB.x * m_rB.x;
+	b2Mat33 K;
+	K.ex.x = mA + mB + m_rA.y * m_rA.y * iA + m_rB.y * m_rB.y * iB;
+	K.ey.x = -m_rA.y * m_rA.x * iA - m_rB.y * m_rB.x * iB;
+	K.ez.x = -m_rA.y * iA - m_rB.y * iB;
+	K.ex.y = K.ey.x;
+	K.ey.y = mA + mB + m_rA.x * m_rA.x * iA + m_rB.x * m_rB.x * iB;
+	K.ez.y = m_rA.x * iA + m_rB.x * iB;
+	K.ex.z = K.ez.x;
+	K.ey.z = K.ez.y;
+	K.ez.z = iA + iB;
 
-	m_linearMass = K.GetInverse();
-
-	m_angularMass = iA + iB;
-	if (m_angularMass > 0.0f)
+	if (m_frequencyHz > 0.0f)
 	{
-		m_angularMass = 1.0f / m_angularMass;
-	}
+		K.GetInverse22(&m_mass);
 
-	m_linearError = cB + m_rB - cA - m_rA - b2Mul(qA, m_linearOffset);
-	m_angularError = aB - aA - m_angularOffset;
+		float32 invM = iA + iB;
+		float32 m = invM > 0.0f ? 1.0f / invM : 0.0f;
+
+		float32 C = aB - aA - m_referenceAngle;
+
+		// Frequency
+		float32 omega = 2.0f * b2_pi * m_frequencyHz;
+
+		// Damping coefficient
+		float32 d = 2.0f * m * m_dampingRatio * omega;
+
+		// Spring stiffness
+		float32 k = m * omega * omega;
+
+		// magic formulas
+		float32 h = data.step.dt;
+		m_gamma = h * (d + h * k);
+		m_gamma = m_gamma != 0.0f ? 1.0f / m_gamma : 0.0f;
+		m_bias = C * h * k * m_gamma;
+
+		invM += m_gamma;
+		m_mass.ez.z = invM != 0.0f ? 1.0f / invM : 0.0f;
+	}
+	else if (K.ez.z == 0.0f)
+	{
+		K.GetInverse22(&m_mass);
+		m_gamma = 0.0f;
+		m_bias = 0.0f;
+	}
+	else
+	{
+		K.GetSymInverse33(&m_mass);
+		m_gamma = 0.0f;
+		m_bias = 0.0f;
+	}
 
 	if (data.step.warmStarting)
 	{
 		// Scale impulses to support a variable time step.
-		m_linearImpulse *= data.step.dtRatio;
-		m_angularImpulse *= data.step.dtRatio;
+		m_impulse *= data.step.dtRatio;
 
-		b2Vec2 P(m_linearImpulse.x, m_linearImpulse.y);
+		b2Vec2 P(m_impulse.x, m_impulse.y);
+
 		vA -= mA * P;
-		wA -= iA * (b2Cross(m_rA, P) + m_angularImpulse);
+		wA -= iA * (b2Cross(m_rA, P) + m_impulse.z);
+
 		vB += mB * P;
-		wB += iB * (b2Cross(m_rB, P) + m_angularImpulse);
+		wB += iB * (b2Cross(m_rB, P) + m_impulse.z);
 	}
 	else
 	{
-		m_linearImpulse.SetZero();
-		m_angularImpulse = 0.0f;
+		m_impulse.SetZero();
 	}
 
 	data.velocities[m_indexA].v = vA;
@@ -152,46 +179,46 @@ void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 	float32 mA = m_invMassA, mB = m_invMassB;
 	float32 iA = m_invIA, iB = m_invIB;
 
-	float32 h = data.step.dt;
-	float32 inv_h = data.step.inv_dt;
-
-	// Solve angular friction
+	if (m_frequencyHz > 0.0f)
 	{
-		float32 Cdot = wB - wA + inv_h * m_correctionFactor * m_angularError;
-		float32 impulse = -m_angularMass * Cdot;
+		float32 Cdot2 = wB - wA;
 
-		float32 oldImpulse = m_angularImpulse;
-		float32 maxImpulse = h * m_maxTorque;
-		m_angularImpulse = b2Clamp(m_angularImpulse + impulse, -maxImpulse, maxImpulse);
-		impulse = m_angularImpulse - oldImpulse;
+		float32 impulse2 = -m_mass.ez.z * (Cdot2 + m_bias + m_gamma * m_impulse.z);
+		m_impulse.z += impulse2;
 
-		wA -= iA * impulse;
-		wB += iB * impulse;
+		wA -= iA * impulse2;
+		wB += iB * impulse2;
+
+		b2Vec2 Cdot1 = vB + b2Cross(wB, m_rB) - vA - b2Cross(wA, m_rA);
+
+		b2Vec2 impulse1 = -b2Mul22(m_mass, Cdot1);
+		m_impulse.x += impulse1.x;
+		m_impulse.y += impulse1.y;
+
+		b2Vec2 P = impulse1;
+
+		vA -= mA * P;
+		wA -= iA * b2Cross(m_rA, P);
+
+		vB += mB * P;
+		wB += iB * b2Cross(m_rB, P);
 	}
-
-	// Solve linear friction
+	else
 	{
-		b2Vec2 Cdot = vB + b2Cross(wB, m_rB) - vA - b2Cross(wA, m_rA) + inv_h * m_correctionFactor * m_linearError;
+		b2Vec2 Cdot1 = vB + b2Cross(wB, m_rB) - vA - b2Cross(wA, m_rA);
+		float32 Cdot2 = wB - wA;
+		b2Vec3 Cdot(Cdot1.x, Cdot1.y, Cdot2);
 
-		b2Vec2 impulse = -b2Mul(m_linearMass, Cdot);
-		b2Vec2 oldImpulse = m_linearImpulse;
-		m_linearImpulse += impulse;
+		b2Vec3 impulse = -b2Mul(m_mass, Cdot);
+		m_impulse += impulse;
 
-		float32 maxImpulse = h * m_maxForce;
+		b2Vec2 P(impulse.x, impulse.y);
 
-		if (m_linearImpulse.LengthSquared() > maxImpulse * maxImpulse)
-		{
-			m_linearImpulse.Normalize();
-			m_linearImpulse *= maxImpulse;
-		}
+		vA -= mA * P;
+		wA -= iA * (b2Cross(m_rA, P) + impulse.z);
 
-		impulse = m_linearImpulse - oldImpulse;
-
-		vA -= mA * impulse;
-		wA -= iA * b2Cross(m_rA, impulse);
-
-		vB += mB * impulse;
-		wB += iB * b2Cross(m_rB, impulse);
+		vB += mB * P;
+		wB += iB * (b2Cross(m_rB, P) + impulse.z);
 	}
 
 	data.velocities[m_indexA].v = vA;
@@ -202,9 +229,83 @@ void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 
 bool b2ElasticPlasticJoint::SolvePositionConstraints(const b2SolverData& data)
 {
-	B2_NOT_USED(data);
+	b2Vec2 cA = data.positions[m_indexA].c;
+	float32 aA = data.positions[m_indexA].a;
+	b2Vec2 cB = data.positions[m_indexB].c;
+	float32 aB = data.positions[m_indexB].a;
 
-	return true;
+	b2Rot qA(aA), qB(aB);
+
+	float32 mA = m_invMassA, mB = m_invMassB;
+	float32 iA = m_invIA, iB = m_invIB;
+
+	b2Vec2 rA = b2Mul(qA, m_localAnchorA - m_localCenterA);
+	b2Vec2 rB = b2Mul(qB, m_localAnchorB - m_localCenterB);
+
+	float32 positionError, angularError;
+
+	b2Mat33 K;
+	K.ex.x = mA + mB + rA.y * rA.y * iA + rB.y * rB.y * iB;
+	K.ey.x = -rA.y * rA.x * iA - rB.y * rB.x * iB;
+	K.ez.x = -rA.y * iA - rB.y * iB;
+	K.ex.y = K.ey.x;
+	K.ey.y = mA + mB + rA.x * rA.x * iA + rB.x * rB.x * iB;
+	K.ez.y = rA.x * iA + rB.x * iB;
+	K.ex.z = K.ez.x;
+	K.ey.z = K.ez.y;
+	K.ez.z = iA + iB;
+
+	if (m_frequencyHz > 0.0f)
+	{
+		b2Vec2 C1 = cB + rB - cA - rA;
+
+		positionError = C1.Length();
+		angularError = 0.0f;
+
+		b2Vec2 P = -K.Solve22(C1);
+
+		cA -= mA * P;
+		aA -= iA * b2Cross(rA, P);
+
+		cB += mB * P;
+		aB += iB * b2Cross(rB, P);
+	}
+	else
+	{
+		b2Vec2 C1 = cB + rB - cA - rA;
+		float32 C2 = aB - aA - m_referenceAngle;
+
+		positionError = C1.Length();
+		angularError = b2Abs(C2);
+
+		b2Vec3 C(C1.x, C1.y, C2);
+
+		b2Vec3 impulse;
+		if (K.ez.z > 0.0f)
+		{
+			impulse = -K.Solve33(C);
+		}
+		else
+		{
+			b2Vec2 impulse2 = -K.Solve22(C1);
+			impulse.Set(impulse2.x, impulse2.y, 0.0f);
+		}
+
+		b2Vec2 P(impulse.x, impulse.y);
+
+		cA -= mA * P;
+		aA -= iA * (b2Cross(rA, P) + impulse.z);
+
+		cB += mB * P;
+		aB += iB * (b2Cross(rB, P) + impulse.z);
+	}
+
+	data.positions[m_indexA].c = cA;
+	data.positions[m_indexA].a = aA;
+	data.positions[m_indexB].c = cB;
+	data.positions[m_indexB].a = aB;
+
+	return positionError <= b2_linearSlop && angularError <= b2_angularSlop;
 }
 
 b2Vec2 b2ElasticPlasticJoint::GetAnchorA() const
@@ -219,12 +320,13 @@ b2Vec2 b2ElasticPlasticJoint::GetAnchorB() const
 
 b2Vec2 b2ElasticPlasticJoint::GetReactionForce(float32 inv_dt) const
 {
-	return inv_dt * m_linearImpulse;
+	b2Vec2 P(m_impulse.x, m_impulse.y);
+	return inv_dt * P;
 }
 
 float32 b2ElasticPlasticJoint::GetReactionTorque(float32 inv_dt) const
 {
-	return inv_dt * m_angularImpulse;
+	return inv_dt * m_impulse.z;
 }
 
 void b2ElasticPlasticJoint::SetMaxForce(float32 force)
@@ -249,46 +351,6 @@ float32 b2ElasticPlasticJoint::GetMaxTorque() const
 	return m_maxTorque;
 }
 
-void b2ElasticPlasticJoint::SetCorrectionFactor(float32 factor)
-{
-	b2Assert(b2IsValid(factor) && 0.0f <= factor && factor <= 1.0f);
-	m_correctionFactor = factor;
-}
-
-float32 b2ElasticPlasticJoint::GetCorrectionFactor() const
-{
-	return m_correctionFactor;
-}
-
-void b2ElasticPlasticJoint::SetLinearOffset(const b2Vec2& linearOffset)
-{
-	if (linearOffset.x != m_linearOffset.x || linearOffset.y != m_linearOffset.y)
-	{
-		m_bodyA->SetAwake(true);
-		m_bodyB->SetAwake(true);
-		m_linearOffset = linearOffset;
-	}
-}
-
-const b2Vec2& b2ElasticPlasticJoint::GetLinearOffset() const
-{
-	return m_linearOffset;
-}
-
-void b2ElasticPlasticJoint::SetAngularOffset(float32 angularOffset)
-{
-	if (angularOffset != m_angularOffset)
-	{
-		m_bodyA->SetAwake(true);
-		m_bodyB->SetAwake(true);
-		m_angularOffset = angularOffset;
-	}
-}
-
-float32 b2ElasticPlasticJoint::GetAngularOffset() const
-{
-	return m_angularOffset;
-}
 
 void b2ElasticPlasticJoint::Dump()
 {
@@ -301,10 +363,9 @@ void b2ElasticPlasticJoint::Dump()
 	b2Log("  jd.collideConnected = bool(%d);\n", m_collideConnected);
 	b2Log("  jd.localAnchorA.Set(%.15lef, %.15lef);\n", m_localAnchorA.x, m_localAnchorA.y);
 	b2Log("  jd.localAnchorB.Set(%.15lef, %.15lef);\n", m_localAnchorB.x, m_localAnchorB.y);
-	b2Log("  jd.linearOffset.Set(%.15lef, %.15lef);\n", m_linearOffset.x, m_linearOffset.y);
-	b2Log("  jd.angularOffset = %.15lef;\n", m_angularOffset);
+	b2Log("  jd.referenceAngle = %.15lef;\n", m_referenceAngle);
 	b2Log("  jd.maxForce = %.15lef;\n", m_maxForce);
 	b2Log("  jd.maxTorque = %.15lef;\n", m_maxTorque);
-	b2Log("  jd.correctionFactor = %.15lef;\n", m_correctionFactor);
+	b2Log("  jd.dampingRatio = %.15lef;\n", m_dampingRatio);
 	b2Log("  joints[%d] = m_world->CreateJoint(&jd);\n", m_index);
 }

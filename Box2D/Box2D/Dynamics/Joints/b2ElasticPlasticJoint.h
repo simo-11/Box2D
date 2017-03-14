@@ -23,17 +23,18 @@
 
 #include "Box2D/Dynamics/Joints/b2Joint.h"
 
-/// Motor joint definition.
+/// Weld joint definition. You need to specify local anchor points
+/// where they are attached and the relative body angle. The position
+/// of the anchor points is important for computing the reaction torque.
 struct b2ElasticPlasticJointDef : public b2JointDef
 {
 	b2ElasticPlasticJointDef()
 	{
 		type = e_elasticPlasticJoint;
-		linearOffset.SetZero();
-		angularOffset = 0.0f;
-		maxForce = 1.0f;
-		maxTorque = 1.0f;
-		correctionFactor = 0.3f;
+		localAnchorA.Set(0.0f, 0.0f);
+		localAnchorB.Set(0.0f, 0.0f);
+		referenceAngle = 0.0f;
+		dampingRatio = 0.0f;
 	}
 
 	/// Initialize the bodies and offsets using the current transforms.
@@ -44,20 +45,23 @@ struct b2ElasticPlasticJointDef : public b2JointDef
 
 	/// The local anchor point relative to bodyB's origin.
 	b2Vec2 localAnchorB;
-	/// Position of bodyB minus the position of bodyA, in bodyA's frame, in meters.
-	b2Vec2 linearOffset;
 
-	/// The bodyB angle minus bodyA angle in radians.
-	float32 angularOffset;
-	
-	/// The maximum motor force in N.
+	/// The bodyB angle minus bodyA angle in the reference state (radians).
+	float32 referenceAngle;
+
+	/// The mass-spring-damper frequency in Hertz. Rotation only.
+	/// Disable softness with a value of 0.
+	float32 frequencyHz;
+
+	/// The damping ratio. 0 = no damping, 1 = critical damping.
+	float32 dampingRatio;
+
+	/// The joint motor force in N.
 	float32 maxForce;
 
-	/// The maximum motor torque in N-m.
+	/// The maximum joint torque in N-m.
 	float32 maxTorque;
 
-	/// Position correction factor in the range [0,1].
-	float32 correctionFactor;
 };
 
 /// A motor joint is used to control the relative motion
@@ -77,13 +81,9 @@ public:
 
 	/// The local anchor point relative to bodyB's origin.
 	const b2Vec2& GetLocalAnchorB() const  { return m_localAnchorB; }
-	/// Set/get the target linear offset, in frame A, in meters.
-	void SetLinearOffset(const b2Vec2& linearOffset);
-	const b2Vec2& GetLinearOffset() const;
 
-	/// Set/get the target angular offset, in radians.
-	void SetAngularOffset(float32 angularOffset);
-	float32 GetAngularOffset() const;
+	/// Get the reference angle.
+	float32 GetReferenceAngle() const { return m_referenceAngle; }
 
 	/// Set the maximum friction force in N.
 	void SetMaxForce(float32 force);
@@ -96,12 +96,6 @@ public:
 
 	/// Get the maximum friction torque in N*m.
 	float32 GetMaxTorque() const;
-
-	/// Set the position correction factor in the range [0,1].
-	void SetCorrectionFactor(float32 factor);
-
-	/// Get the position correction factor in the range [0,1].
-	float32 GetCorrectionFactor() const;
 
 	/// Dump to b2Log
 	void Dump();
@@ -116,16 +110,18 @@ protected:
 	void SolveVelocityConstraints(const b2SolverData& data);
 	bool SolvePositionConstraints(const b2SolverData& data);
 
+	float32 m_frequencyHz; 
+	float32 m_dampingRatio;
+	float32 m_bias;
+
 	// Solver shared
 	b2Vec2 m_localAnchorA;
 	b2Vec2 m_localAnchorB;
-	b2Vec2 m_linearOffset;
-	float32 m_angularOffset;
-	b2Vec2 m_linearImpulse;
-	float32 m_angularImpulse;
+	float32 m_referenceAngle;
+	float32 m_gamma;
+	b2Vec3 m_impulse;
 	float32 m_maxForce;
 	float32 m_maxTorque;
-	float32 m_correctionFactor;
 
 	// Solver temp
 	int32 m_indexA;
@@ -134,14 +130,11 @@ protected:
 	b2Vec2 m_rB;
 	b2Vec2 m_localCenterA;
 	b2Vec2 m_localCenterB;
-	b2Vec2 m_linearError;
-	float32 m_angularError;
 	float32 m_invMassA;
 	float32 m_invMassB;
 	float32 m_invIA;
 	float32 m_invIB;
-	b2Mat22 m_linearMass;
-	float32 m_angularMass;
+	b2Mat33 m_mass;
 };
 
 #endif
