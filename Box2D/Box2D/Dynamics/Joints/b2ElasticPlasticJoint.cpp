@@ -22,6 +22,17 @@
 #include "Box2D/Dynamics/b2Body.h"
 #include "Box2D/Dynamics/b2TimeStep.h"
 
+/* 
+These are smaller than normal b2 limits as
+there are often many connected joints and 
+error accumulates.
+These can be tuned.
+*/
+namespace
+{
+	float32 b2ep_linearSlop=0.0005f;
+	float32 b2ep_angularSlop=0.0005f;
+}
 // Point-to-point constraint
 // Cdot = v2 - v1
 //      = v2 + cross(w2, r2) - v1 - cross(w1, r1)
@@ -305,7 +316,23 @@ bool b2ElasticPlasticJoint::SolvePositionConstraints(const b2SolverData& data)
 	data.positions[m_indexB].c = cB;
 	data.positions[m_indexB].a = aB;
 
-	return positionError <= b2_linearSlop && angularError <= b2_angularSlop;
+	return positionError <= b2ep_linearSlop && angularError <= b2ep_angularSlop;
+}
+
+void b2ElasticPlasticJoint::SetLinearSlop(float32 value){
+	b2ep_linearSlop = value;
+}
+
+float32 b2ElasticPlasticJoint::GetLinearSlop(){
+	return b2ep_linearSlop;
+}
+
+void b2ElasticPlasticJoint::SetAngularSlop(float32 value){
+	b2ep_angularSlop = value;
+}
+
+float32 b2ElasticPlasticJoint::GetAngularSlop(){
+	return b2ep_angularSlop;
 }
 
 b2Vec2 b2ElasticPlasticJoint::GetAnchorA() const

@@ -99,7 +99,10 @@ public:
 
 	/// Dump to b2Log
 	void Dump();
-
+	static void SetLinearSlop(float32 value);
+	static float32 GetLinearSlop();
+	static void SetAngularSlop(float32 value);
+	static float32 GetAngularSlop();
 protected:
 
 	friend class b2Joint;
