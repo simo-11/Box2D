@@ -138,6 +138,9 @@ protected:
 	float32 m_invIA;
 	float32 m_invIB;
 	b2Mat33 m_mass;
+	// ep
+	float32 positionError, angularError;
+	bool jointOk;
 };
 
 #endif

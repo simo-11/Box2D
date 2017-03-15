@@ -253,8 +253,6 @@ bool b2ElasticPlasticJoint::SolvePositionConstraints(const b2SolverData& data)
 	b2Vec2 rA = b2Mul(qA, m_localAnchorA - m_localCenterA);
 	b2Vec2 rB = b2Mul(qB, m_localAnchorB - m_localCenterB);
 
-	float32 positionError, angularError;
-
 	b2Mat33 K;
 	K.ex.x = mA + mB + rA.y * rA.y * iA + rB.y * rB.y * iB;
 	K.ey.x = -rA.y * rA.x * iA - rB.y * rB.x * iB;
@@ -316,7 +314,8 @@ bool b2ElasticPlasticJoint::SolvePositionConstraints(const b2SolverData& data)
 	data.positions[m_indexB].c = cB;
 	data.positions[m_indexB].a = aB;
 
-	return positionError <= b2ep_linearSlop && angularError <= b2ep_angularSlop;
+	jointOk=positionError <= b2ep_linearSlop && angularError <= b2ep_angularSlop;
+	return jointOk;
 }
 
 void b2ElasticPlasticJoint::SetLinearSlop(float32 value){
