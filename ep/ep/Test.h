@@ -206,6 +206,7 @@ protected:
 	b2MouseJoint* m_mouseJoint;
 	// ep
 	b2Body* loggedBody;
+	b2Vec3 max, min;
 	// ep
 	b2Vec2 m_bombSpawnPoint;
 	bool m_bombSpawning;

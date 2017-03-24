@@ -42,7 +42,8 @@ Test::Test()
 	loggedBody = NULL;
 	steppedTime = 0;
 	m_pointCount = 0;
-
+	max.Set(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+	min.Set(FLT_MAX, FLT_MAX, FLT_MAX);
 	m_destructionListener.test = this;
 	m_world->SetDestructionListener(&m_destructionListener);
 	m_world->SetContactListener(this);
@@ -418,6 +419,18 @@ void Test::Step(Settings* settings)
 		g_debugDraw.DrawPoint(p, 4.0f, c);
 		g_debugDraw.DrawString(5, m_textLine, "(x,y,a) = %6.2f %6.2f %6.2f",
 			p.x, p.y, loggedBody->GetAngle());
+		m_textLine += DRAW_STRING_NEW_LINE;
+		min.x = b2Min(min.x, p.x);
+		min.y = b2Min(min.y, p.y);
+		min.z = b2Min(min.z, loggedBody->GetAngle());
+		g_debugDraw.DrawString(5, m_textLine, "min (x,y,a) = %6.2f %6.2f %6.2f",
+			min.x, min.y, min.z);
+		m_textLine += DRAW_STRING_NEW_LINE;
+		max.x = b2Max(max.x, p.x);
+		max.y = b2Max(max.y, p.y);
+		max.z = b2Max(max.z, loggedBody->GetAngle());
+		g_debugDraw.DrawString(5, m_textLine, "max (x,y,a) = %6.2f %6.2f %6.2f",
+			max.x, max.y, max.z);
 		m_textLine += DRAW_STRING_NEW_LINE;
 	}
 	
