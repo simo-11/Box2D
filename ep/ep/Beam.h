@@ -25,6 +25,9 @@
 // You will have to use a high number of iterations to make them stiff.
 // So why not go ahead and use soft weld joints? They behave like a revolute
 // joint with a rotational spring.
+//
+// Simo searches way to make iterations more efficient
+//
 
 namespace {
 	int so_count;
@@ -63,7 +66,7 @@ public:
 	Beam()
 	{
 		if (so_count < 1){
-			reset();
+			reset(); // initial run
 		}
 		b2Body* ground = NULL;
 		{
@@ -311,12 +314,11 @@ public:
 	}
 	bool showMenu=true;
 	virtual void Ui(Settings* settings){
-		int menuWidth = 200;
-		float menuHeight = 370;
+		int menuWidth = 220;
 		if (showMenu)
 		{
-			ImGui::SetNextWindowPos(ImVec2((float)g_camera.m_width - 2*menuWidth - 10, 10));
-			ImGui::SetNextWindowSize(ImVec2((float)menuWidth, menuHeight));
+			ImGui::SetNextWindowPos(ImVec2((float)g_camera.m_width - menuWidth-200 - 10, 10));
+			ImGui::SetNextWindowSize(ImVec2((float)menuWidth, (float)g_camera.m_height - 20));
 			if (ImGui::Begin("Beam Controls##Bean", &showMenu, 
 				ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize)){
 				ImGui::Text("sub body count");
@@ -344,6 +346,19 @@ public:
 				ImGui::Checkbox("Motor", &addMotor);
 				ImGui::SameLine();
 				ImGui::Checkbox("ElasticPlastic", &addElasticPlastic);
+				if (ImGui::CollapsingHeader("Joint forces MN/MNm"))
+				{
+					float locs[4] = { 40, 80, 120, 160 };
+					ImGui::Text("x-f"); ImGui::SameLine(locs[0]);
+					ImGui::Text("y-f"); ImGui::SameLine(locs[1]);
+					ImGui::Text("z-m"); ImGui::SameLine(locs[2]);
+					ImGui::Text("j-x"); ImGui::SameLine(locs[3]);
+					ImGui::Text("j-y");
+					for (b2Joint* j = m_world->GetJointList(); j; j = j->GetNext())
+					{
+						LogJoint(j,1e-6f,1e-6f,locs);
+					}						
+				}
 			}
 			ImGui::End();
 		}

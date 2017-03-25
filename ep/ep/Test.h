@@ -86,8 +86,8 @@ struct Settings
 		enableSleep = true;
 		pause = false;
 		singleStep = false;
-		forceScale = 5;
-		momentScale = 5;
+		forceScale = 100.f;
+		momentScale = 10.f;
 	}
 	float32 hz;
 	int32 velocityIterations;
@@ -184,6 +184,7 @@ public:
 	// ep-start
 	virtual void Ui(Settings* settings){};
 	virtual void drawNotes(){};
+	virtual void LogJoint(b2Joint* j,float32 fScale, float32 mScale, float[4]);
 	/** reset configurable settings */
 	virtual void reset(){};
 	virtual float getBombDensity(){ return 1000; }

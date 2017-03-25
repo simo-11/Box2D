@@ -1157,12 +1157,11 @@ Scale reaction force and torque
 */
 void b2World::DrawJointReaction(b2Joint* joint)
 {
-	b2Body* bodyA = joint->GetBodyA();
 	b2Vec2 p1 = 0.5f*(joint->GetAnchorA()+joint->GetAnchorB());
-	b2Vec2 f = joint->GetReactionForce(g_debugDraw->GetTimeStep());
-	float32 m = joint->GetReactionTorque(g_debugDraw->GetTimeStep());
-	float32 cs = g_debugDraw->GetMomentScale() / 1.e6f*m;
-	b2Vec2 p2 = p1 + g_debugDraw->GetForceScale()/1.e6f*f;
+	b2Vec2 f = joint->GetReactionForce(g_debugDraw->GetInvDt());
+	float32 m = joint->GetReactionTorque(g_debugDraw->GetInvDt());
+	float32 cs = g_debugDraw->GetMomentScale() / 1.e9f*m;
+	b2Vec2 p2 = p1 + g_debugDraw->GetForceScale()/1.e9f*f;
 	b2Color color(1, 1, 0);
 	g_debugDraw->DrawSegment(p1, p2, color);
 	if (m>0){ // positive moment in green

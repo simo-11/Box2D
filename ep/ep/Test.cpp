@@ -18,7 +18,7 @@
 
 #include "Test.h"
 #include <stdio.h>
-
+#include <imgui/imgui.h>
 void DestructionListener::SayGoodbye(b2Joint* joint)
 {
 	if (test->m_mouseJoint == joint)
@@ -311,7 +311,7 @@ void Test::Step(Settings* settings)
 
 	m_world->Step(timeStep, settings->velocityIterations, settings->positionIterations);
 	if (timeStep > 0.f){
-		g_debugDraw.SetTimeStep(timeStep);
+		g_debugDraw.SetInvDt(1.f/timeStep);
 	}
 	m_world->DrawDebugData();
     g_debugDraw.Flush();
@@ -488,6 +488,16 @@ void Test::Step(Settings* settings)
 	}
 }
 
+void Test::LogJoint(b2Joint* j,float32 fScale, float32 mScale, float* locs){
+	b2Vec2 p = 0.5f*(j->GetAnchorA() + j->GetAnchorB());
+	b2Vec2 f = j->GetReactionForce(g_debugDraw.GetInvDt());
+	float32 m = j->GetReactionTorque(g_debugDraw.GetInvDt());
+	ImGui::Text("%5.2f", fScale*f.x); ImGui::SameLine(locs[0]);
+	ImGui::Text("%5.2f", fScale*f.y); ImGui::SameLine(locs[1]);
+	ImGui::Text("%5.2f", mScale*m); ImGui::SameLine(locs[2]);
+	ImGui::Text("%4.1f",p.x); ImGui::SameLine(locs[3]);
+	ImGui::Text("%4.1f",p.y);
+}
 void Test::ShiftOrigin(const b2Vec2& newOrigin)
 {
 	m_world->ShiftOrigin(newOrigin);
