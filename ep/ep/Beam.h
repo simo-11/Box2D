@@ -349,11 +349,11 @@ public:
 				if (ImGui::CollapsingHeader("Joint forces MN/MNm"))
 				{
 					float locs[4] = { 40, 80, 120, 160 };
-					ImGui::Text("x-f"); ImGui::SameLine(locs[0]);
-					ImGui::Text("y-f"); ImGui::SameLine(locs[1]);
-					ImGui::Text("z-m"); ImGui::SameLine(locs[2]);
-					ImGui::Text("j-x"); ImGui::SameLine(locs[3]);
-					ImGui::Text("j-y");
+					ImGui::Text(" x-f"); ImGui::SameLine(locs[0]);
+					ImGui::Text(" y-f"); ImGui::SameLine(locs[1]);
+					ImGui::Text(" z-m"); ImGui::SameLine(locs[2]);
+					ImGui::Text(" j-x"); ImGui::SameLine(locs[3]);
+					ImGui::Text(" j-y");
 					for (b2Joint* j = m_world->GetJointList(); j; j = j->GetNext())
 					{
 						LogJoint(j,1e-6f,1e-6f,locs);
