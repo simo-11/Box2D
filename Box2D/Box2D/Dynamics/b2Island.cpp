@@ -546,12 +546,15 @@ void b2Island::Report(const b2ContactVelocityConstraint* constraints)
 Scan through joints and init impulses for elasticPlastic joints
 
 * if they are connected to non kinematic body (first phase)
-* restricted by contacts (future work)
+* restricted by contacts or other joints (future work)
 
 */
 void b2Island::InitImpulses()
 {
-	int32 nonDynamicBodyCount = 0;
+	int32 nonDynamicBodyCount = 0, startJointCount=0;
+	b2Body** ndbStack = NULL; // non dynamic bodies
+	b2ElasticPlasticJoint** sjStack = NULL; // corresponding starting joints
+
 	for (int32 i = 0; i < m_jointCount; i++){
 		b2Joint  *joint = m_joints[i];
 		switch (joint->GetType()){
@@ -560,13 +563,31 @@ void b2Island::InitImpulses()
 		default:
 			continue;
 		}
-		b2Body *bodyA = joint->GetBodyA();
-		if (bodyA->GetType() != b2_dynamicBody){
-			nonDynamicBodyCount++;
+		b2ElasticPlasticJoint * epJoint = (b2ElasticPlasticJoint*)joint;
+		bool ndb = false;
+		for (int bi = 0; bi<2; bi++){
+			b2Body *body = (bi==0)?joint->GetBodyA():joint->GetBodyB();
+			if (body->GetType() != b2_dynamicBody){
+				if (ndbStack == NULL){
+					ndbStack=(b2Body**)m_allocator->Allocate
+						(m_bodyCount * sizeof(b2Body*));
+				}
+				ndbStack[nonDynamicBodyCount++] = body;
+				ndb = true;
+			}
 		}
-		b2Body *bodyB = joint->GetBodyB();
-		if (bodyB->GetType() != b2_dynamicBody){
-			nonDynamicBodyCount++;
+		if (ndb){
+			if (sjStack == NULL){
+				sjStack = (b2ElasticPlasticJoint**)m_allocator->Allocate
+					(m_jointCount * sizeof(b2ElasticPlasticJoint*));
+			}
+			sjStack[startJointCount++] = epJoint;
 		}
+	}
+	if (sjStack != NULL){
+		m_allocator->Free(sjStack);
+	}
+	if (ndbStack != NULL){
+		m_allocator->Free(ndbStack);
 	}
 }
