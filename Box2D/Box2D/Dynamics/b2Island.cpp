@@ -256,6 +256,7 @@ void b2Island::Solve(b2Profile* profile, const b2TimeStep& step, const b2Vec2& g
 	profile->solveInit = timer.GetMilliseconds();
 	// ep start
 	timer.Reset();
+	InitImpulses();
 	profile->initImpulse = timer.GetMilliseconds();
 	// ep end
 	// Solve velocity constraints
@@ -461,59 +462,59 @@ void b2Island::SolveTOI(const b2TimeStep& subStep, int32 toiIndexA, int32 toiInd
 	// starting impulses were applied in the discrete solver.
 	contactSolver.InitializeVelocityConstraints();
 
-	// Solve velocity constraints.
-	for (int32 i = 0; i < subStep.velocityIterations; ++i)
+// Solve velocity constraints.
+for (int32 i = 0; i < subStep.velocityIterations; ++i)
+{
+	contactSolver.SolveVelocityConstraints();
+}
+
+// Don't store the TOI contact forces for warm starting
+// because they can be quite large.
+
+float32 h = subStep.dt;
+
+// Integrate positions
+for (int32 i = 0; i < m_bodyCount; ++i)
+{
+	b2Vec2 c = m_positions[i].c;
+	float32 a = m_positions[i].a;
+	b2Vec2 v = m_velocities[i].v;
+	float32 w = m_velocities[i].w;
+
+	// Check for large velocities
+	b2Vec2 translation = h * v;
+	if (b2Dot(translation, translation) > b2_maxTranslationSquared)
 	{
-		contactSolver.SolveVelocityConstraints();
+		float32 ratio = b2_maxTranslation / translation.Length();
+		v *= ratio;
 	}
 
-	// Don't store the TOI contact forces for warm starting
-	// because they can be quite large.
-
-	float32 h = subStep.dt;
-
-	// Integrate positions
-	for (int32 i = 0; i < m_bodyCount; ++i)
+	float32 rotation = h * w;
+	if (rotation * rotation > b2_maxRotationSquared)
 	{
-		b2Vec2 c = m_positions[i].c;
-		float32 a = m_positions[i].a;
-		b2Vec2 v = m_velocities[i].v;
-		float32 w = m_velocities[i].w;
-
-		// Check for large velocities
-		b2Vec2 translation = h * v;
-		if (b2Dot(translation, translation) > b2_maxTranslationSquared)
-		{
-			float32 ratio = b2_maxTranslation / translation.Length();
-			v *= ratio;
-		}
-
-		float32 rotation = h * w;
-		if (rotation * rotation > b2_maxRotationSquared)
-		{
-			float32 ratio = b2_maxRotation / b2Abs(rotation);
-			w *= ratio;
-		}
-
-		// Integrate
-		c += h * v;
-		a += h * w;
-
-		m_positions[i].c = c;
-		m_positions[i].a = a;
-		m_velocities[i].v = v;
-		m_velocities[i].w = w;
-
-		// Sync bodies
-		b2Body* body = m_bodies[i];
-		body->m_sweep.c = c;
-		body->m_sweep.a = a;
-		body->m_linearVelocity = v;
-		body->m_angularVelocity = w;
-		body->SynchronizeTransform();
+		float32 ratio = b2_maxRotation / b2Abs(rotation);
+		w *= ratio;
 	}
 
-	Report(contactSolver.m_velocityConstraints);
+	// Integrate
+	c += h * v;
+	a += h * w;
+
+	m_positions[i].c = c;
+	m_positions[i].a = a;
+	m_velocities[i].v = v;
+	m_velocities[i].w = w;
+
+	// Sync bodies
+	b2Body* body = m_bodies[i];
+	body->m_sweep.c = c;
+	body->m_sweep.a = a;
+	body->m_linearVelocity = v;
+	body->m_angularVelocity = w;
+	body->SynchronizeTransform();
+}
+
+Report(contactSolver.m_velocityConstraints);
 }
 
 void b2Island::Report(const b2ContactVelocityConstraint* constraints)
@@ -528,7 +529,7 @@ void b2Island::Report(const b2ContactVelocityConstraint* constraints)
 		b2Contact* c = m_contacts[i];
 
 		const b2ContactVelocityConstraint* vc = constraints + i;
-		
+
 		b2ContactImpulse impulse;
 		impulse.count = vc->pointCount;
 		for (int32 j = 0; j < vc->pointCount; ++j)
@@ -538,5 +539,34 @@ void b2Island::Report(const b2ContactVelocityConstraint* constraints)
 		}
 
 		m_listener->PostSolve(c, &impulse);
+	}
+}
+
+/**
+Scan through joints and init impulses for elasticPlastic joints
+
+* if they are connected to non kinematic body (first phase)
+* restricted by contacts (future work)
+
+*/
+void b2Island::InitImpulses()
+{
+	int32 nonDynamicBodyCount = 0;
+	for (int32 i = 0; i < m_jointCount; i++){
+		b2Joint  *joint = m_joints[i];
+		switch (joint->GetType()){
+		case e_elasticPlasticJoint:
+			break;
+		default:
+			continue;
+		}
+		b2Body *bodyA = joint->GetBodyA();
+		if (bodyA->GetType() != b2_dynamicBody){
+			nonDynamicBodyCount++;
+		}
+		b2Body *bodyB = joint->GetBodyB();
+		if (bodyB->GetType() != b2_dynamicBody){
+			nonDynamicBodyCount++;
+		}
 	}
 }
