@@ -388,6 +388,7 @@ void b2World::SetAllowSleeping(bool flag)
 void b2World::Solve(const b2TimeStep& step)
 {
 	m_profile.solveInit = 0.0f;
+	m_profile.initImpulse = 0.0f;
 	m_profile.solveVelocity = 0.0f;
 	m_profile.solvePosition = 0.0f;
 
@@ -532,6 +533,7 @@ void b2World::Solve(const b2TimeStep& step)
 		b2Profile profile;
 		island.Solve(&profile, step, m_gravity, m_allowSleep);
 		m_profile.solveInit += profile.solveInit;
+		m_profile.initImpulse += profile.initImpulse;
 		m_profile.solveVelocity += profile.solveVelocity;
 		m_profile.solvePosition += profile.solvePosition;
 

@@ -254,7 +254,10 @@ void b2Island::Solve(b2Profile* profile, const b2TimeStep& step, const b2Vec2& g
 	}
 
 	profile->solveInit = timer.GetMilliseconds();
-
+	// ep start
+	timer.Reset();
+	profile->initImpulse = timer.GetMilliseconds();
+	// ep end
 	// Solve velocity constraints
 	timer.Reset();
 	for (int32 i = 0; i < step.velocityIterations; ++i)

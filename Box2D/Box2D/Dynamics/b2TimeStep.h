@@ -28,6 +28,7 @@ struct b2Profile
 	float32 collide;
 	float32 solve;
 	float32 solveInit;
+	float32 initImpulse; // ep
 	float32 solveVelocity;
 	float32 solvePosition;
 	float32 broadphase;
