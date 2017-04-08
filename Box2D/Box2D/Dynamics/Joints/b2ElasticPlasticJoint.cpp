@@ -32,6 +32,7 @@ namespace
 {
 	float32 b2ep_linearSlop=0.0005f;
 	float32 b2ep_angularSlop=0.0005f;
+	int32 epId = 0;
 }
 // Point-to-point constraint
 // Cdot = v2 - v1
@@ -54,6 +55,9 @@ void b2ElasticPlasticJointDef::Initialize(b2Body* bA, b2Body* bB, const b2Vec2& 
 	referenceAngle = bodyB->GetAngle() - bodyA->GetAngle();
 }
 
+void b2ElasticPlasticJoint::resetEpId(){
+	epId = 0;
+}
 b2ElasticPlasticJoint::b2ElasticPlasticJoint(const b2ElasticPlasticJointDef* def)
 : b2Joint(def)
 {
@@ -67,6 +71,9 @@ b2ElasticPlasticJoint::b2ElasticPlasticJoint(const b2ElasticPlasticJointDef* def
 
 	m_maxForce = def->maxForce;
 	m_maxTorque = def->maxTorque;
+	aInitialized = false;
+	bInitialized = false;
+	id = epId++;
 }
 
 void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)

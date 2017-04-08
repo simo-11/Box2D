@@ -176,6 +176,7 @@ public:
 		}
 		if (addElasticPlastic)
 		{
+			b2ElasticPlasticJoint::resetEpId();
 			b2PolygonShape shape;
 			shape.SetAsBox(hx, hy);
 			float32 sy = 35;

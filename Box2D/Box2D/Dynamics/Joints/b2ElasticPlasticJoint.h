@@ -103,9 +103,11 @@ public:
 	static float32 GetLinearSlop();
 	static void SetAngularSlop(float32 value);
 	static float32 GetAngularSlop();
+	static void resetEpId();
 protected:
 
 	friend class b2Joint;
+	friend class b2ImpulseInitializer;
 
 	b2ElasticPlasticJoint(const b2ElasticPlasticJointDef* def);
 
@@ -125,6 +127,11 @@ protected:
 	b2Vec3 m_impulse;
 	float32 m_maxForce;
 	float32 m_maxTorque;
+	// ep
+	float32 positionError, angularError;
+	// Impulse initialization
+	bool aInitialized, bInitialized;
+	int32 id;
 
 	// Solver temp
 	int32 m_indexA;
@@ -138,8 +145,6 @@ protected:
 	float32 m_invIA;
 	float32 m_invIB;
 	b2Mat33 m_mass;
-	// ep
-	float32 positionError, angularError;
 	bool jointOk;
 };
 

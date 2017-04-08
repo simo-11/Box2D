@@ -18,6 +18,7 @@
 
 #include "Box2D/Collision/b2Distance.h"
 #include "Box2D/Dynamics/b2Island.h"
+#include "Box2D/Dynamics/b2ImpulseInitializer.h" // ep
 #include "Box2D/Dynamics/b2Body.h"
 #include "Box2D/Dynamics/b2Fixture.h"
 #include "Box2D/Dynamics/b2World.h"
@@ -256,7 +257,7 @@ void b2Island::Solve(b2Profile* profile, const b2TimeStep& step, const b2Vec2& g
 	profile->solveInit = timer.GetMilliseconds();
 	// ep start
 	timer.Reset();
-	InitImpulses();
+	InitImpulses(step,gravity);
 	profile->initImpulse = timer.GetMilliseconds();
 	// ep end
 	// Solve velocity constraints
@@ -547,14 +548,15 @@ Scan through joints and init impulses for elasticPlastic joints
 
 * if they are connected to non kinematic body (first phase)
 * restricted by contacts or other joints (future work)
-
+* matrix force method could also be applied (future work)
 */
-void b2Island::InitImpulses()
+void b2Island::InitImpulses(const b2TimeStep& step, const b2Vec2& gravity)
 {
-	int32 nonDynamicBodyCount = 0, startJointCount=0;
+	int32 nonDynamicBodyCount = 0, startJointCount=0, epCount=0;
 	b2Body** ndbStack = NULL; // non dynamic bodies
 	b2ElasticPlasticJoint** sjStack = NULL; // corresponding starting joints
-
+	b2ElasticPlasticJoint** epStack = NULL; // all ep joints
+	// check if work is needed
 	for (int32 i = 0; i < m_jointCount; i++){
 		b2Joint  *joint = m_joints[i];
 		switch (joint->GetType()){
@@ -563,7 +565,12 @@ void b2Island::InitImpulses()
 		default:
 			continue;
 		}
+		if (epStack == NULL){
+			epStack = (b2ElasticPlasticJoint**)m_allocator->Allocate
+				(m_jointCount * sizeof(b2ElasticPlasticJoint*));
+		}
 		b2ElasticPlasticJoint * epJoint = (b2ElasticPlasticJoint*)joint;
+		epStack[epCount++] = epJoint;
 		bool ndb = false;
 		for (int bi = 0; bi<2; bi++){
 			b2Body *body = (bi==0)?joint->GetBodyA():joint->GetBodyB();
@@ -584,10 +591,25 @@ void b2Island::InitImpulses()
 			sjStack[startJointCount++] = epJoint;
 		}
 	}
+	if (startJointCount > 0){
+		b2ImpulseInitializer ii;
+		ii.epCount = epCount;
+		ii.epStack = epStack;
+		ii.startJointCount = startJointCount;
+		ii.sjStack = sjStack;
+		ii.nonDynamicBodyCount = nonDynamicBodyCount;
+		ii.ndbStack = ndbStack;
+		ii.step = &step;
+		ii.gravity = &gravity;
+		ii.InitImpulses();
+	}
 	if (sjStack != NULL){
 		m_allocator->Free(sjStack);
 	}
 	if (ndbStack != NULL){
 		m_allocator->Free(ndbStack);
+	}
+	if (epStack != NULL){
+		m_allocator->Free(epStack);
 	}
 }
