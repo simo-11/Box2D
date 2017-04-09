@@ -32,11 +32,6 @@
 #include "Box2D/Common/b2Timer.h"
 
 void b2ImpulseInitializer::InitImpulses(){
-	for (int32 i = 0; i < epCount; i++){
-		b2ElasticPlasticJoint* joint = epStack[i];
-		joint->aInitialized = false;
-		joint->bInitialized = false;
-	}
 	for (int32 i = 0; i < startJointCount; i++){
 		currentStartJoint = sjStack[i];
 		addImpulses(currentStartJoint);
@@ -47,19 +42,22 @@ void b2ImpulseInitializer::InitImpulses(){
 Loop over all bodies that are connected to startJoint with 
 b2ElasticPlasticJoints until some other startJoint is nearer 
 than current one.
+Currently start point is assumed to be connected to rigid body.
 */
 b2Vec3 b2ImpulseInitializer::addImpulses(b2ElasticPlasticJoint* startJoint){
 	float32 h = step->dt;
 	b2Body* b = startJoint->GetBodyA();
 	b2Vec2 jointPoint = startJoint->GetAnchorA();
-	b2Vec2 d;
+	b2Vec2 d,sp;
 	if (b->GetType() == b2_dynamicBody && !startJoint->aInitialized){
 		d = startJoint->GetLocalAnchorA();
+		sp = startJoint->GetAnchorA();
 		startJoint->aInitialized = true;
 	}
 	else{
 		b = startJoint->GetBodyB();
 		d = startJoint->GetLocalAnchorB();
+		sp = startJoint->GetAnchorB();
 		startJoint->bInitialized = true;
 	}
 	b2Vec3 p;
@@ -73,11 +71,11 @@ b2Vec3 b2ImpulseInitializer::addImpulses(b2ElasticPlasticJoint* startJoint){
 	while ((nextJoint = getNextJoint(startJoint)) != NULL){
 		b2Vec3 np = addImpulses(nextJoint);
 		b2Vec2 njf(np.x,np.y);
-		b2Vec2 jd = nextJoint->GetAnchorA()-d;
+		b2Vec2 jd = nextJoint->GetAnchorA()-sp;
 		np.z += b2Cross(jd, njf);
-		startJoint->m_impulse -= np;
+		startJoint->m_impulse += np;
 	}
-	return p;
+	return startJoint->m_impulse;
 }
 b2ElasticPlasticJoint* b2ImpulseInitializer::getNextJoint
 	(b2ElasticPlasticJoint* startJoint){
@@ -128,7 +126,7 @@ b2ElasticPlasticJoint* b2ImpulseInitializer::getNextJoint
 }
 
 /**
-@return offered or NULL if there other starting point nearer
+@return true if there no other starting point nearer
 */
 bool b2ImpulseInitializer::isNearEnough
 (b2ElasticPlasticJoint* joint){

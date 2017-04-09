@@ -19,6 +19,7 @@
 #include "Box2D/Collision/b2Distance.h"
 #include "Box2D/Dynamics/b2Island.h"
 #include "Box2D/Dynamics/b2ImpulseInitializer.h" // ep
+#include "Box2D/Dynamics/Joints/b2ElasticPlasticJoint.h" // ep
 #include "Box2D/Dynamics/b2Body.h"
 #include "Box2D/Dynamics/b2Fixture.h"
 #include "Box2D/Dynamics/b2World.h"
@@ -565,11 +566,14 @@ void b2Island::InitImpulses(const b2TimeStep& step, const b2Vec2& gravity)
 		default:
 			continue;
 		}
+		b2ElasticPlasticJoint * epJoint = (b2ElasticPlasticJoint*)joint;
+		if (epJoint->aInitialized && epJoint->bInitialized){
+			continue;
+		}
 		if (epStack == NULL){
 			epStack = (b2ElasticPlasticJoint**)m_allocator->Allocate
 				(m_jointCount * sizeof(b2ElasticPlasticJoint*));
 		}
-		b2ElasticPlasticJoint * epJoint = (b2ElasticPlasticJoint*)joint;
 		epStack[epCount++] = epJoint;
 		bool ndb = false;
 		for (int bi = 0; bi<2; bi++){

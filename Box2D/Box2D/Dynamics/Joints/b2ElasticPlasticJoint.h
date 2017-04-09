@@ -108,6 +108,7 @@ protected:
 
 	friend class b2Joint;
 	friend class b2ImpulseInitializer;
+	friend class b2Island;
 
 	b2ElasticPlasticJoint(const b2ElasticPlasticJointDef* def);
 
