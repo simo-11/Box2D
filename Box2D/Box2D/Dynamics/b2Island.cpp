@@ -567,9 +567,11 @@ void b2Island::InitImpulses(const b2TimeStep& step, const b2Vec2& gravity)
 			continue;
 		}
 		b2ElasticPlasticJoint * epJoint = (b2ElasticPlasticJoint*)joint;
+#if 0
 		if (epJoint->aInitialized && epJoint->bInitialized){
 			continue;
 		}
+#endif
 		if (epStack == NULL){
 			epStack = (b2ElasticPlasticJoint**)m_allocator->Allocate
 				(m_jointCount * sizeof(b2ElasticPlasticJoint*));

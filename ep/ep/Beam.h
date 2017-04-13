@@ -74,7 +74,8 @@ public:
 			ground = m_world->CreateBody(&bd);
 
 			b2EdgeShape shape;
-			shape.Set(b2Vec2(-40.0f, 0.0f), b2Vec2(40.0f, 0.0f));
+			float32 floorLevel = -so_count*2*hx;
+			shape.Set(b2Vec2(-40.0f, floorLevel), b2Vec2(40.0f, floorLevel));
 			ground->CreateFixture(&shape, 0.0f);
 		}
 

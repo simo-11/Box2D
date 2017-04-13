@@ -339,6 +339,7 @@ void Test::Step(Settings* settings)
 	}
 
 	// Track maximum profile times
+	if (timeStep>0.0f)
 	{
 		const b2Profile& p = m_world->GetProfile();
 		m_maxProfile.step = b2Max(m_maxProfile.step, p.step);

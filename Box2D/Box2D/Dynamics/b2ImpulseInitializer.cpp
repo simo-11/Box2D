@@ -32,6 +32,12 @@
 #include "Box2D/Common/b2Timer.h"
 
 void b2ImpulseInitializer::InitImpulses(){
+	for (int32 i = 0; i < epCount; i++){
+		b2ElasticPlasticJoint* joint = epStack[i];
+		joint->m_impulse.SetZero();
+		joint->aInitialized = false;
+		joint->bInitialized = false;
+	}
 	for (int32 i = 0; i < startJointCount; i++){
 		currentStartJoint = sjStack[i];
 		addImpulses(currentStartJoint);
