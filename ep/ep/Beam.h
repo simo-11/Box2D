@@ -26,7 +26,9 @@
 // So why not go ahead and use soft weld joints? They behave like a revolute
 // joint with a rotational spring.
 //
-// Simo searches way to make iterations more efficient
+// Simo searches way to 
+// * make iterations more efficient
+// * how to automatically decompose object into appropriate pieces
 //
 
 namespace {
@@ -43,6 +45,16 @@ class Beam : public Test
 {
 public:
 	b2Vec2 noteWeld1, noteSoftWeld1, noteMotor1, noteElasticPlastic1;
+	virtual b2Body* getStaticBody(b2PolygonShape staticShape, float32 sy){
+		b2FixtureDef sfd;
+		sfd.shape = &staticShape;
+		b2BodyDef sbd;
+		sbd.type = b2_staticBody;
+		sbd.position.Set(-hy, sy);
+		b2Body* sbody = m_world->CreateBody(&sbd);
+		sbody->CreateFixture(&sfd);
+		return sbody;
+	}
 	virtual float getBombRadius(){
 		return hx;
 	}
@@ -75,15 +87,18 @@ public:
 
 			b2EdgeShape shape;
 			float32 floorLevel = -so_count*2*hx;
-			shape.Set(b2Vec2(-40.0f, floorLevel), b2Vec2(40.0f, floorLevel));
+			shape.Set(b2Vec2(-5*hy, floorLevel), b2Vec2(so_count*hx*2+5*hy, floorLevel));
 			ground->CreateFixture(&shape, 0.0f);
 		}
-
+		b2PolygonShape staticShape;
+		staticShape.SetAsBox(hy, hy);
 		if (addHard)
 		{
+			float32 sy = 5;
+			b2Body* sbody = getStaticBody(staticShape, sy);
+
 			b2PolygonShape shape;
 			shape.SetAsBox(hx, hy);
-			float32 sy = 5;
 
 			b2FixtureDef fd;
 			fd.shape = &shape;
@@ -91,30 +106,29 @@ public:
 
 			b2WeldJointDef jd;
 
-			b2Body* prevBody = NULL;
-			noteWeld1.Set(-15.f,sy+2+hy);
+			b2Body* prevBody = sbody;
+			noteWeld1.Set(-hy,sy+2+hy);
 			for (int32 i = 0; i < so_count; ++i)
 			{
 				b2BodyDef bd;
-				if (i != 0){
-					bd.type = b2_dynamicBody;
-				}
-				bd.position.Set(noteWeld1.x+(2*i+1)*hx, sy);
+				bd.type = b2_dynamicBody;
+				bd.position.Set((2*i+1)*hx, sy);
 				b2Body* body = m_world->CreateBody(&bd);
 				body->CreateFixture(&fd);
-				if (prevBody != NULL){
-					b2Vec2 anchor(noteWeld1.x + (2 * i)*hx, sy);
-					jd.Initialize(prevBody, body, anchor);
-					m_world->CreateJoint(&jd);
-				}
+				b2Vec2 anchor((2 * i)*hx, sy);
+				jd.Initialize(prevBody, body, anchor);
+				m_world->CreateJoint(&jd);
 				prevBody = body;
 			}
 		}
 		if (addSoft)
 		{
+			float32 sy = 15;
+			b2Body* sbody = getStaticBody(staticShape, sy);
+
 			b2PolygonShape shape;
 			shape.SetAsBox(hx, hy);
-			float32 sy = 15;
+
 			b2FixtureDef fd;
 			fd.shape = &shape;
 			fd.density = density;
@@ -123,89 +137,80 @@ public:
 			jd.frequencyHz = baseHz;
 			jd.dampingRatio = baseDampingRatio;
 
-			noteSoftWeld1.Set(-15.f, sy+2+hy);
-			b2Body* prevBody = NULL;
+			b2Body* prevBody = sbody;
+			noteWeld1.Set(-hy, sy + 2 + hy);
 			for (int32 i = 0; i < so_count; ++i)
 			{
 				b2BodyDef bd;
-				if (i != 0){
-					bd.type = b2_dynamicBody;
-				}
-				bd.position.Set(noteSoftWeld1.x + (2 * i + 1)*hx, sy);
+				bd.type = b2_dynamicBody;
+				bd.position.Set((2 * i + 1)*hx, sy);
 				b2Body* body = m_world->CreateBody(&bd);
 				body->CreateFixture(&fd);
-				if (prevBody != NULL){
-					b2Vec2 anchor(noteSoftWeld1.x + (2 * i)*hx, sy);
-					jd.Initialize(prevBody, body, anchor);
-					m_world->CreateJoint(&jd);
-				}
+				b2Vec2 anchor((2 * i)*hx, sy);
+				jd.Initialize(prevBody, body, anchor);
+				m_world->CreateJoint(&jd);
 				prevBody = body;
 			}
 		}
 		if (addMotor)
 		{
+			float32 sy = 25;
+			b2Body* sbody = getStaticBody(staticShape, sy);
+
 			b2PolygonShape shape;
 			shape.SetAsBox(hx, hy);
-			float32 sy = 25;
 
 			b2FixtureDef fd;
 			fd.shape = &shape;
 			fd.density = density;
 
 			b2MotorJointDef jd;
-			jd.maxForce = 2* hy*fy*1e6f;
-			jd.maxTorque = hy*hy /4 * fy*1e6f;
+			jd.maxForce = 2 * hy*fy*1e6f;
+			jd.maxTorque = hy*hy / 4 * fy*1e6f;
 
-			b2Body* prevBody = NULL;
-			noteMotor1.Set(-15.f, sy + 2 + hy);
+			b2Body* prevBody = sbody;
+			noteWeld1.Set(-hy, sy + 2 + hy);
 			for (int32 i = 0; i < so_count; ++i)
 			{
 				b2BodyDef bd;
-				if (i != 0){
-					bd.type = b2_dynamicBody;
-				}
-				bd.position.Set(noteMotor1.x + (2 * i + 1)*hx, sy);
+				bd.type = b2_dynamicBody;
+				bd.position.Set((2 * i + 1)*hx, sy);
 				b2Body* body = m_world->CreateBody(&bd);
 				body->CreateFixture(&fd);
-				if (prevBody != NULL){
-					b2Vec2 anchor(noteMotor1.x + (2 * i)*hx, sy);
-					jd.Initialize(prevBody, body);
-					m_world->CreateJoint(&jd);
-				}
+				jd.Initialize(prevBody, body);
+				m_world->CreateJoint(&jd);
 				prevBody = body;
 			}
 		}
 		if (addElasticPlastic)
 		{
 			b2ElasticPlasticJoint::resetEpId();
+			float32 sy = 35;
+			b2Body* sbody = getStaticBody(staticShape, sy);
+
 			b2PolygonShape shape;
 			shape.SetAsBox(hx, hy);
-			float32 sy = 35;
 
 			b2FixtureDef fd;
 			fd.shape = &shape;
 			fd.density = density;
 
 			b2ElasticPlasticJointDef jd;
-			jd.maxForce=2*hy*fy*1e6f;
-			jd.maxTorque=hy*hy/4*fy*1e6f;
+			jd.maxForce = 2 * hy*fy*1e6f;
+			jd.maxTorque = hy*hy / 4 * fy*1e6f;
 
-			b2Body* prevBody = NULL;
-			noteElasticPlastic1.Set(-15.f, sy + 2 + hy);
+			b2Body* prevBody = sbody;
+			noteWeld1.Set(-hy, sy + 2 + hy);
 			for (int32 i = 0; i < so_count; ++i)
 			{
 				b2BodyDef bd;
-				if (i != 0){
-					bd.type = b2_dynamicBody;
-				}
-				bd.position.Set(noteElasticPlastic1.x + (2 * i + 1)*hx, sy);
+				bd.type = b2_dynamicBody;
+				bd.position.Set((2 * i + 1)*hx, sy);
 				b2Body* body = m_world->CreateBody(&bd);
 				body->CreateFixture(&fd);
-				if (prevBody != NULL){
-					b2Vec2 anchor(noteElasticPlastic1.x + (2 * i)*hx, sy);
-					jd.Initialize(prevBody, body, anchor);
-					m_world->CreateJoint(&jd);
-				}
+				b2Vec2 anchor((2 * i)*hx, sy);
+				jd.Initialize(prevBody, body, anchor);
+				m_world->CreateJoint(&jd);
 				prevBody = body;
 			}
 		}
@@ -214,7 +219,7 @@ public:
 		{
 			b2PolygonShape shape;
 			shape.SetAsBox(hx, hy);
-			float32 sx = 5;
+			float32 sx = so_count*hx*2+5;
 			float32 sy = 5;
 
 			b2FixtureDef fd;
@@ -246,7 +251,7 @@ public:
 		{
 			b2PolygonShape shape;
 			shape.SetAsBox(hx, hy);
-			float32 sx = 5;
+			float32 sx = so_count*hx * 2 + 5;
 			float32 sy = 15;
 			b2FixtureDef fd;
 			fd.shape = &shape;
