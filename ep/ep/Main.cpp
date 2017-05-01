@@ -425,6 +425,7 @@ static void sInterface()
 		ImGui::Checkbox("Statistics", &settings.drawStats);
 		ImGui::Checkbox("Profile", &settings.drawProfile);
 		ImGui::Checkbox("Notes", &settings.drawNotes);
+		ImGui::Checkbox("Init Impulses", &settings.initImpulses);
 
 		ImVec2 button_sz = ImVec2(-1, 0);
 		if (ImGui::SmallButton("Pause (P)"))

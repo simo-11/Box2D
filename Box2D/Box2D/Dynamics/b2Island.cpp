@@ -182,6 +182,18 @@ b2Island::~b2Island()
 	m_allocator->Free(m_bodies);
 }
 
+// ep
+namespace {
+	bool doInitImpulses=false;
+}
+bool b2Island::IsInitImpulses(){
+	return doInitImpulses;
+}
+void b2Island::SetInitImpulses(bool value){
+	doInitImpulses=value;
+}
+// end ep
+
 void b2Island::Solve(b2Profile* profile, const b2TimeStep& step, const b2Vec2& gravity, bool allowSleep)
 {
 	b2Timer timer;
@@ -257,9 +269,14 @@ void b2Island::Solve(b2Profile* profile, const b2TimeStep& step, const b2Vec2& g
 
 	profile->solveInit = timer.GetMilliseconds();
 	// ep start
-	timer.Reset();
-	InitImpulses(step,gravity);
-	profile->initImpulse = timer.GetMilliseconds();
+	if (doInitImpulses){
+		timer.Reset();
+		InitImpulses(step, gravity);
+		profile->initImpulse = timer.GetMilliseconds();
+	}
+	else{
+		profile->initImpulse = 0;
+	}
 	// ep end
 	// Solve velocity constraints
 	timer.Reset();

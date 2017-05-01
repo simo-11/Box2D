@@ -78,7 +78,9 @@ public:
 	Beam()
 	{
 		if (so_count < 1){
-			reset(); // initial run
+			// initial run
+			reset();
+			g_camera.m_center.Set(2*so_count*hx,20);
 		}
 		b2Body* ground = NULL;
 		{
@@ -87,7 +89,8 @@ public:
 
 			b2EdgeShape shape;
 			float32 floorLevel = -so_count*2*hx;
-			shape.Set(b2Vec2(-5*hy, floorLevel), b2Vec2(so_count*hx*2+5*hy, floorLevel));
+			shape.Set(b2Vec2(-5*hy-so_count*hx-10, floorLevel),
+				b2Vec2(so_count*hx*4+5*hy+10, floorLevel));
 			ground->CreateFixture(&shape, 0.0f);
 		}
 		b2PolygonShape staticShape;

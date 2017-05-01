@@ -19,6 +19,7 @@
 #include "Test.h"
 #include <stdio.h>
 #include <imgui/imgui.h>
+#include "Box2D/Dynamics/b2Island.h"
 void DestructionListener::SayGoodbye(b2Joint* joint)
 {
 	if (test->m_mouseJoint == joint)
@@ -301,6 +302,7 @@ void Test::Step(Settings* settings)
 	g_debugDraw.SetFlags(flags);
 	g_debugDraw.SetForceScale(settings->forceScale*g_camera.m_extent);
 	g_debugDraw.SetMomentScale(settings->momentScale*g_camera.m_extent);
+	b2Island::SetInitImpulses(settings->initImpulses);
 
 	m_world->SetAllowSleeping(settings->enableSleep);
 	m_world->SetWarmStarting(settings->enableWarmStarting);
@@ -391,9 +393,11 @@ void Test::Step(Settings* settings)
 		m_textLine += DRAW_STRING_NEW_LINE;
 		g_debugDraw.DrawString(5, m_textLine, "solve init [ave] (max) = %5.2f [%6.2f] (%6.2f)", p.solveInit, aveProfile.solveInit, m_maxProfile.solveInit);
 		m_textLine += DRAW_STRING_NEW_LINE;
-		g_debugDraw.DrawString(5, m_textLine, "init impulse [ave] (max) = %5.2f [%6.2f] (%6.2f)", 
-			p.initImpulse, aveProfile.initImpulse, m_maxProfile.initImpulse);
-		m_textLine += DRAW_STRING_NEW_LINE;
+		if (settings->initImpulses){
+			g_debugDraw.DrawString(5, m_textLine, "init impulse [ave] (max) = %5.2f [%6.2f] (%6.2f)",
+				p.initImpulse, aveProfile.initImpulse, m_maxProfile.initImpulse);
+			m_textLine += DRAW_STRING_NEW_LINE;
+		}
 		g_debugDraw.DrawString(5, m_textLine, "solve velocity [ave] (max) = %5.2f [%6.2f] (%6.2f)", p.solveVelocity, aveProfile.solveVelocity, m_maxProfile.solveVelocity);
 		m_textLine += DRAW_STRING_NEW_LINE;
 		g_debugDraw.DrawString(5, m_textLine, "solve position [ave] (max) = %5.2f [%6.2f] (%6.2f)", p.solvePosition, aveProfile.solvePosition, m_maxProfile.solvePosition);

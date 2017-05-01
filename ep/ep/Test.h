@@ -88,6 +88,7 @@ struct Settings
 		singleStep = false;
 		forceScale = 100.f;
 		momentScale = 10.f;
+		initImpulses = false;
 	}
 	float32 hz;
 	int32 velocityIterations;
@@ -110,6 +111,7 @@ struct Settings
 	bool enableSleep;
 	bool pause;
 	bool singleStep;
+	bool initImpulses;
 	float32 forceScale, momentScale;
 };
 
