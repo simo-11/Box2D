@@ -38,6 +38,7 @@ namespace {
 	float density;
 	float32 hx;
 	float32 hy;
+	float E; // GPa
 	float fy; //MPa
 	bool addSoft, addHard, addParts, addMotor, addElasticPlastic;
 }
@@ -69,6 +70,7 @@ public:
 		hx = 1.f;
 		hy = 1.f;
 		fy = 350;
+		E = 200;
 		addSoft = false;
 		addHard = false;
 		addMotor = false;
@@ -345,6 +347,8 @@ public:
 				}
 				ImGui::Text("density");
 				ImGui::SliderFloat("kg/m^3##density", &density, 1000.f, 20000.f, "%.0f");
+				ImGui::Text("Elastic modulus");
+				ImGui::SliderFloat("GPa##E", &E, 10.f, 1000.f, "%.0f");
 				ImGui::Text("yield stress");
 				ImGui::SliderFloat("MPa##fy", &fy, 10.f, 1000.f, "%.0f");
 				ImGui::Separator();
