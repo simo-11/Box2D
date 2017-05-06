@@ -1159,7 +1159,16 @@ Scale reaction force and torque
 */
 void b2World::DrawJointReaction(b2Joint* joint)
 {
-	b2Vec2 p1 = 0.5f*(joint->GetAnchorA()+joint->GetAnchorB());
+	b2Vec2 p1;
+	switch (joint->GetType())
+	{
+	case e_mouseJoint:
+		p1 = joint->GetAnchorB();
+		break;
+	default:
+		p1 = 0.5f*(joint->GetAnchorA() + joint->GetAnchorB());
+		break;
+	}
 	b2Vec2 f = joint->GetReactionForce(g_debugDraw->GetInvDt());
 	float32 m = joint->GetReactionTorque(g_debugDraw->GetInvDt());
 	float32 cs = g_debugDraw->GetMomentScale() / 1.e9f*m;
@@ -1170,6 +1179,18 @@ void b2World::DrawJointReaction(b2Joint* joint)
 		color.Set(0, 1, 0);
 	}
 	g_debugDraw->DrawCircle(p1, cs, color);
+	// draw limits in red for elasticPlastic
+	switch (joint->GetType())
+	{
+	case e_elasticPlasticJoint:
+		b2ElasticPlasticJoint* ep = (b2ElasticPlasticJoint*)joint;
+		p2 = p1 + g_debugDraw->GetForceScale() / 1.e9f*ep->GetMaxForce();
+		color.Set(1, 0, 0);
+		g_debugDraw->DrawSegment(p1, p2, color);
+		cs = g_debugDraw->GetMomentScale() / 1.e9f*ep->GetMaxTorque();
+		g_debugDraw->DrawCircle(p1, cs, color);
+		break;
+	}
 }
 
 

@@ -362,13 +362,14 @@ float32 b2ElasticPlasticJoint::GetReactionTorque(float32 inv_dt) const
 	return inv_dt * m_impulse.z;
 }
 
-void b2ElasticPlasticJoint::SetMaxForce(float32 force)
+void b2ElasticPlasticJoint::SetMaxForce(b2Vec2 force)
 {
-	b2Assert(b2IsValid(force) && force >= 0.0f);
+	b2Assert(b2IsValid(force.x) && force.x >= 0.0f && 
+		b2IsValid(force.y) && force.y >= 0.0f);
 	m_maxForce = force;
 }
 
-float32 b2ElasticPlasticJoint::GetMaxForce() const
+b2Vec2 b2ElasticPlasticJoint::GetMaxForce() const
 {
 	return m_maxForce;
 }
@@ -397,7 +398,7 @@ void b2ElasticPlasticJoint::Dump()
 	b2Log("  jd.localAnchorA.Set(%.15lef, %.15lef);\n", m_localAnchorA.x, m_localAnchorA.y);
 	b2Log("  jd.localAnchorB.Set(%.15lef, %.15lef);\n", m_localAnchorB.x, m_localAnchorB.y);
 	b2Log("  jd.referenceAngle = %.15lef;\n", m_referenceAngle);
-	b2Log("  jd.maxForce = %.15lef;\n", m_maxForce);
+	b2Log("  jd.maxForce = (%.15lef, %.15lef);\n", m_maxForce.x, m_maxForce.y);
 	b2Log("  jd.maxTorque = %.15lef;\n", m_maxTorque);
 	b2Log("  jd.dampingRatio = %.15lef;\n", m_dampingRatio);
 	b2Log("  joints[%d] = m_world->CreateJoint(&jd);\n", m_index);

@@ -56,8 +56,8 @@ struct b2ElasticPlasticJointDef : public b2JointDef
 	/// The damping ratio. 0 = no damping, 1 = critical damping.
 	float32 dampingRatio;
 
-	/// The joint motor force in N.
-	float32 maxForce;
+	/// maximum joint forced in N.
+	b2Vec2 maxForce;
 
 	/// The maximum joint torque in N-m.
 	float32 maxTorque;
@@ -86,10 +86,10 @@ public:
 	float32 GetReferenceAngle() const { return m_referenceAngle; }
 
 	/// Set the maximum friction force in N.
-	void SetMaxForce(float32 force);
+	void SetMaxForce(b2Vec2 force);
 
 	/// Get the maximum friction force in N.
-	float32 GetMaxForce() const;
+	b2Vec2 GetMaxForce() const;
 
 	/// Set the maximum friction torque in N*m.
 	void SetMaxTorque(float32 torque);
@@ -126,7 +126,7 @@ protected:
 	float32 m_referenceAngle;
 	float32 m_gamma;
 	b2Vec3 m_impulse;
-	float32 m_maxForce;
+	b2Vec2 m_maxForce;
 	float32 m_maxTorque;
 	// ep
 	float32 positionError, angularError;

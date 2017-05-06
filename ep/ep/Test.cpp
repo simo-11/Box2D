@@ -139,7 +139,7 @@ public:
 	b2Fixture* m_fixture;
 };
 
-void Test::MouseDown(const b2Vec2& p, int32 mods)
+void Test::MouseDown(const b2Vec2& p, int32 mods, Settings* settings)
 {
 	m_mouseWorld = p;
 	
@@ -168,7 +168,7 @@ void Test::MouseDown(const b2Vec2& p, int32 mods)
 			md.bodyA = m_groundBody;
 			md.bodyB = body;
 			md.target = p;
-			md.maxForce = 100000.0f * body->GetMass();
+			md.maxForce =  settings->mouseJointForceScale* body->GetMass();
 			m_mouseJoint = (b2MouseJoint*)m_world->CreateJoint(&md);
 			body->SetAwake(true);
 		}
@@ -224,12 +224,18 @@ void Test::MouseUp(const b2Vec2& p)
 	}
 }
 
-void Test::MouseMove(const b2Vec2& p)
+void Test::MouseMove(const b2Vec2& p, Settings* settings)
 {
 	m_mouseWorld = p;
 	
 	if (m_mouseJoint)
 	{
+		// Scale for so that 10 % of windows extents gives normalized force
+		float32 d = (m_mouseJoint->GetAnchorB() - m_mouseJoint->GetAnchorA()).Length();
+		float32 scale = 10*d / g_camera.m_extent;
+		float32 force = scale*settings->mouseJointForceScale* m_mouseJoint->GetBodyB()->GetMass();
+		m_mouseJoint->SetMaxForce(force );
+
 		m_mouseJoint->SetTarget(p);
 	}
 }

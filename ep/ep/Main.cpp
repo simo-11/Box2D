@@ -274,7 +274,7 @@ static void sMouseButton(GLFWwindow* window, int32 button, int32 action, int32 m
 			}
 			else
 			{
-				test->MouseDown(pw, mods);
+				test->MouseDown(pw, mods, &settings);
 			}
 		}
 		
@@ -304,7 +304,7 @@ static void sMouseMotion(GLFWwindow*, double xd, double yd)
 	b2Vec2 ps((float)xd, (float)yd);
 
 	b2Vec2 pw = g_camera.ConvertScreenToWorld(ps);
-	test->MouseMove(pw);
+	test->MouseMove(pw, &settings);
 	
 	if (rightMouseDown)
 	{
@@ -399,7 +399,10 @@ static void sInterface()
 		ImGui::SliderInt("##Pos Iters", &settings.positionIterations, 0, 50);
 		ImGui::Text("Hertz");
 		ImGui::SliderFloat("##Hertz", &settings.hz, 5.0f, 10000.0f, "%.0f hz",2.0f);
-		ImGui::Text("visual joint reaction force"); 
+		ImGui::Text("Mouse joint force scale");
+		ImGui::SliderFloat("##mouseJointForceScale", &settings.mouseJointForceScale, 
+			1.0f, 1000.0f, "%.0f * mass", 3.0f);
+		ImGui::Text("visual joint reaction force");
 		ImGui::SliderFloat("##forceScale", &settings.forceScale, 0.001f, 10000.0f, "%.3f", 3.f);
 		ImGui::Text("visual joint reaction moment");
 		ImGui::SliderFloat("##momentScale", &settings.momentScale, 0.001f, 1000.0f, "%.3f",2.f);

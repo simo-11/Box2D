@@ -66,6 +66,7 @@ struct Settings
 	}
 	void reset(){
 		hz = 60.0f;
+		mouseJointForceScale = 30.f;
 		velocityIterations = 8;
 		positionIterations = 3;
 		drawShapes = true;
@@ -86,11 +87,12 @@ struct Settings
 		enableSleep = true;
 		pause = false;
 		singleStep = false;
-		forceScale = 100.f;
+		forceScale = 10.f;
 		momentScale = 10.f;
 		initImpulses = false;
 	}
 	float32 hz;
+	float32 mouseJointForceScale; 
 	int32 velocityIterations;
 	int32 positionIterations;
 	bool drawShapes;
@@ -160,9 +162,9 @@ public:
 	virtual void Keyboard(int key) { B2_NOT_USED(key); }
 	virtual void KeyboardUp(int key) { B2_NOT_USED(key); }
 	void ShiftMouseDown(const b2Vec2& p);
-	virtual void MouseDown(const b2Vec2& p, int32 mods);
+	virtual void MouseDown(const b2Vec2& p, int32 mods, Settings* settings);
 	virtual void MouseUp(const b2Vec2& p);
-	void MouseMove(const b2Vec2& p);
+	void MouseMove(const b2Vec2& p, Settings* settings);
 	void LaunchBomb();
 	void LaunchBomb(const b2Vec2& position, const b2Vec2& velocity);
 	
