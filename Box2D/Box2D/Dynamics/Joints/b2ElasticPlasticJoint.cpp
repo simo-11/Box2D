@@ -86,7 +86,14 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	m_invMassB = m_bodyB->m_invMass;
 	m_invIA = m_bodyA->m_invI;
 	m_invIB = m_bodyB->m_invI;
-
+	// ep, update anchors if needed
+	if (m_forceExceeded){
+		m_forceExceeded = false;
+	}
+	if (m_torqueExceeded){
+		m_torqueExceeded = false;
+	}
+	// end ep
 	float32 aA = data.positions[m_indexA].a;
 	b2Vec2 vA = data.velocities[m_indexA].v;
 	float32 wA = data.velocities[m_indexA].w;
@@ -185,6 +192,13 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	data.velocities[m_indexA].w = wA;
 	data.velocities[m_indexB].v = vB;
 	data.velocities[m_indexB].w = wB;
+	// ep
+	m_maxImpulse.z = m_maxTorque*data.step.dt;
+	// rotate original maxForce to match current average rotation
+	b2Rot q((wA+wB)/2);
+	b2Vec2 rotatedMaxForce = b2Mul(q, m_maxForce);
+	m_maxImpulse.x = rotatedMaxForce.x;
+	m_maxImpulse.y = rotatedMaxForce.y;
 }
 
 void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
@@ -227,7 +241,9 @@ void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 		float32 Cdot2 = wB - wA;
 		b2Vec3 Cdot(Cdot1.x, Cdot1.y, Cdot2);
 
-		b2Vec3 impulse = -b2Mul(m_mass, Cdot);
+		// ep, limit impulse so that m_impulse does not exceed
+		// m_maxImpulse
+		b2Vec3 impulse = GetClampedDeltaImpulse(Cdot);
 		m_impulse += impulse;
 
 		b2Vec2 P(impulse.x, impulse.y);
@@ -244,6 +260,26 @@ void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 	data.velocities[m_indexB].v = vB;
 	data.velocities[m_indexB].w = wB;
 }
+
+/**
+*/
+b2Vec3 b2ElasticPlasticJoint::GetClampedDeltaImpulse(b2Vec3 Cdot){
+	b2Vec3 impulse = -b2Mul(m_mass, Cdot);
+	b2Vec3 clamped;
+	b2Vec3 high = m_maxImpulse - m_impulse;
+	b2Vec3 low = -m_maxImpulse - m_impulse;
+	clamped.x = b2Clamp(impulse.x, low.x, high.x);
+	clamped.y = b2Clamp(impulse.y, low.y, high.y);
+	if (impulse.x != clamped.x || impulse.y != clamped.y){
+		m_forceExceeded = true;
+	}
+	clamped.z = b2Clamp(impulse.z, low.z, high.z);
+	if (impulse.z != clamped.z){
+		m_torqueExceeded = true;
+	}
+	return clamped;
+}
+
 
 bool b2ElasticPlasticJoint::SolvePositionConstraints(const b2SolverData& data)
 {
@@ -288,8 +324,14 @@ bool b2ElasticPlasticJoint::SolvePositionConstraints(const b2SolverData& data)
 	}
 	else
 	{
-		b2Vec2 C1 = cB + rB - cA - rA;
-		float32 C2 = aB - aA - m_referenceAngle;
+		b2Vec2 C1;
+		if (!m_forceExceeded){
+			C1 = cB + rB - cA - rA;
+		}
+		float32 C2;
+		if (!m_torqueExceeded){
+			C2 = aB - aA - m_referenceAngle;
+		}
 
 		positionError = C1.Length();
 		angularError = b2Abs(C2);

@@ -203,7 +203,7 @@ public:
 			b2ElasticPlasticJointDef jd;
 			jd.maxForce.x = 2 * hy*fy*1e6f;
 			jd.maxForce.y = 2 * hx*fy*1e6f;
-			jd.maxTorque = hy*hy / 4 * fy*1e6f;
+			jd.maxTorque = hy*hy* fy*1e6f;
 
 			b2Body* prevBody = sbody;
 			noteElasticPlastic1.Set(-hy, sy + 2 + hy);

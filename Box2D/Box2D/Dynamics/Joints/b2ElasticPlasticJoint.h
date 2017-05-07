@@ -126,10 +126,13 @@ protected:
 	float32 m_referenceAngle;
 	float32 m_gamma;
 	b2Vec3 m_impulse;
+	// ep
+	b2Vec3 m_maxImpulse;
+	b2Vec3 GetClampedDeltaImpulse(b2Vec3 Cdot);
 	b2Vec2 m_maxForce;
 	float32 m_maxTorque;
-	// ep
 	float32 positionError, angularError;
+	float32 m_forceExceeded, m_torqueExceeded;
 	// Impulse initialization
 	bool aInitialized, bInitialized;
 	int32 id;
