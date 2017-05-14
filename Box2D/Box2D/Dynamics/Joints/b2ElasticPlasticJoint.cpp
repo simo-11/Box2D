@@ -88,9 +88,21 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	m_invIB = m_bodyB->m_invI;
 	// ep, update anchors if needed
 	if (m_forceExceeded){
+		if (m_frequencyHz > 0.f){
+			// TODO
+		}
+		else{
+			// TODO
+		}
 		m_forceExceeded = false;
 	}
 	if (m_torqueExceeded){
+		if (m_frequencyHz > 0.f){
+			// TODO
+		}
+		else{
+			m_referenceAngle = m_bodyB->GetAngle() - m_bodyA->GetAngle();
+		}
 		m_torqueExceeded = false;
 	}
 	// end ep
@@ -197,8 +209,8 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	// rotate original maxForce to match current average rotation
 	b2Rot q((wA+wB)/2);
 	b2Vec2 rotatedMaxForce = b2Mul(q, m_maxForce);
-	m_maxImpulse.x = rotatedMaxForce.x;
-	m_maxImpulse.y = rotatedMaxForce.y;
+	m_maxImpulse.x = b2Abs(rotatedMaxForce.x);
+	m_maxImpulse.y = b2Abs(rotatedMaxForce.y);
 }
 
 void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
@@ -328,9 +340,16 @@ bool b2ElasticPlasticJoint::SolvePositionConstraints(const b2SolverData& data)
 		if (!m_forceExceeded){
 			C1 = cB + rB - cA - rA;
 		}
+		else{
+			C1.SetZero();
+		}
 		float32 C2;
 		if (!m_torqueExceeded){
 			C2 = aB - aA - m_referenceAngle;
+		}
+		else{
+			C2 = 0.f;
+			m_referenceAngle = aB - aA;
 		}
 
 		positionError = C1.Length();
