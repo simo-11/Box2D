@@ -230,7 +230,7 @@ void Test::MouseMove(const b2Vec2& p, Settings* settings)
 	
 	if (m_mouseJoint)
 	{
-		// Scale for so that 10 % of windows extents gives normalized force
+		// Scale force so that 10 % of windows extents gives normalized force
 		float32 d = (m_mouseJoint->GetAnchorB() - m_mouseJoint->GetAnchorA()).Length();
 		float32 scale = 10*d / g_camera.m_extent;
 		float32 force = scale*settings->mouseJointForceScale* m_mouseJoint->GetBodyB()->GetMass();
@@ -318,6 +318,25 @@ void Test::Step(Settings* settings)
 	m_pointCount = 0;
 
 	m_world->Step(timeStep, settings->velocityIterations, settings->positionIterations);
+	for (b2Joint* j = m_world->GetJointList(); j;)
+	{
+		b2Joint* nj = j->GetNext();
+		switch (j->GetType())
+		{
+		case e_elasticPlasticJoint:
+		{
+			b2ElasticPlasticJoint* ej = (b2ElasticPlasticJoint*)j;
+			if (ej->WantsToBreak()){
+				m_world->DestroyJoint(ej);
+			}
+			break;
+		}
+		default:
+			break;
+		}
+		j = nj;
+	}
+
 	if (timeStep > 0.f){
 		g_debugDraw.SetInvDt(1.f/timeStep);
 	}

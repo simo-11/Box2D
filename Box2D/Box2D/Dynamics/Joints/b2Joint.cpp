@@ -182,7 +182,9 @@ void b2Joint::Destroy(b2Joint* joint, b2BlockAllocator* allocator)
 	case e_motorJoint:
 		allocator->Free(joint, sizeof(b2MotorJoint));
 		break;
-
+	case e_elasticPlasticJoint:
+		allocator->Free(joint, sizeof(b2ElasticPlasticJoint));
+		break;
 	default:
 		b2Assert(false);
 		break;

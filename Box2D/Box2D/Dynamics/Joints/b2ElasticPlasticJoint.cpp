@@ -71,6 +71,10 @@ b2ElasticPlasticJoint::b2ElasticPlasticJoint(const b2ElasticPlasticJointDef* def
 
 	m_maxForce = def->maxForce;
 	m_maxTorque = def->maxTorque;
+	m_maxStrain = def->maxStrain;
+	m_maxRotation = def->maxRotation;
+	m_currentStrain = 0.f;
+	m_currentRotation = 0.f;
 	aInitialized = false;
 	bInitialized = false;
 	id = epId++;
@@ -101,7 +105,9 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 			// TODO
 		}
 		else{
-			m_referenceAngle = m_bodyB->GetAngle() - m_bodyA->GetAngle();
+			float32 newReferenceAngle = m_bodyB->GetAngle() - m_bodyA->GetAngle();
+			m_currentRotation += b2Abs(newReferenceAngle - m_referenceAngle);
+			m_referenceAngle = newReferenceAngle;
 		}
 		m_torqueExceeded = false;
 	}
@@ -273,6 +279,15 @@ void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 	data.velocities[m_indexB].w = wB;
 }
 
+bool b2ElasticPlasticJoint::WantsToBreak(){
+	if (m_currentRotation > m_maxRotation){
+		return true;
+	}
+	if (m_currentStrain > m_maxStrain){
+		return true;
+	}
+	return false;
+}
 /**
 */
 b2Vec3 b2ElasticPlasticJoint::GetClampedDeltaImpulse(b2Vec3 Cdot){
@@ -349,7 +364,6 @@ bool b2ElasticPlasticJoint::SolvePositionConstraints(const b2SolverData& data)
 		}
 		else{
 			C2 = 0.f;
-			m_referenceAngle = aB - aA;
 		}
 
 		positionError = C1.Length();
@@ -461,6 +475,8 @@ void b2ElasticPlasticJoint::Dump()
 	b2Log("  jd.referenceAngle = %.15lef;\n", m_referenceAngle);
 	b2Log("  jd.maxForce = (%.15lef, %.15lef);\n", m_maxForce.x, m_maxForce.y);
 	b2Log("  jd.maxTorque = %.15lef;\n", m_maxTorque);
+	b2Log("  jd.maxStrain = %.15lef;\n", m_maxStrain);
+	b2Log("  jd.maxRotation = %.15lef;\n", m_maxRotation);
 	b2Log("  jd.dampingRatio = %.15lef;\n", m_dampingRatio);
 	b2Log("  joints[%d] = m_world->CreateJoint(&jd);\n", m_index);
 }

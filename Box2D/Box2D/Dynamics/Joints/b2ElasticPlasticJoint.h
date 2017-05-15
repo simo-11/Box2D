@@ -61,6 +61,10 @@ struct b2ElasticPlasticJointDef : public b2JointDef
 
 	/// The maximum joint torque in N-m.
 	float32 maxTorque;
+	// meters, typically less than about 10 % of joint distance
+	float32 maxStrain;
+	// radians, typically 1 - 6 
+	float32 maxRotation;
 
 };
 
@@ -96,7 +100,7 @@ public:
 
 	/// Get the maximum friction torque in N*m.
 	float32 GetMaxTorque() const;
-
+	bool WantsToBreak();
 	/// Dump to b2Log
 	void Dump();
 	static void SetLinearSlop(float32 value);
@@ -131,6 +135,7 @@ protected:
 	b2Vec3 GetClampedDeltaImpulse(b2Vec3 Cdot);
 	b2Vec2 m_maxForce;
 	float32 m_maxTorque;
+	float32 m_maxStrain, m_maxRotation, m_currentStrain, m_currentRotation;
 	float32 positionError, angularError;
 	float32 m_forceExceeded, m_torqueExceeded;
 	// Impulse initialization
