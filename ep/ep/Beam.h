@@ -205,7 +205,7 @@ public:
 			jd.maxForce.y = 2 * hx*fy*1e6f;
 			jd.maxTorque = hy*hy* fy*1e6f;
 			jd.maxRotation = 3.f;
-			jd.maxStrain = 0.2*b2Min(hx,hy);
+			jd.maxStrain = 0.2f*b2Min(hx,hy);
 
 			b2Body* prevBody = sbody;
 			noteElasticPlastic1.Set(-hy, sy + 2 + hy);

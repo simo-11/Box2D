@@ -41,6 +41,7 @@ local glfw_common = {
 	"../Box2D/glfw/init.c",
 	"../Box2D/glfw/input.c",
 	"../Box2D/glfw/monitor.c",
+	"../Box2D/glfw/vulkan.c",
 	"../Box2D/glfw/window.c" }
 
 project "GLFW"
@@ -49,17 +50,18 @@ project "GLFW"
 	configuration { "windows" }
 		local f = {
 			"../Box2D/glfw/win32_platform.h",
-			"../Box2D/glfw/win32_tls.h",
-			"../Box2D/glfw/winmm_joystick.h",
-			"../Box2D/glfw/wglext.h",
+			"../Box2D/glfw/win32_joystick.h",
+			"../Box2D/glfw/wgl_context.h",
+			"../Box2D/glfw/egl_context.h",
 			"../Box2D/glfw/win32_init.c",
+            "../Box2D/glfw/win32_joystick.c",
 			"../Box2D/glfw/win32_monitor.c",
 			"../Box2D/glfw/win32_time.c",
             "../Box2D/glfw/win32_tls.c",
             "../Box2D/glfw/win32_window.c",
-            "../Box2D/glfw/winmm_joystick.c",
-        	"../Box2D/glfw/wgl_context.c"}
-   
+        	"../Box2D/glfw/wgl_context.c",
+        	"../Box2D/glfw/egl_context.c"
+		}
         for i, v in ipairs(glfw_common) do
         	f[#f + 1] = glfw_common[i]
         end
