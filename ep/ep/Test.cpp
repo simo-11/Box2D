@@ -210,6 +210,12 @@ void Test::ShiftMouseDown(const b2Vec2& p)
 	SpawnBomb(p);
 }
 
+void Test::ControlMouseDown(const b2Vec2& p)
+{
+	AddRigidTriangle(p);
+}
+
+
 void Test::MouseUp(const b2Vec2& p)
 {
 	if (m_mouseJoint)
@@ -547,6 +553,21 @@ void Test::LogEpCapasity(b2ElasticPlasticJoint* j, float* locs){
 	ImGui::Text("%3.0f", 100.f*j->getCurrentStrain()/j->getMaxStrain());
 	ImGui::SameLine(locs[3]);
 	ImGui::Text("%3.0f", 100.f*j->getCurrentRotation() / j->getMaxRotation());
+}
+void Test::AddRigidTriangle(const b2Vec2& p){
+	b2Vec2 vertices[3];
+	vertices[0].Set(-0.5f, 0.0f);
+	vertices[1].Set(0.5f, 0.0f);
+	vertices[2].Set(0.0f, 1.5f);
+	b2PolygonShape shape;
+	shape.Set(vertices, 3);
+	b2FixtureDef fd;
+	fd.shape = &shape;
+	b2BodyDef bd;
+	bd.type = b2_staticBody;
+	bd.position.Set(p.x,p.y);
+	b2Body* body = m_world->CreateBody(&bd);
+	body->CreateFixture(&fd);
 }
 void Test::ShiftOrigin(const b2Vec2& newOrigin)
 {

@@ -272,6 +272,9 @@ static void sMouseButton(GLFWwindow* window, int32 button, int32 action, int32 m
 			{
 				test->ShiftMouseDown(pw);
 			}
+			else if (mods == GLFW_MOD_CONTROL){
+				test->ControlMouseDown(pw);
+			}
 			else
 			{
 				test->MouseDown(pw, mods, &settings);

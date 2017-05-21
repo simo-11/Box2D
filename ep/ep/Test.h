@@ -162,6 +162,7 @@ public:
 	virtual void Keyboard(int key) { B2_NOT_USED(key); }
 	virtual void KeyboardUp(int key) { B2_NOT_USED(key); }
 	void ShiftMouseDown(const b2Vec2& p);
+	void ControlMouseDown(const b2Vec2& p);
 	virtual void MouseDown(const b2Vec2& p, int32 mods, Settings* settings);
 	virtual void MouseUp(const b2Vec2& p);
 	void MouseMove(const b2Vec2& p, Settings* settings);
@@ -190,6 +191,7 @@ public:
 	virtual void drawNotes(){};
 	virtual void LogJoint(b2Joint* j,float32 fScale, float32 mScale, float[4]);
 	virtual void LogEpCapasity(b2ElasticPlasticJoint* j,float[4]);
+	virtual void AddRigidTriangle(const b2Vec2& p);
 	/** reset configurable settings */
 	virtual void reset(){};
 	virtual float getBombDensity(){ return 1000; }
