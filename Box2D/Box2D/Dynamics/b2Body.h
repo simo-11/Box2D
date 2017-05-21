@@ -53,7 +53,7 @@ struct b2BodyDef
 	/// This constructor sets the body definition default values.
 	b2BodyDef()
 	{
-		userData = NULL;
+		userData = nullptr;
 		position.Set(0.0f, 0.0f);
 		angle = 0.0f;
 		linearVelocity.Set(0.0f, 0.0f);
@@ -640,11 +640,8 @@ inline void b2Body::SetAwake(bool flag)
 {
 	if (flag)
 	{
-		if ((m_flags & e_awakeFlag) == 0)
-		{
-			m_flags |= e_awakeFlag;
-			m_sleepTime = 0.0f;
-		}
+		m_flags |= e_awakeFlag;
+		m_sleepTime = 0.0f;
 	}
 	else
 	{

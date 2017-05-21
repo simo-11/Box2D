@@ -538,7 +538,7 @@ Report(contactSolver.m_velocityConstraints);
 
 void b2Island::Report(const b2ContactVelocityConstraint* constraints)
 {
-	if (m_listener == NULL)
+	if (m_listener == nullptr)
 	{
 		return;
 	}
