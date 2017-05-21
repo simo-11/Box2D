@@ -57,7 +57,7 @@ public:
 		return sbody;
 	}
 	virtual float getBombRadius(){
-		return hx;
+		return hy;
 	}
 	virtual float getBombDensity(){
 		return density;
@@ -339,7 +339,7 @@ public:
 				ImGui::Text("sub body count");
 				ImGui::SliderInt("##sub body count", &so_count, 1, 50);
 				ImGui::Text("sub body half length");
-				ImGui::SliderFloat("##sub body half length", &hx, 0.1f, 3, "%.2f");
+				ImGui::SliderFloat("##sub body half length", &hx, 0.1f, 30, "%.2f",2.f);
 				ImGui::Text("sub body half height");
 				ImGui::SliderFloat("##sub body half height", &hy, 0.05f, 3, "%.2f");
 				if (addSoft){
@@ -375,6 +375,23 @@ public:
 					{
 						LogJoint(j,1e-6f,1e-6f,locs);
 					}						
+				}
+				if (addElasticPlastic && ImGui::CollapsingHeader("Capasity usage [%]"))
+				{
+					float locs[4] = { 40, 80, 120, 160 };
+					ImGui::Text(" x"); ImGui::SameLine(locs[0]);
+					ImGui::Text(" y"); ImGui::SameLine(locs[1]);
+					ImGui::Text(" z"); ImGui::SameLine(locs[2]);
+					ImGui::Text(" s"); ImGui::SameLine(locs[3]);
+					ImGui::Text(" r");
+					for (b2Joint* j = m_world->GetJointList(); j; j = j->GetNext())
+					{
+						switch (j->GetType()){
+						case e_elasticPlasticJoint:
+							LogEpCapasity((b2ElasticPlasticJoint*)j, locs);
+							break;
+						}
+					}
 				}
 			}
 			ImGui::End();

@@ -189,6 +189,7 @@ public:
 	virtual void Ui(Settings* settings){};
 	virtual void drawNotes(){};
 	virtual void LogJoint(b2Joint* j,float32 fScale, float32 mScale, float[4]);
+	virtual void LogEpCapasity(b2ElasticPlasticJoint* j,float[4]);
 	/** reset configurable settings */
 	virtual void reset(){};
 	virtual float getBombDensity(){ return 1000; }

@@ -97,6 +97,10 @@ public:
 
 	/// Set the maximum friction torque in N*m.
 	void SetMaxTorque(float32 torque);
+	float32 getCurrentStrain(){ return m_currentStrain; }
+	float32 getCurrentRotation(){ return m_currentRotation; }
+	float32 getMaxStrain(){ return m_maxStrain; }
+	float32 getMaxRotation(){ return m_maxRotation; }
 
 	/// Get the maximum friction torque in N*m.
 	float32 GetMaxTorque() const;

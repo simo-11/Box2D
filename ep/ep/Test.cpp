@@ -526,13 +526,27 @@ void Test::Step(Settings* settings)
 
 void Test::LogJoint(b2Joint* j,float32 fScale, float32 mScale, float* locs){
 	b2Vec2 p = 0.5f*(j->GetAnchorA() + j->GetAnchorB());
-	b2Vec2 f = j->GetReactionForce(g_debugDraw.GetInvDt());
-	float32 m = j->GetReactionTorque(g_debugDraw.GetInvDt());
+	float32 idt=g_debugDraw.GetInvDt();
+	b2Vec2 f = j->GetReactionForce(idt);
+	float32 m = j->GetReactionTorque(idt);
 	ImGui::Text("%5.2f", fScale*f.x); ImGui::SameLine(locs[0]);
 	ImGui::Text("%5.2f", fScale*f.y); ImGui::SameLine(locs[1]);
 	ImGui::Text("%5.2f", mScale*m); ImGui::SameLine(locs[2]);
 	ImGui::Text("%4.1f",p.x); ImGui::SameLine(locs[3]);
 	ImGui::Text("%4.1f",p.y);
+}
+void Test::LogEpCapasity(b2ElasticPlasticJoint* j, float* locs){
+	float32 idt = g_debugDraw.GetInvDt();
+	b2Vec2 f = j->GetReactionForce(idt);
+	b2Vec2 mf = j->GetMaxForce();
+	float32 m = j->GetReactionTorque(idt);
+	float32 mm = j->GetMaxTorque();
+	ImGui::Text("%3.0f", 100.f*f.x / mf.x); ImGui::SameLine(locs[0]);
+	ImGui::Text("%3.0f", 100.f*f.y/mf.y); ImGui::SameLine(locs[1]);
+	ImGui::Text("%3.0f", 100.f*m/mm); ImGui::SameLine(locs[2]);
+	ImGui::Text("%3.0f", 100.f*j->getCurrentStrain()/j->getMaxStrain());
+	ImGui::SameLine(locs[3]);
+	ImGui::Text("%3.0f", 100.f*j->getCurrentRotation() / j->getMaxRotation());
 }
 void Test::ShiftOrigin(const b2Vec2& newOrigin)
 {
