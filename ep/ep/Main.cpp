@@ -78,10 +78,22 @@ static void sCreateUI(GLFWwindow* window)
 	ui.showMenu = true;
 
 	// Init UI
-	const char* fontPath = "../Data/DroidSans.ttf";
-	if (canRead(fontPath)){
-		ImGui::GetIO().Fonts->AddFontFromFileTTF(fontPath, 15.f);
+	const char* fontName = "DroidSans.ttf";
+	char* dirs[] = { "../Data/", "", NULL };
+	const int blen = 50;
+	char buff[blen];
+	for (int i = 0; dirs[i]; i++){
+		snprintf(buff, blen, "%s%s", dirs[i], fontName);
+		if (canRead(buff)){
+			ImGui::GetIO().Fonts->AddFontFromFileTTF(buff, 15.f);
+			fprintf(stdout, "using font file %s\n", buff);
+			goto fontSearchDone;
+		}
+		else{
+			fprintf(stdout, "font file %s is not available\n",buff);
+		}
 	}
+	fontSearchDone:
 	if (ImGui_ImplGlfwGL3_Init(window, false) == false)
 	{
 		fprintf(stderr, "Could not init GUI renderer.\n");
