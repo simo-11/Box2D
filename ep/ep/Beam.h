@@ -40,12 +40,13 @@ namespace {
 	float32 hy;
 	float E; // GPa
 	float fy; //MPa
-	bool addSoft, addHard, addParts, addMotor, addElasticPlastic;
+	bool addSoft, addHard, addElasticPlastic;
+	float32 lastCx,lastCy;
 }
 class Beam : public Test
 {
 public:
-	b2Vec2 noteWeld1, noteSoftWeld1, noteMotor1, noteElasticPlastic1;
+	b2Vec2 noteWeld1, noteSoftWeld1, noteElasticPlastic1;
 	virtual b2Body* getStaticBody(b2PolygonShape staticShape, float32 sy){
 		b2FixtureDef sfd;
 		sfd.shape = &staticShape;
@@ -73,33 +74,32 @@ public:
 		E = 200;
 		addSoft = false;
 		addHard = false;
-		addMotor = false;
 		addElasticPlastic = true;
-		addParts = false;
 	}
 	Beam()
 	{
 		if (so_count < 1){
 			// initial run
 			reset();
-			g_camera.m_center.Set(2*so_count*hx,20);
 		}
+		float32 totalLength = so_count * 2 * hx+2*hy;
 		b2Body* ground = NULL;
 		{
 			b2BodyDef bd;
 			ground = m_world->CreateBody(&bd);
 
 			b2EdgeShape shape;
-			float32 floorLevel = -so_count*2*hx;
-			shape.Set(b2Vec2(-5*hy-so_count*hx-10, floorLevel),
-				b2Vec2(so_count*hx*4+5*hy+10, floorLevel));
+			float32 floorLevel = 0;
+			shape.Set(b2Vec2(-5 * hy - so_count*hx - 10, floorLevel),
+				b2Vec2(so_count*hx * 4 + 5 * hy + 10, floorLevel));
 			ground->CreateFixture(&shape, 0.0f);
 		}
 		b2PolygonShape staticShape;
 		staticShape.SetAsBox(hy, hy);
+		float32 sy = 0;
 		if (addHard)
 		{
-			float32 sy = 5;
+			sy += 5 + totalLength;
 			b2Body* sbody = getStaticBody(staticShape, sy);
 
 			b2PolygonShape shape;
@@ -112,12 +112,12 @@ public:
 			b2WeldJointDef jd;
 
 			b2Body* prevBody = sbody;
-			noteWeld1.Set(-hy,sy+2+hy);
+			noteWeld1.Set(-hy, sy + 2 + hy);
 			for (int32 i = 0; i < so_count; ++i)
 			{
 				b2BodyDef bd;
 				bd.type = b2_dynamicBody;
-				bd.position.Set((2*i+1)*hx, sy);
+				bd.position.Set((2 * i + 1)*hx, sy);
 				b2Body* body = m_world->CreateBody(&bd);
 				body->CreateFixture(&fd);
 				b2Vec2 anchor((2 * i)*hx, sy);
@@ -128,7 +128,7 @@ public:
 		}
 		if (addSoft)
 		{
-			float32 sy = 15;
+			sy += 5 + totalLength;
 			b2Body* sbody = getStaticBody(staticShape, sy);
 
 			b2PolygonShape shape;
@@ -157,40 +157,10 @@ public:
 				prevBody = body;
 			}
 		}
-		if (addMotor)
-		{
-			float32 sy = 25;
-			b2Body* sbody = getStaticBody(staticShape, sy);
-
-			b2PolygonShape shape;
-			shape.SetAsBox(hx, hy);
-
-			b2FixtureDef fd;
-			fd.shape = &shape;
-			fd.density = density;
-
-			b2MotorJointDef jd;
-			jd.maxForce = 2 * hy*fy*1e6f;
-			jd.maxTorque = hy*hy / 4 * fy*1e6f;
-
-			b2Body* prevBody = sbody;
-			noteMotor1.Set(-hy, sy + 2 + hy);
-			for (int32 i = 0; i < so_count; ++i)
-			{
-				b2BodyDef bd;
-				bd.type = b2_dynamicBody;
-				bd.position.Set((2 * i + 1)*hx, sy);
-				b2Body* body = m_world->CreateBody(&bd);
-				body->CreateFixture(&fd);
-				jd.Initialize(prevBody, body);
-				b2MotorJoint* mj = (b2MotorJoint*)m_world->CreateJoint(&jd);
-				prevBody = body;
-			}
-		}
 		if (addElasticPlastic)
 		{
+			sy += 5 + totalLength;
 			b2ElasticPlasticJoint::resetEpId();
-			float32 sy = 35;
 			b2Body* sbody = getStaticBody(staticShape, sy);
 
 			b2PolygonShape shape;
@@ -205,7 +175,7 @@ public:
 			jd.maxForce.y = 2 * hx*fy*1e6f;
 			jd.maxTorque = hy*hy* fy*1e6f;
 			jd.maxRotation = 3.f;
-			jd.maxStrain = 0.2f*b2Min(hx,hy);
+			jd.maxStrain = 0.2f*b2Min(hx, hy);
 
 			b2Body* prevBody = sbody;
 			noteElasticPlastic1.Set(-hy, sy + 2 + hy);
@@ -222,108 +192,26 @@ public:
 				prevBody = body;
 			}
 		}
-
-		if (addParts)
-		{
-			b2PolygonShape shape;
-			shape.SetAsBox(hx, hy);
-			float32 sx = so_count*hx*2+5;
-			float32 sy = 5;
-
-			b2FixtureDef fd;
-			fd.shape = &shape;
-			fd.density = density;
-
-			b2WeldJointDef jd;
-
-			b2Body* prevBody = NULL;
-			for (int32 i = 0; i < so_count; ++i)
-			{
-				b2BodyDef bd;
-				bd.type = b2_dynamicBody;
-				bd.position.Set(sx + (2 * i + 1)*hx, sy);
-				b2Body* body = m_world->CreateBody(&bd);
-				body->CreateFixture(&fd);
-
-				if (i > 0)
-				{
-					b2Vec2 anchor(sx + (2 * i)*hx, sy);
-					jd.Initialize(prevBody, body, anchor);
-					m_world->CreateJoint(&jd);
-				}
-
-				prevBody = body;
+		{ // rescale using m_zoom and m_center if dimensions change
+			float32 cx = 2 * so_count*hx;
+			float32 cy = sy/2+hy+1;
+			if (lastCy != cy || lastCx != cx){
+				float32 margin = 2 * hy + 2;
+				g_camera.m_center.Set(cx, cy);
+				g_camera.m_zoom = 1.1f*(b2Max(cx,cy)+margin)/25.f;
+				lastCx = cx;
+				lastCy = cy;
 			}
-		}
-		if (addParts)
-		{
-			b2PolygonShape shape;
-			shape.SetAsBox(hx, hy);
-			float32 sx = so_count*hx * 2 + 5;
-			float32 sy = 15;
-			b2FixtureDef fd;
-			fd.shape = &shape;
-			fd.density = density;
-
-			b2WeldJointDef jd;
-			jd.frequencyHz = baseHz;
-			jd.dampingRatio = baseDampingRatio;
-
-			b2Body* prevBody = NULL;
-			for (int32 i = 0; i < so_count; ++i)
-			{
-				b2BodyDef bd;
-				bd.type = b2_dynamicBody;
-				bd.position.Set(sx + (2 * i + 1)*hx, sy);
-				b2Body* body = m_world->CreateBody(&bd);
-				body->CreateFixture(&fd);
-
-				if (i > 0)
-				{
-					b2Vec2 anchor(sx + (2 * i)*hx, sy);
-					jd.Initialize(prevBody, body, anchor);
-					m_world->CreateJoint(&jd);
-				}
-
-				prevBody = body;
+			// keep notes above beams
+			float32 noteMove = g_camera.m_zoom;
+			if (addHard){
+				noteWeld1.y += noteMove;
 			}
-		}
-		if (addParts){
-			for (int32 i = 0; i < 2; ++i)
-			{
-				b2Vec2 vertices[3];
-				vertices[0].Set(-0.5f, 0.0f);
-				vertices[1].Set(0.5f, 0.0f);
-				vertices[2].Set(0.0f, 1.5f);
-
-				b2PolygonShape shape;
-				shape.Set(vertices, 3);
-
-				b2FixtureDef fd;
-				fd.shape = &shape;
-				fd.density = density;
-
-				b2BodyDef bd;
-				bd.type = b2_dynamicBody;
-				bd.position.Set(-8.0f + 8.0f * i, 12.0f);
-				b2Body* body = m_world->CreateBody(&bd);
-				body->CreateFixture(&fd);
+			if (addSoft){
+				noteSoftWeld1.y += noteMove;
 			}
-
-			for (int32 i = 0; i < 2; ++i)
-			{
-				b2CircleShape shape;
-				shape.m_radius = 0.5f;
-
-				b2FixtureDef fd;
-				fd.shape = &shape;
-				fd.density = density;
-
-				b2BodyDef bd;
-				bd.type = b2_dynamicBody;
-				bd.position.Set(-6.0f + 6.0f * i, 10.0f);
-				b2Body* body = m_world->CreateBody(&bd);
-				body->CreateFixture(&fd);
+			if (addElasticPlastic){
+				noteElasticPlastic1.y += noteMove;
 			}
 		}
 	}
@@ -358,9 +246,6 @@ public:
 				ImGui::Checkbox("Soft", &addSoft);
 				ImGui::SameLine();
 				ImGui::Checkbox("Hard", &addHard);
-				ImGui::SameLine();
-				ImGui::Checkbox("Parts", &addParts);
-				ImGui::Checkbox("Motor", &addMotor);
 				ImGui::SameLine();
 				ImGui::Checkbox("ElasticPlastic", &addElasticPlastic);
 				if (ImGui::CollapsingHeader("Joint forces MN/MNm"))
@@ -401,10 +286,15 @@ public:
 		}
 	}
 	virtual void drawNotes(){
-		g_debugDraw.DrawString(noteWeld1, "WeldJoint");
-		g_debugDraw.DrawString(noteSoftWeld1, "Soft WeldJoint");
-		g_debugDraw.DrawString(noteMotor1, "MotorJoint");
-		g_debugDraw.DrawString(noteElasticPlastic1, "ElasticPlasticJoint");
+		if (addHard){
+			g_debugDraw.DrawString(noteWeld1, "WeldJoint");
+		}
+		if (addSoft){
+			g_debugDraw.DrawString(noteSoftWeld1, "Soft WeldJoint");
+		}
+		if (addElasticPlastic){
+			g_debugDraw.DrawString(noteElasticPlastic1, "ElasticPlasticJoint");
+		}
 	}
 	static Test* Create()
 	{

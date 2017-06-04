@@ -43,6 +43,7 @@ struct Camera
 	void BuildProjectionMatrix(float32* m, float32 zBias);
 
 	b2Vec2 m_center;
+	/** do not try to change as m_extent is current hardcoded to 25 on other parts */
 	float32 m_extent;
 	float32 m_zoom;
 	int32 m_width;

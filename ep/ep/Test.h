@@ -87,8 +87,8 @@ struct Settings
 		enableSleep = true;
 		pause = false;
 		singleStep = false;
-		forceScale = 1.f;
-		momentScale = 1.f;
+		forceScale = 0.01f;
+		momentScale = 0.3f;
 		initImpulses = false;
 	}
 	float32 hz;

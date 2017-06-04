@@ -238,7 +238,7 @@ void Test::MouseMove(const b2Vec2& p, Settings* settings)
 	{
 		// Scale force so that 10 % of windows extents gives normalized force
 		float32 d = (m_mouseJoint->GetAnchorB() - m_mouseJoint->GetAnchorA()).Length();
-		float32 scale = 10*d / g_camera.m_extent;
+		float32 scale = 10*d / g_camera.m_extent*g_camera.m_zoom;
 		float32 force = scale*settings->mouseJointForceScale* m_mouseJoint->GetBodyB()->GetMass();
 		m_mouseJoint->SetMaxForce(force );
 
@@ -312,8 +312,8 @@ void Test::Step(Settings* settings)
 	flags += settings->drawAABBs			* b2Draw::e_aabbBit;
 	flags += settings->drawCOMs				* b2Draw::e_centerOfMassBit;
 	g_debugDraw.SetFlags(flags);
-	g_debugDraw.SetForceScale(settings->forceScale*g_camera.m_extent);
-	g_debugDraw.SetMomentScale(settings->momentScale*g_camera.m_extent);
+	g_debugDraw.SetForceScale(settings->forceScale*g_camera.m_extent*g_camera.m_zoom);
+	g_debugDraw.SetMomentScale(settings->momentScale*g_camera.m_extent*g_camera.m_zoom);
 	b2Island::SetInitImpulses(settings->initImpulses);
 
 	m_world->SetAllowSleeping(settings->enableSleep);
