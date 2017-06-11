@@ -40,7 +40,7 @@ namespace {
 	float32 hy;
 	float E; // GPa
 	float fy; //MPa
-	bool addSoft, addHard, addElasticPlastic;
+	bool addSoft, addHard, addElasticPlastic, firstIsHinge;
 	float32 lastCx,lastCy;
 }
 class Beam : public Test
@@ -75,6 +75,7 @@ public:
 		addSoft = false;
 		addHard = false;
 		addElasticPlastic = true;
+		firstIsHinge = false;
 	}
 	Beam()
 	{
@@ -97,6 +98,7 @@ public:
 		b2PolygonShape staticShape;
 		staticShape.SetAsBox(hy, hy);
 		float32 sy = 0;
+		b2RevoluteJointDef hd;
 		if (addHard)
 		{
 			sy += 5 + totalLength;
@@ -121,8 +123,14 @@ public:
 				b2Body* body = m_world->CreateBody(&bd);
 				body->CreateFixture(&fd);
 				b2Vec2 anchor((2 * i)*hx, sy);
-				jd.Initialize(prevBody, body, anchor);
-				m_world->CreateJoint(&jd);
+				if (i==0 && firstIsHinge){
+					hd.Initialize(prevBody, body, anchor);
+					m_world->CreateJoint(&hd);
+				}
+				else{
+					jd.Initialize(prevBody, body, anchor);
+					m_world->CreateJoint(&jd);
+				}
 				prevBody = body;
 			}
 		}
@@ -152,8 +160,14 @@ public:
 				b2Body* body = m_world->CreateBody(&bd);
 				body->CreateFixture(&fd);
 				b2Vec2 anchor((2 * i)*hx, sy);
-				jd.Initialize(prevBody, body, anchor);
-				m_world->CreateJoint(&jd);
+				if (i == 0 && firstIsHinge){
+					hd.Initialize(prevBody, body, anchor);
+					m_world->CreateJoint(&hd);
+				}
+				else{
+					jd.Initialize(prevBody, body, anchor);
+					m_world->CreateJoint(&jd);
+				}
 				prevBody = body;
 			}
 		}
@@ -187,8 +201,14 @@ public:
 				b2Body* body = m_world->CreateBody(&bd);
 				body->CreateFixture(&fd);
 				b2Vec2 anchor((2 * i)*hx, sy);
-				jd.Initialize(prevBody, body, anchor);
-				m_world->CreateJoint(&jd);
+				if (i == 0 && firstIsHinge){
+					hd.Initialize(prevBody, body, anchor);
+					m_world->CreateJoint(&hd);
+				}
+				else{
+					jd.Initialize(prevBody, body, anchor);
+					m_world->CreateJoint(&jd);
+				}
 				prevBody = body;
 			}
 		}
@@ -248,6 +268,7 @@ public:
 				ImGui::Checkbox("Hard", &addHard);
 				ImGui::SameLine();
 				ImGui::Checkbox("ElasticPlastic", &addElasticPlastic);
+				ImGui::Checkbox("FirstIsHinge", &firstIsHinge);
 				if (ImGui::CollapsingHeader("Joint forces MN/MNm"))
 				{
 					float locs[4] = { 40, 80, 120, 160 };
