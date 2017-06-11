@@ -244,31 +244,34 @@ public:
 			ImGui::SetNextWindowSize(ImVec2((float)menuWidth, (float)g_camera.m_height - 20));
 			if (ImGui::Begin("Beam Controls##Bean", &showMenu, 
 				ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize)){
-				ImGui::Text("sub body count");
-				ImGui::SliderInt("##sub body count", &so_count, 1, 50);
-				ImGui::Text("sub body half length");
-				ImGui::SliderFloat("##sub body half length", &hx, 0.1f, 30, "%.2f",2.f);
-				ImGui::Text("sub body half height");
-				ImGui::SliderFloat("##sub body half height", &hy, 0.05f, 3, "%.2f");
-				if (addSoft){
-					ImGui::Text("Frequency for soft joints");
-					ImGui::SliderFloat("Hz##Hertz", &baseHz, 1.f, 60.f, "%.0f");
-					ImGui::Text("DampingRatio for soft joints");
-					ImGui::SliderFloat("##dratio", &baseDampingRatio, 0.f, 1.0f, "%.3f");
+				if (ImGui::CollapsingHeader("Settings", "BeamSettings"))
+				{
+					ImGui::Text("sub body count");
+					ImGui::SliderInt("##sub body count", &so_count, 1, 50);
+					ImGui::Text("sub body half length");
+					ImGui::SliderFloat("##sub body half length", &hx, 0.1f, 30, "%.2f", 2.f);
+					ImGui::Text("sub body half height");
+					ImGui::SliderFloat("##sub body half height", &hy, 0.05f, 3, "%.2f");
+					if (addSoft){
+						ImGui::Text("Frequency for soft joints");
+						ImGui::SliderFloat("Hz##Hertz", &baseHz, 1.f, 60.f, "%.0f");
+						ImGui::Text("DampingRatio for soft joints");
+						ImGui::SliderFloat("##dratio", &baseDampingRatio, 0.f, 1.0f, "%.3f");
+					}
+					ImGui::Text("density");
+					ImGui::SliderFloat("kg/m^3##density", &density, 1000.f, 20000.f, "%.0f");
+					ImGui::Text("Elastic modulus");
+					ImGui::SliderFloat("GPa##E", &E, 10.f, 1000.f, "%.0f");
+					ImGui::Text("yield stress");
+					ImGui::SliderFloat("MPa##fy", &fy, 10.f, 1000.f, "%.0f");
+					ImGui::Separator();
+					ImGui::Checkbox("Soft", &addSoft);
+					ImGui::SameLine();
+					ImGui::Checkbox("Hard", &addHard);
+					ImGui::SameLine();
+					ImGui::Checkbox("ElasticPlastic", &addElasticPlastic);
+					ImGui::Checkbox("FirstIsHinge", &firstIsHinge);
 				}
-				ImGui::Text("density");
-				ImGui::SliderFloat("kg/m^3##density", &density, 1000.f, 20000.f, "%.0f");
-				ImGui::Text("Elastic modulus");
-				ImGui::SliderFloat("GPa##E", &E, 10.f, 1000.f, "%.0f");
-				ImGui::Text("yield stress");
-				ImGui::SliderFloat("MPa##fy", &fy, 10.f, 1000.f, "%.0f");
-				ImGui::Separator();
-				ImGui::Checkbox("Soft", &addSoft);
-				ImGui::SameLine();
-				ImGui::Checkbox("Hard", &addHard);
-				ImGui::SameLine();
-				ImGui::Checkbox("ElasticPlastic", &addElasticPlastic);
-				ImGui::Checkbox("FirstIsHinge", &firstIsHinge);
 				if (ImGui::CollapsingHeader("Joint forces MN/MNm"))
 				{
 					float locs[4] = { 40, 80, 120, 160 };

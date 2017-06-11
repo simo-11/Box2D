@@ -28,6 +28,7 @@
 #include <imgui/imgui_impl_glfw_gl3.h>
 #include "DebugDraw.h"
 #include "Test.h"
+#include "RigidTriangle.h"
 
 #include <glfw/glfw3.h>
 #include <stdio.h>
@@ -407,44 +408,50 @@ static void sInterface()
 			testSelection = testIndex;
 		}
 		ImGui::Separator();
+		if (ImGui::CollapsingHeader("Settings","MainSettings")){
+			ImGui::Text("Vel Iters");
+			ImGui::SliderInt("##Vel Iters", &settings.velocityIterations, 0, 50);
+			ImGui::Text("Pos Iters");
+			ImGui::SliderInt("##Pos Iters", &settings.positionIterations, 0, 50);
+			ImGui::Text("Hertz");
+			ImGui::SliderFloat("##Hertz", &settings.hz, 5.0f, 10000.0f, "%.0f hz", 2.0f);
+			ImGui::Text("Mouse joint force scale");
+			ImGui::SliderFloat("##mouseJointForceScale", &settings.mouseJointForceScale,
+				1.0f, 1000.0f, "%.0f * mass", 3.0f);
+			ImGui::Text("visual joint reaction force");
+			ImGui::SliderFloat("##forceScale", &settings.forceScale, 0.001f, 10000.0f, "%.3f", 3.f);
+			ImGui::Text("visual joint reaction moment");
+			ImGui::SliderFloat("##momentScale", &settings.momentScale, 0.001f, 1000.0f, "%.3f", 2.f);
+			ImGui::PopItemWidth();
 
-		ImGui::Text("Vel Iters");
-		ImGui::SliderInt("##Vel Iters", &settings.velocityIterations, 0, 50);
-		ImGui::Text("Pos Iters");
-		ImGui::SliderInt("##Pos Iters", &settings.positionIterations, 0, 50);
-		ImGui::Text("Hertz");
-		ImGui::SliderFloat("##Hertz", &settings.hz, 5.0f, 10000.0f, "%.0f hz",2.0f);
-		ImGui::Text("Mouse joint force scale");
-		ImGui::SliderFloat("##mouseJointForceScale", &settings.mouseJointForceScale, 
-			1.0f, 1000.0f, "%.0f * mass", 3.0f);
-		ImGui::Text("visual joint reaction force");
-		ImGui::SliderFloat("##forceScale", &settings.forceScale, 0.001f, 10000.0f, "%.3f", 3.f);
-		ImGui::Text("visual joint reaction moment");
-		ImGui::SliderFloat("##momentScale", &settings.momentScale, 0.001f, 1000.0f, "%.3f",2.f);
-		ImGui::PopItemWidth();
+			ImGui::Checkbox("Sleep", &settings.enableSleep);
+			ImGui::Checkbox("Warm Starting", &settings.enableWarmStarting);
+			ImGui::Checkbox("Time of Impact", &settings.enableContinuous);
+			ImGui::Checkbox("Sub-Stepping", &settings.enableSubStepping);
 
-		ImGui::Checkbox("Sleep", &settings.enableSleep);
-		ImGui::Checkbox("Warm Starting", &settings.enableWarmStarting);
-		ImGui::Checkbox("Time of Impact", &settings.enableContinuous);
-		ImGui::Checkbox("Sub-Stepping", &settings.enableSubStepping);
+			ImGui::Separator();
 
-		ImGui::Separator();
-
-		ImGui::Checkbox("Shapes", &settings.drawShapes);
-		ImGui::Checkbox("Joints", &settings.drawJoints);
-		ImGui::SameLine();
-		ImGui::Checkbox("Joint Reactions", &settings.drawJointReactions);
-		ImGui::Checkbox("AABBs", &settings.drawAABBs);
-		ImGui::Checkbox("Contact Points", &settings.drawContactPoints);
-		ImGui::Checkbox("Contact Normals", &settings.drawContactNormals);
-		ImGui::Checkbox("Contact Impulses", &settings.drawContactImpulse);
-		ImGui::Checkbox("Friction Impulses", &settings.drawFrictionImpulse);
-		ImGui::Checkbox("Center of Masses", &settings.drawCOMs);
-		ImGui::Checkbox("Statistics", &settings.drawStats);
-		ImGui::Checkbox("Profile", &settings.drawProfile);
-		ImGui::Checkbox("Notes", &settings.drawNotes);
-		ImGui::Checkbox("Init Impulses", &settings.initImpulses);
-
+			ImGui::Checkbox("Shapes", &settings.drawShapes);
+			ImGui::Checkbox("Joints", &settings.drawJoints);
+			ImGui::SameLine();
+			ImGui::Checkbox("Joint Reactions", &settings.drawJointReactions);
+			ImGui::Checkbox("AABBs", &settings.drawAABBs);
+			ImGui::Checkbox("Contact Points", &settings.drawContactPoints);
+			ImGui::Checkbox("Contact Normals", &settings.drawContactNormals);
+			ImGui::Checkbox("Contact Impulses", &settings.drawContactImpulse);
+			ImGui::Checkbox("Friction Impulses", &settings.drawFrictionImpulse);
+			ImGui::Checkbox("Center of Masses", &settings.drawCOMs);
+			ImGui::Checkbox("Statistics", &settings.drawStats);
+			ImGui::Checkbox("Profile", &settings.drawProfile);
+			ImGui::Checkbox("Notes", &settings.drawNotes);
+			ImGui::Checkbox("Init Impulses", &settings.initImpulses);
+		}
+		if (ImGui::CollapsingHeader("RigidTriangles")){
+			for (RigidTriangle* rt = test->GetRigidTriangleList(); rt!=nullptr; rt = rt->next)
+			{
+				ImGui::InputFloat2(rt->label,rt->position);
+			}
+		}
 		ImVec2 button_sz = ImVec2(-1, 0);
 		if (ImGui::SmallButton("Pause (P)"))
 			settings.pause = !settings.pause;

@@ -17,9 +17,17 @@
 */
 
 #include "Test.h"
+#include "RigidTriangle.h"
 #include <stdio.h>
 #include <imgui/imgui.h>
 #include "Box2D/Dynamics/b2Island.h"
+
+namespace {
+	bool rigidTriangleInitialized = false;
+	b2PolygonShape rigidTriangle;
+	RigidTriangle* rigidTriangleList = nullptr;
+}
+
 void DestructionListener::SayGoodbye(b2Joint* joint)
 {
 	if (test->m_mouseJoint == joint)
@@ -66,6 +74,53 @@ Test::~Test()
 	// By deleting the world, we delete the bomb, mouse joint, etc.
 	delete m_world;
 	m_world = NULL;
+	RigidTriangle* rt = rigidTriangleList;
+	while (rt != nullptr){
+		RigidTriangle* rtn = rt->next;
+		if (rt->label != nullptr){
+			delete rt->label;
+		}
+		delete rt;
+		rt = rtn;
+	}
+}
+
+RigidTriangle* Test::GetRigidTriangleList(){
+	return rigidTriangleList;
+}
+RigidTriangle* Test::GetLastRigidTriangle(){
+	RigidTriangle* rt = rigidTriangleList;
+	if (rt == nullptr){
+		return rt;
+	}
+	while (rt->next!=nullptr){
+		rt = rt->next;
+	}
+	return rt;
+}
+void Test::AddRigidTriangle(const b2Vec2& p){
+	if (!rigidTriangleInitialized){
+		b2Vec2 vertices[3];
+		vertices[0].Set(-0.5f, 0.0f);
+		vertices[1].Set(0.5f, 0.0f);
+		vertices[2].Set(0.0f, 1.5f);
+		rigidTriangle.Set(vertices, 3);
+		rigidTriangleInitialized = true;
+		rigidTriangleList = new RigidTriangle();
+		rigidTriangleList->next = nullptr;
+	}
+	RigidTriangle* rt = GetLastRigidTriangle();
+	b2FixtureDef fd;
+	fd.shape = &rigidTriangle;
+	b2BodyDef bd;
+	bd.type = b2_staticBody;
+	bd.position.Set(p.x, p.y);
+	b2Body* body = m_world->CreateBody(&bd);
+	body->SetUserData(&rigidTriangle);
+	body->CreateFixture(&fd);
+}
+bool Test::IsRigidTriangle(b2Body* b){
+	return b->GetUserData() == (void*)(&rigidTriangle);
 }
 
 void Test::PreSolve(b2Contact* contact, const b2Manifold* oldManifold)
@@ -553,21 +608,6 @@ void Test::LogEpCapasity(b2ElasticPlasticJoint* j, float* locs){
 	ImGui::Text("%3.0f", 100.f*j->getCurrentStrain()/j->getMaxStrain());
 	ImGui::SameLine(locs[3]);
 	ImGui::Text("%3.0f", 100.f*j->getCurrentRotation() / j->getMaxRotation());
-}
-void Test::AddRigidTriangle(const b2Vec2& p){
-	b2Vec2 vertices[3];
-	vertices[0].Set(-0.5f, 0.0f);
-	vertices[1].Set(0.5f, 0.0f);
-	vertices[2].Set(0.0f, 1.5f);
-	b2PolygonShape shape;
-	shape.Set(vertices, 3);
-	b2FixtureDef fd;
-	fd.shape = &shape;
-	b2BodyDef bd;
-	bd.type = b2_staticBody;
-	bd.position.Set(p.x,p.y);
-	b2Body* body = m_world->CreateBody(&bd);
-	body->CreateFixture(&fd);
 }
 void Test::ShiftOrigin(const b2Vec2& newOrigin)
 {

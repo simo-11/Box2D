@@ -21,6 +21,7 @@
 
 #include <Box2D/Box2D.h>
 #include "DebugDraw.h"
+#include "RigidTriangle.h"
 
 #if defined(__APPLE__)
 #include <OpenGL/gl3.h>
@@ -192,6 +193,9 @@ public:
 	virtual void LogJoint(b2Joint* j,float32 fScale, float32 mScale, float[4]);
 	virtual void LogEpCapasity(b2ElasticPlasticJoint* j,float[4]);
 	virtual void AddRigidTriangle(const b2Vec2& p);
+	static bool IsRigidTriangle(b2Body*);
+	virtual RigidTriangle* GetRigidTriangleList();
+	virtual RigidTriangle* GetLastRigidTriangle();
 	/** reset configurable settings */
 	virtual void reset(){};
 	virtual float getBombDensity(){ return 1000; }
