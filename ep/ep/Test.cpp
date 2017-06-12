@@ -77,12 +77,11 @@ Test::~Test()
 	RigidTriangle* rt = rigidTriangleList;
 	while (rt != nullptr){
 		RigidTriangle* rtn = rt->next;
-		if (rt->label != nullptr){
-			delete rt->label;
-		}
 		delete rt;
 		rt = rtn;
 	}
+	rigidTriangleList = nullptr;
+	rigidTriangleInitialized = false;
 }
 
 RigidTriangle* Test::GetRigidTriangleList(){
@@ -101,26 +100,30 @@ RigidTriangle* Test::GetLastRigidTriangle(){
 void Test::AddRigidTriangle(const b2Vec2& p){
 	if (!rigidTriangleInitialized){
 		b2Vec2 vertices[3];
-		vertices[0].Set(-0.5f, 0.0f);
-		vertices[1].Set(0.5f, 0.0f);
-		vertices[2].Set(0.0f, 1.5f);
+		float32 zoom = g_camera.m_zoom;
+		vertices[0].Set(-0.5f*zoom, 0.0f);
+		vertices[1].Set(0.5f*zoom, 0.0f);
+		vertices[2].Set(0.0f, 1.5f*zoom);
 		rigidTriangle.Set(vertices, 3);
 		rigidTriangleInitialized = true;
 		rigidTriangleList = new RigidTriangle();
-		rigidTriangleList->next = nullptr;
 	}
 	RigidTriangle* rt = GetLastRigidTriangle();
+	if (rt->body != nullptr){
+		rt->next = new RigidTriangle();
+		rt->next->label = (rt->label + 1);
+		rt = rt->next;
+	}
+	rt->position[0] = p.x;
+	rt->position[1] = p.y;
 	b2FixtureDef fd;
 	fd.shape = &rigidTriangle;
 	b2BodyDef bd;
 	bd.type = b2_staticBody;
 	bd.position.Set(p.x, p.y);
 	b2Body* body = m_world->CreateBody(&bd);
-	body->SetUserData(&rigidTriangle);
 	body->CreateFixture(&fd);
-}
-bool Test::IsRigidTriangle(b2Body* b){
-	return b->GetUserData() == (void*)(&rigidTriangle);
+	rt->body=body;
 }
 
 void Test::PreSolve(b2Contact* contact, const b2Manifold* oldManifold)

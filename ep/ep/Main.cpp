@@ -447,9 +447,22 @@ static void sInterface()
 			ImGui::Checkbox("Init Impulses", &settings.initImpulses);
 		}
 		if (ImGui::CollapsingHeader("RigidTriangles")){
-			for (RigidTriangle* rt = test->GetRigidTriangleList(); rt!=nullptr; rt = rt->next)
+			for (RigidTriangle* rt = test->GetRigidTriangleList(); 
+				rt!=nullptr; rt = rt->next)
 			{
-				ImGui::InputFloat2(rt->label,rt->position);
+				char buff[4];
+				_itoa(rt->label, buff, 10);
+				ImGui::InputFloat2(buff,rt->position,3);
+				b2Body *body = rt->body;
+				b2Vec2 p = body->GetTransform().p;
+				float32 zoom = g_camera.m_zoom;
+				p.x -= 1.5f*zoom;
+				p.y += 1.f*zoom;
+				g_debugDraw.DrawString(p, "%s", buff);
+				b2Vec2 np;
+				np.x = rt->position[0];
+				np.y = rt->position[1];
+				body->SetTransform(np,0);
 			}
 		}
 		ImVec2 button_sz = ImVec2(-1, 0);

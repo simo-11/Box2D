@@ -14,18 +14,29 @@
 * 2. Altered source versions must be plainly marked as such, and must not be
 * misrepresented as being the original software.
 * 3. This notice may not be removed or altered from any source distribution.
-* 
-* Modifications for ep by Simo Nikula
+
+* Simo Nikula 2017/06
 */
 
-#include "Test.h"
-#include "Beam.h"
-#include "ImGuiDemo.h"
+#ifndef RIGID_TRIANGLE_H
+#define RIGID_TRIANGLE_H
 
+#include <Box2D/Box2D.h>
 
-TestEntry g_testEntries[] =
+#include <stdlib.h>
+
+struct RigidTriangle
 {
-	{ "Beam", Beam::Create },
-	{ "ImGui", ImGuiDemo::Create},
-	{ NULL, NULL }
+	unsigned char label;
+	float position[2];
+	b2Body * body;
+	RigidTriangle* next;
+	RigidTriangle(){
+		label = 1;
+		next = nullptr;
+		body = nullptr;
+	}
 };
+
+
+#endif
