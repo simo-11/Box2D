@@ -449,7 +449,7 @@ static void sInterface()
 		if (ImGui::CollapsingHeader("RigidTriangles")){
 			for (RigidTriangle* rt = test->GetRigidTriangleList(); 
 				rt!=nullptr; rt = rt->next)
-			{
+			{ // draw labels and update positions
 				char buff[4];
 				_itoa(rt->label, buff, 10);
 				ImGui::InputFloat2(buff,rt->position,3);
