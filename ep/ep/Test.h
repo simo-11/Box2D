@@ -90,6 +90,7 @@ struct Settings
 		singleStep = false;
 		forceScale = 0.01f;
 		momentScale = 0.3f;
+		addRigidTriangles = false;
 		initImpulses = false;
 	}
 	float32 hz;
@@ -114,6 +115,7 @@ struct Settings
 	bool enableSleep;
 	bool pause;
 	bool singleStep;
+	bool addRigidTriangles;
 	bool initImpulses;
 	float32 forceScale, momentScale;
 };
@@ -162,10 +164,10 @@ public:
 	virtual void Step(Settings* settings);
 	virtual void Keyboard(int key) { B2_NOT_USED(key); }
 	virtual void KeyboardUp(int key) { B2_NOT_USED(key); }
-	void ShiftMouseDown(const b2Vec2& p);
-	void ControlMouseDown(const b2Vec2& p);
+	void ShiftMouseDown(const b2Vec2& p, Settings* settings);
+	void ControlMouseDown(const b2Vec2& p, Settings* settings);
 	virtual void MouseDown(const b2Vec2& p, int32 mods, Settings* settings);
-	virtual void MouseUp(const b2Vec2& p);
+	virtual void MouseUp(const b2Vec2& p, Settings* settings);
 	void MouseMove(const b2Vec2& p, Settings* settings);
 	void LaunchBomb();
 	void LaunchBomb(const b2Vec2& position, const b2Vec2& velocity);
@@ -192,7 +194,13 @@ public:
 	virtual void drawNotes(){};
 	virtual void LogJoint(b2Joint* j,float32 fScale, float32 mScale, float[4]);
 	virtual void LogEpCapasity(b2ElasticPlasticJoint* j,float[4]);
+	virtual bool WantRigidTriangles();
 	virtual void AddRigidTriangle(const b2Vec2& p);
+	// static Allows RigidTriangles to survive during restarts
+	static void DeleteRigidTriangle(unsigned char label);
+	static void DeleteRigidTriangles();
+	virtual void CreateRigidTriangles();
+	virtual void AddRigidTriangleBody(RigidTriangle*);
 	static bool IsRigidTriangle(b2Body*);
 	virtual RigidTriangle* GetRigidTriangleList();
 	virtual RigidTriangle* GetLastRigidTriangle();

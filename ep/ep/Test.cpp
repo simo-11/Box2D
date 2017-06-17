@@ -23,6 +23,8 @@
 #include "Box2D/Dynamics/b2Island.h"
 
 namespace {
+	b2World* rtWorld=NULL;
+	bool allowAddRigidTriangle = false;
 	bool rigidTriangleInitialized = false;
 	b2PolygonShape rigidTriangle;
 	RigidTriangle* rigidTriangleList = nullptr;
@@ -68,6 +70,7 @@ Test::Test()
 
 	memset(&m_maxProfile, 0, sizeof(b2Profile));
 	memset(&m_totalProfile, 0, sizeof(b2Profile));
+	rtWorld = m_world;
 }
 
 Test::~Test()
@@ -75,14 +78,56 @@ Test::~Test()
 	// By deleting the world, we delete the bomb, mouse joint, etc.
 	delete m_world;
 	m_world = NULL;
+	rtWorld = NULL;
+}
+
+bool Test::WantRigidTriangles(){
+	return true;
+}
+void Test::CreateRigidTriangles(){
+	RigidTriangle* rt = rigidTriangleList;
+	while (rt != nullptr){
+		AddRigidTriangleBody(rt);
+		rt = rt->next;
+	}
+}
+
+void Test::DeleteRigidTriangles(){
 	RigidTriangle* rt = rigidTriangleList;
 	while (rt != nullptr){
 		RigidTriangle* rtn = rt->next;
+		if (rtWorld){
+			rtWorld->DestroyBody(rt->body);
+		}
 		delete rt;
 		rt = rtn;
 	}
 	rigidTriangleList = nullptr;
 	rigidTriangleInitialized = false;
+}
+
+void Test::DeleteRigidTriangle(unsigned char label){
+	RigidTriangle* rt = rigidTriangleList;
+	RigidTriangle* rtn = nullptr, *rtp=nullptr;
+	while (rt != nullptr){
+		rtn = rt->next;
+		if (rt->label = label){
+			if (rtWorld){
+				rtWorld->DestroyBody(rt->body);
+			}
+			delete rt;
+			if (rtp != nullptr){ // second or later
+				rtp->next = rtn;
+			}
+			goto deleteDone;
+		}
+		rtp = rt;
+		rt = rtn;
+	}
+	deleteDone:
+	if (rt == rigidTriangleList){ // if first was deleted
+		rigidTriangleList = rtn;
+	}
 }
 
 RigidTriangle* Test::GetRigidTriangleList(){
@@ -91,7 +136,8 @@ RigidTriangle* Test::GetRigidTriangleList(){
 RigidTriangle* Test::GetLastRigidTriangle(){
 	RigidTriangle* rt = rigidTriangleList;
 	if (rt == nullptr){
-		return rt;
+		rigidTriangleList = new RigidTriangle();
+		return rigidTriangleList;
 	}
 	while (rt->next!=nullptr){
 		rt = rt->next;
@@ -107,7 +153,6 @@ void Test::AddRigidTriangle(const b2Vec2& p){
 		vertices[2].Set(0.0f, 1.5f*zoom);
 		rigidTriangle.Set(vertices, 3);
 		rigidTriangleInitialized = true;
-		rigidTriangleList = new RigidTriangle();
 	}
 	RigidTriangle* rt = GetLastRigidTriangle();
 	if (rt->body != nullptr){
@@ -117,14 +162,18 @@ void Test::AddRigidTriangle(const b2Vec2& p){
 	}
 	rt->position[0] = p.x;
 	rt->position[1] = p.y;
+	AddRigidTriangleBody(rt);
+}
+
+void Test::AddRigidTriangleBody(RigidTriangle* rt){
 	b2FixtureDef fd;
 	fd.shape = &rigidTriangle;
 	b2BodyDef bd;
 	bd.type = b2_staticBody;
-	bd.position.Set(p.x, p.y);
+	bd.position.Set(rt->position[0], rt->position[1]);
 	b2Body* body = m_world->CreateBody(&bd);
 	body->CreateFixture(&fd);
-	rt->body=body;
+	rt->body = body;
 }
 
 void Test::PreSolve(b2Contact* contact, const b2Manifold* oldManifold)
@@ -261,7 +310,7 @@ void Test::CompleteBombSpawn(const b2Vec2& p)
 	m_bombSpawning = false;
 }
 
-void Test::ShiftMouseDown(const b2Vec2& p)
+void Test::ShiftMouseDown(const b2Vec2& p, Settings* settings)
 {
 	m_mouseWorld = p;
 	
@@ -273,13 +322,16 @@ void Test::ShiftMouseDown(const b2Vec2& p)
 	SpawnBomb(p);
 }
 
-void Test::ControlMouseDown(const b2Vec2& p)
+
+void Test::ControlMouseDown(const b2Vec2& p, Settings* settings)
 {
-	AddRigidTriangle(p);
+	if (settings->addRigidTriangles){
+		AddRigidTriangle(p);
+	}
 }
 
 
-void Test::MouseUp(const b2Vec2& p)
+void Test::MouseUp(const b2Vec2& p, Settings* settings)
 {
 	if (m_mouseJoint)
 	{

@@ -283,10 +283,10 @@ static void sMouseButton(GLFWwindow* window, int32 button, int32 action, int32 m
 		{
 			if (mods == GLFW_MOD_SHIFT)
 			{
-				test->ShiftMouseDown(pw);
+				test->ShiftMouseDown(pw, &settings);
 			}
 			else if (mods == GLFW_MOD_CONTROL){
-				test->ControlMouseDown(pw);
+				test->ControlMouseDown(pw, &settings);
 			}
 			else
 			{
@@ -296,7 +296,7 @@ static void sMouseButton(GLFWwindow* window, int32 button, int32 action, int32 m
 		
 		if (action == GLFW_RELEASE)
 		{
-			test->MouseUp(pw);
+			test->MouseUp(pw, &settings);
 		}
 	}
 	else if (button == GLFW_MOUSE_BUTTON_2)
@@ -446,7 +446,14 @@ static void sInterface()
 			ImGui::Checkbox("Notes", &settings.drawNotes);
 			ImGui::Checkbox("Init Impulses", &settings.initImpulses);
 		}
-		if (ImGui::CollapsingHeader("RigidTriangles")){
+		if (test->WantRigidTriangles() && ImGui::CollapsingHeader("RigidTriangles")){
+			ImGui::Checkbox("Add RigidTrianges", &settings.addRigidTriangles);
+			if (ImGui::IsItemHovered()){
+				ImGui::SetTooltip("Use CTRL-MB1");
+			}
+			bool deleteRigidTriangles = 
+				ImGui::SmallButton("Delete all RigidTriangles");
+			unsigned char labelForDelete = 0;
 			for (RigidTriangle* rt = test->GetRigidTriangleList(); 
 				rt!=nullptr; rt = rt->next)
 			{ // draw labels and update positions
@@ -470,7 +477,14 @@ static void sInterface()
 					ImGui::TextDisabled("%.3f", p.y);
 				}
 				else{
-					valueChanged=ImGui::InputFloat2(buff, rt->position, decimals);
+					char buff[20];
+					const char* label = buff;
+					sprintf(buff, "X##drt-%d", rt->label);
+					if (ImGui::SmallButton(label)){
+						labelForDelete = rt->label;
+					}
+					ImGui::SameLine();
+					valueChanged = ImGui::InputFloat2(buff, rt->position, decimals);
 				}
 				float32 zoom = g_camera.m_zoom;
 				p.x -= 1.5f*zoom;
@@ -483,8 +497,16 @@ static void sInterface()
 					body->SetTransform(np, 0);
 				}
 			}
+			if (labelForDelete){
+				Test::DeleteRigidTriangle(labelForDelete);
+			}
+			if (deleteRigidTriangles){
+				Test::DeleteRigidTriangles();
+			}
 		}
-		ImVec2 button_sz = ImVec2(-1, 0);
+		else{
+			settings.addRigidTriangles = false;
+		}
 		if (ImGui::SmallButton("Pause (P)"))
 			settings.pause = !settings.pause;
 		ImGui::SameLine();
@@ -625,7 +647,7 @@ int main(int, char**)
 		delete test;
 		test = nullptr;
 	}
-
+	Test::DeleteRigidTriangles();
 	g_debugDraw.Destroy();
 	ImGui_ImplGlfwGL3_Shutdown();
 	glfwTerminate();

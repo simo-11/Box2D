@@ -31,6 +31,10 @@ public:
 			ImGui::ShowTestWindow(&open);
 		}
 	}
+	virtual bool WantRigidTriangles(){
+		return false;
+	}
+
 	static Test* Create()
 	{
 		return new ImGuiDemo;

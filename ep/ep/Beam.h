@@ -40,6 +40,7 @@ namespace {
 	float32 hy;
 	float E; // GPa
 	float fy; //MPa
+	float maxRotation, maxStrain;
 	bool addSoft, addHard, addElasticPlastic, firstIsHinge;
 	float32 lastCx,lastCy;
 }
@@ -72,6 +73,8 @@ public:
 		hy = 1.f;
 		fy = 350;
 		E = 200;
+		maxRotation = 3.f;
+		maxStrain = 0.2f;
 		addSoft = false;
 		addHard = false;
 		addElasticPlastic = true;
@@ -188,8 +191,8 @@ public:
 			jd.maxForce.x = 2 * hy*fy*1e6f;
 			jd.maxForce.y = 2 * hx*fy*1e6f;
 			jd.maxTorque = hy*hy* fy*1e6f;
-			jd.maxRotation = 3.f;
-			jd.maxStrain = 0.2f*b2Min(hx, hy);
+			jd.maxRotation = maxRotation;
+			jd.maxStrain = maxStrain*b2Min(hx, hy);
 
 			b2Body* prevBody = sbody;
 			noteElasticPlastic1.Set(-hy, sy + 2 + hy);
@@ -264,6 +267,12 @@ public:
 					ImGui::SliderFloat("GPa##E", &E, 10.f, 1000.f, "%.0f");
 					ImGui::Text("yield stress");
 					ImGui::SliderFloat("MPa##fy", &fy, 10.f, 1000.f, "%.0f");
+					ImGui::Text("maxRotation");
+					ImGui::SliderFloat("radians##maxRotation", 
+						&maxRotation, 0.01f, 10.f, "%.2f");
+					ImGui::Text("maxStrain");
+					ImGui::SliderFloat("##maxStrain",
+						&maxStrain, 0.01f, 10.f, "%.2f");
 					ImGui::Separator();
 					ImGui::Checkbox("Soft", &addSoft);
 					ImGui::SameLine();
@@ -322,7 +331,9 @@ public:
 	}
 	static Test* Create()
 	{
-		return new Beam;
+		Test* t=new Beam;
+		t->CreateRigidTriangles();
+		return t;
 	}
 
 	b2Body* m_middle;
