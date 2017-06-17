@@ -450,19 +450,38 @@ static void sInterface()
 			for (RigidTriangle* rt = test->GetRigidTriangleList(); 
 				rt!=nullptr; rt = rt->next)
 			{ // draw labels and update positions
-				char buff[4];
-				_itoa(rt->label, buff, 10);
-				ImGui::InputFloat2(buff,rt->position,3);
+				bool movingByMouse = false;
+				bool valueChanged = false;
+				if (test->m_movingBody==rt->body){
+					movingByMouse = true;
+				}
 				b2Body *body = rt->body;
 				b2Vec2 p = body->GetTransform().p;
+				rt->position[0] = p.x;
+				rt->position[1] = p.y;
+				char buff[4];
+				_itoa(rt->label, buff, 10);
+				ImGui::TextDisabled("%d", rt->label);
+				ImGui::SameLine();
+				int decimals = 3;
+				if (movingByMouse){
+					ImGui::TextDisabled("%.3f", p.x);
+					ImGui::SameLine();
+					ImGui::TextDisabled("%.3f", p.y);
+				}
+				else{
+					valueChanged=ImGui::InputFloat2(buff, rt->position, decimals);
+				}
 				float32 zoom = g_camera.m_zoom;
 				p.x -= 1.5f*zoom;
 				p.y += 1.f*zoom;
 				g_debugDraw.DrawString(p, "%s", buff);
 				b2Vec2 np;
-				np.x = rt->position[0];
-				np.y = rt->position[1];
-				body->SetTransform(np,0);
+				if (valueChanged){
+					np.x = rt->position[0];
+					np.y = rt->position[1];
+					body->SetTransform(np, 0);
+				}
 			}
 		}
 		ImVec2 button_sz = ImVec2(-1, 0);

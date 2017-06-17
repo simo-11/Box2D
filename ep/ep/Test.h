@@ -200,7 +200,9 @@ public:
 	virtual void reset(){};
 	virtual float getBombDensity(){ return 1000; }
 	virtual float getBombRadius(){ return 0.3f; }
+	virtual void wakeConnectedBodies(b2Body*);
 	float32 steppedTime;
+	b2Body* m_movingBody;
 	// ep-end
 protected:
 	friend class DestructionListener;
@@ -217,6 +219,7 @@ protected:
 	b2Body* m_bomb;
 	b2MouseJoint* m_mouseJoint;
 	// ep
+	b2Vec2 m_localPointForMovingBody;
 	b2Body* loggedBody;
 	b2Vec3 max, min;
 	// ep

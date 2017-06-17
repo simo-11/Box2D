@@ -48,6 +48,7 @@ Test::Test()
 	m_bomb = NULL;
 	m_textLine = 30;
 	m_mouseJoint = NULL;
+	m_movingBody = NULL;
 	loggedBody = NULL;
 	steppedTime = 0;
 	m_pointCount = 0;
@@ -177,18 +178,14 @@ public:
 	bool ReportFixture(b2Fixture* fixture)
 	{
 		b2Body* body = fixture->GetBody();
-		if (body->GetType() == b2_dynamicBody)
+		bool inside = fixture->TestPoint(m_point);
+		if (inside)
 		{
-			bool inside = fixture->TestPoint(m_point);
-			if (inside)
-			{
-				m_fixture = fixture;
+			m_fixture = fixture;
 
-				// We are done, terminate the query.
-				return false;
-			}
+			// We are done, terminate the query.
+			return false;
 		}
-
 		// Continue the query.
 		return true;
 	}
@@ -222,13 +219,21 @@ void Test::MouseDown(const b2Vec2& p, int32 mods, Settings* settings)
 		b2Body* body = callback.m_fixture->GetBody();
 		loggedBody = body;
 		if (!(mods&GLFW_MOD_CONTROL)){
-			b2MouseJointDef md;
-			md.bodyA = m_groundBody;
-			md.bodyB = body;
-			md.target = p;
-			md.maxForce =  settings->mouseJointForceScale* body->GetMass();
-			m_mouseJoint = (b2MouseJoint*)m_world->CreateJoint(&md);
-			body->SetAwake(true);
+			if (body->GetType() == b2_dynamicBody)
+			{
+				b2MouseJointDef md;
+				md.bodyA = m_groundBody;
+				md.bodyB = body;
+				md.target = p;
+				md.maxForce = settings->mouseJointForceScale* body->GetMass();
+				m_mouseJoint = (b2MouseJoint*)m_world->CreateJoint(&md);
+				body->SetAwake(true);
+			}
+			else{
+				m_movingBody = body;
+				b2Vec2 np;
+				m_localPointForMovingBody=body->GetLocalPoint(p);
+			}
 		}
 	}
 	else{
@@ -281,6 +286,9 @@ void Test::MouseUp(const b2Vec2& p)
 		m_world->DestroyJoint(m_mouseJoint);
 		m_mouseJoint = NULL;
 	}
+	if (m_movingBody != NULL){
+		m_movingBody = NULL;
+	}
 	
 	if (m_bombSpawning)
 	{
@@ -298,9 +306,26 @@ void Test::MouseMove(const b2Vec2& p, Settings* settings)
 		float32 d = (m_mouseJoint->GetAnchorB() - m_mouseJoint->GetAnchorA()).Length();
 		float32 scale = 10*d / g_camera.m_extent*g_camera.m_zoom;
 		float32 force = scale*settings->mouseJointForceScale* m_mouseJoint->GetBodyB()->GetMass();
-		m_mouseJoint->SetMaxForce(force );
-
+		m_mouseJoint->SetMaxForce(force);
 		m_mouseJoint->SetTarget(p);
+	}
+	if (m_movingBody!=NULL){
+		b2Vec2 np = p - m_localPointForMovingBody;
+		m_movingBody->SetTransform(np,0);
+		wakeConnectedBodies(m_movingBody);
+	}
+}
+
+void Test::wakeConnectedBodies(b2Body* body){
+	b2JointEdge* jointEdge=body->GetJointList();
+	while (jointEdge != NULL){
+		jointEdge->other->SetAwake(true);
+		jointEdge = jointEdge->next;
+	}
+	b2ContactEdge* contactEdge=body->GetContactList();
+	while (contactEdge != NULL){
+		contactEdge->other->SetAwake(true);
+		contactEdge = contactEdge->next;
 	}
 }
 
