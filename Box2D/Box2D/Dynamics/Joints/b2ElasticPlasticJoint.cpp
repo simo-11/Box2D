@@ -96,7 +96,14 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 			// TODO
 		}
 		else{
-			// TODO
+			float32 newDistance = 
+				(m_bodyA->GetTransform().p - m_bodyB->GetTransform().p)
+				.Length();
+			float32 origDistance = m_localAnchorA.Length() + m_localAnchorB.Length();
+			float32 sf = newDistance/origDistance;
+			m_localAnchorA *= sf;
+			m_localAnchorB *= sf;
+			m_currentStrain += b2Abs(newDistance - origDistance);
 		}
 		m_forceExceeded = false;
 	}
