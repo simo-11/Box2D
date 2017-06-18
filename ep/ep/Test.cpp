@@ -42,8 +42,9 @@ void DestructionListener::SayGoodbye(b2Joint* joint)
 	}
 }
 
-Test::Test()
+Test::Test(Settings *sp)
 {
+	settings = sp;
 	b2Vec2 gravity;
 	gravity.Set(0.0f, -10.0f);
 	m_world = new b2World(gravity);
@@ -243,7 +244,7 @@ public:
 	b2Fixture* m_fixture;
 };
 
-void Test::MouseDown(const b2Vec2& p, int32 mods, Settings* settings)
+void Test::MouseDown(const b2Vec2& p, int32 mods)
 {
 	m_mouseWorld = p;
 	
@@ -310,7 +311,7 @@ void Test::CompleteBombSpawn(const b2Vec2& p)
 	m_bombSpawning = false;
 }
 
-void Test::ShiftMouseDown(const b2Vec2& p, Settings* settings)
+void Test::ShiftMouseDown(const b2Vec2& p)
 {
 	m_mouseWorld = p;
 	
@@ -323,7 +324,7 @@ void Test::ShiftMouseDown(const b2Vec2& p, Settings* settings)
 }
 
 
-void Test::ControlMouseDown(const b2Vec2& p, Settings* settings)
+void Test::ControlMouseDown(const b2Vec2& p)
 {
 	if (settings->addRigidTriangles){
 		AddRigidTriangle(p);
@@ -331,7 +332,7 @@ void Test::ControlMouseDown(const b2Vec2& p, Settings* settings)
 }
 
 
-void Test::MouseUp(const b2Vec2& p, Settings* settings)
+void Test::MouseUp(const b2Vec2& p)
 {
 	if (m_mouseJoint)
 	{
@@ -348,7 +349,7 @@ void Test::MouseUp(const b2Vec2& p, Settings* settings)
 	}
 }
 
-void Test::MouseMove(const b2Vec2& p, Settings* settings)
+void Test::MouseMove(const b2Vec2& p)
 {
 	m_mouseWorld = p;
 	
@@ -421,7 +422,7 @@ void Test::LaunchBomb(const b2Vec2& position, const b2Vec2& velocity)
 	m_bomb->CreateFixture(&fd);
 }
 
-void Test::Step(Settings* settings)
+void Test::Step()
 {
 	float32 timeStep = settings->hz > 0.0f ? 1.0f / settings->hz : float32(0.0f);
 

@@ -204,7 +204,7 @@ static void sKeyCallback(GLFWwindow* window, int key, int scancode, int action, 
 		case GLFW_KEY_R:
 			// Reset test
 			delete test;
-			test = entry->createFcn();
+			test = entry->createFcn(&settings);
 			break;
 
 		case GLFW_KEY_SPACE:
@@ -283,20 +283,20 @@ static void sMouseButton(GLFWwindow* window, int32 button, int32 action, int32 m
 		{
 			if (mods == GLFW_MOD_SHIFT)
 			{
-				test->ShiftMouseDown(pw, &settings);
+				test->ShiftMouseDown(pw);
 			}
 			else if (mods == GLFW_MOD_CONTROL){
-				test->ControlMouseDown(pw, &settings);
+				test->ControlMouseDown(pw);
 			}
 			else
 			{
-				test->MouseDown(pw, mods, &settings);
+				test->MouseDown(pw, mods);
 			}
 		}
 		
 		if (action == GLFW_RELEASE)
 		{
-			test->MouseUp(pw, &settings);
+			test->MouseUp(pw);
 		}
 	}
 	else if (button == GLFW_MOUSE_BUTTON_2)
@@ -320,7 +320,7 @@ static void sMouseMotion(GLFWwindow*, double xd, double yd)
 	b2Vec2 ps((float)xd, (float)yd);
 
 	b2Vec2 pw = g_camera.ConvertScreenToWorld(ps);
-	test->MouseMove(pw, &settings);
+	test->MouseMove(pw);
 	
 	if (rightMouseDown)
 	{
@@ -355,14 +355,14 @@ static void sRestart()
 {
 	delete test;
 	entry = g_testEntries + testIndex;
-	test = entry->createFcn();
+	test = entry->createFcn(&settings);
 }
 
 //
 static void sSimulate()
 {
 	glEnable(GL_DEPTH_TEST);
-	test->Step(&settings);
+	test->Step();
 
 	test->DrawTitle(entry->name);
 	glDisable(GL_DEPTH_TEST);
@@ -372,7 +372,7 @@ static void sSimulate()
 		testIndex = testSelection;
 		delete test;
 		entry = g_testEntries + testIndex;
-		test = entry->createFcn();
+		test = entry->createFcn(&settings);
 		g_camera.m_zoom = 1.0f;
 		g_camera.m_center.Set(0.0f, 20.0f);
 	}
@@ -404,16 +404,19 @@ static void sInterface()
 		{
 			delete test;
 			entry = g_testEntries + testIndex;
-			test = entry->createFcn();
+			test = entry->createFcn(&settings);
 			testSelection = testIndex;
 		}
 		ImGui::Separator();
 		if (ImGui::CollapsingHeader("Settings","MainSettings")){
 			ImGui::Text("Vel Iters");
+			ImGui::SameLine();
 			ImGui::SliderInt("##Vel Iters", &settings.velocityIterations, 0, 50);
 			ImGui::Text("Pos Iters");
+			ImGui::SameLine();
 			ImGui::SliderInt("##Pos Iters", &settings.positionIterations, 0, 50);
 			ImGui::Text("Hertz");
+			ImGui::SameLine();
 			ImGui::SliderFloat("##Hertz", &settings.hz, 5.0f, 10000.0f, "%.0f hz", 2.0f);
 			ImGui::Text("Mouse joint force scale");
 			ImGui::SliderFloat("##mouseJointForceScale", &settings.mouseJointForceScale,
@@ -442,6 +445,7 @@ static void sInterface()
 			ImGui::Checkbox("Friction Impulses", &settings.drawFrictionImpulse);
 			ImGui::Checkbox("Center of Masses", &settings.drawCOMs);
 			ImGui::Checkbox("Statistics", &settings.drawStats);
+			ImGui::SameLine();
 			ImGui::Checkbox("Profile", &settings.drawProfile);
 			ImGui::Checkbox("Notes", &settings.drawNotes);
 			ImGui::Checkbox("Init Impulses", &settings.initImpulses);
@@ -529,7 +533,7 @@ static void sInterface()
 		ImGui::PopAllowKeyboardFocus();
 		ImGui::End();
 	}
-	test->Ui(&settings);
+	test->Ui();
 	//ImGui::ShowTestWindow(NULL);
 }
 
@@ -605,7 +609,7 @@ int main(int, char**)
 	testSelection = testIndex;
 
 	entry = g_testEntries + testIndex;
-	test = entry->createFcn();
+	test = entry->createFcn(&settings);
 	const ImVec4 bgc=ImVec4(0.0f,0.0f,0.0f,0.7f);
 	// ImGui::PushStyleColor(ImGuiCol_WindowBg,bgc);
 	// Control the frame rate. One draw per monitor refresh.

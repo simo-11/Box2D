@@ -35,7 +35,7 @@
 class Test;
 struct Settings;
 
-typedef Test* TestCreateFcn();
+typedef Test* TestCreateFcn(Settings*);
 
 #define	RAND_LIMIT	32767
 #define DRAW_STRING_NEW_LINE 16
@@ -157,18 +157,18 @@ class Test : public b2ContactListener
 {
 public:
 
-	Test();
+	Test(Settings* settings);
 	virtual ~Test();
 
 	void DrawTitle(const char *string);
-	virtual void Step(Settings* settings);
+	virtual void Step();
 	virtual void Keyboard(int key) { B2_NOT_USED(key); }
 	virtual void KeyboardUp(int key) { B2_NOT_USED(key); }
-	void ShiftMouseDown(const b2Vec2& p, Settings* settings);
-	void ControlMouseDown(const b2Vec2& p, Settings* settings);
-	virtual void MouseDown(const b2Vec2& p, int32 mods, Settings* settings);
-	virtual void MouseUp(const b2Vec2& p, Settings* settings);
-	void MouseMove(const b2Vec2& p, Settings* settings);
+	void ShiftMouseDown(const b2Vec2& p);
+	void ControlMouseDown(const b2Vec2& p);
+	virtual void MouseDown(const b2Vec2& p, int32 mods);
+	virtual void MouseUp(const b2Vec2& p);
+	void MouseMove(const b2Vec2& p);
 	void LaunchBomb();
 	void LaunchBomb(const b2Vec2& position, const b2Vec2& velocity);
 	
@@ -190,7 +190,7 @@ public:
 
 	void ShiftOrigin(const b2Vec2& newOrigin);
 	// ep-start
-	virtual void Ui(Settings* settings){};
+	virtual void Ui(){};
 	virtual void drawNotes(){};
 	virtual void LogJoint(b2Joint* j,float32 fScale, float32 mScale, float[4]);
 	virtual void LogEpCapasity(b2ElasticPlasticJoint* j,float[4]);
@@ -238,6 +238,7 @@ protected:
 
 	b2Profile m_maxProfile;
 	b2Profile m_totalProfile;
+	Settings *settings;
 };
 
 #endif
