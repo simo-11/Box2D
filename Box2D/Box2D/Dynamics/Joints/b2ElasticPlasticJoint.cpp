@@ -20,6 +20,7 @@
 
 #include "Box2D/Dynamics/Joints/b2ElasticPlasticJoint.h"
 #include "Box2D/Dynamics/b2Body.h"
+#include "Box2D/Dynamics/b2Fixture.h"
 #include "Box2D/Dynamics/b2TimeStep.h"
 
 /*
@@ -291,7 +292,15 @@ bool b2ElasticPlasticJoint::WantsToBreak(){
 		return true;
 	}
 	if (m_currentStrain > m_maxStrain){
-		return true;
+		// do not break due to compression
+		// chain shapes are not supported
+		const b2Shape* shapeA = m_bodyA->GetFixtureList()->GetShape();
+		const b2Shape* shapeB = m_bodyB->GetFixtureList()->GetShape();
+		const b2Transform& xfA = m_bodyA->GetTransform();
+		const b2Transform& xfB = m_bodyB->GetTransform();
+		if (!b2TestOverlap(shapeA, 0, shapeB, 0, xfA, xfB)){
+			return true;
+		}
 	}
 	return false;
 }
