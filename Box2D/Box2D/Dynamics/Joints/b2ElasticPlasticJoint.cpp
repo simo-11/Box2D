@@ -16,6 +16,10 @@
 * 3. This notice may not be removed or altered from any source distribution.
 * 
 * Simo Nikula modifications started 2017
+* This constraint is designed to simulate ductile materials like
+* steel.
+* Main focus is on bending.
+* Actual code is based on WeldJoint.
 */
 
 #include "Box2D/Dynamics/Joints/b2ElasticPlasticJoint.h"
@@ -35,17 +39,6 @@ namespace
 	float32 b2ep_angularSlop=0.0005f;
 	int32 epId = 0;
 }
-// Point-to-point constraint
-// Cdot = v2 - v1
-//      = v2 + cross(w2, r2) - v1 - cross(w1, r1)
-// J = [-I -r1_skew I r2_skew ]
-// Identity used:
-// w k % (rx i + ry j) = w * (-ry i + rx j)
-
-// Angle constraint
-// Cdot = w2 - w1
-// J = [0 0 -1 0 0 1]
-// K = invI1 + invI2
 
 void b2ElasticPlasticJointDef::Initialize(b2Body* bA, b2Body* bB, const b2Vec2& anchor)
 {
