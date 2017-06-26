@@ -86,30 +86,28 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	m_invIB = m_bodyB->m_invI;
 	// ep, update anchors if needed
 	if (m_forceExceeded){
+		float32 elasticPart = 0.f;
 		if (m_frequencyHz > 0.f){
-			// TODO
+			elasticPart = 0.001f; // TODO, define better
 		}
-		else{
-			float32 newDistance = 
-				(m_bodyA->GetTransform().p - m_bodyB->GetTransform().p)
-				.Length();
-			float32 origDistance = m_localAnchorA.Length() + m_localAnchorB.Length();
-			float32 sf = newDistance/origDistance;
-			m_localAnchorA *= sf;
-			m_localAnchorB *= sf;
-			m_currentStrain += b2Abs(newDistance - origDistance);
-		}
+		float32 newDistance = (1.f-elasticPart)*
+			(m_bodyA->GetTransform().p - m_bodyB->GetTransform().p)
+			.Length();
+		float32 origDistance = m_localAnchorA.Length() + m_localAnchorB.Length();
+		float32 sf = newDistance/origDistance;
+		m_localAnchorA *= sf;
+		m_localAnchorB *= sf;
+		m_currentStrain += b2Abs(newDistance - origDistance);
 		m_forceExceeded = false;
 	}
 	if (m_torqueExceeded){
+		float32 elasticPart = 0.f;
 		if (m_frequencyHz > 0.f){
-			// TODO
+			elasticPart = 0.001f; // TODO, define better
 		}
-		else{
-			float32 newReferenceAngle = m_bodyB->GetAngle() - m_bodyA->GetAngle();
-			m_currentRotation += b2Abs(newReferenceAngle - m_referenceAngle);
-			m_referenceAngle = newReferenceAngle;
-		}
+		float32 newReferenceAngle = m_bodyB->GetAngle() - m_bodyA->GetAngle()-elasticPart;
+		m_currentRotation += b2Abs(newReferenceAngle - m_referenceAngle);
+		m_referenceAngle = newReferenceAngle;
 		m_torqueExceeded = false;
 	}
 	// end ep
@@ -234,7 +232,7 @@ void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 	{
 		float32 Cdot2 = wB - wA;
 
-		float32 impulse2 = -m_mass.ez.z * (Cdot2 + m_bias + m_gamma * m_impulse.z);
+		float32 impulse2 = GetClampedDeltaImpulse(Cdot2);
 		m_impulse.z += impulse2;
 
 		wA -= iA * impulse2;
@@ -242,7 +240,7 @@ void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 
 		b2Vec2 Cdot1 = vB + b2Cross(wB, m_rB) - vA - b2Cross(wA, m_rA);
 
-		b2Vec2 impulse1 = -b2Mul22(m_mass, Cdot1);
+		b2Vec2 impulse1 = GetClampedDeltaImpulse(Cdot1);
 		m_impulse.x += impulse1.x;
 		m_impulse.y += impulse1.y;
 
@@ -311,6 +309,31 @@ b2Vec3 b2ElasticPlasticJoint::GetClampedDeltaImpulse(b2Vec3 Cdot){
 	}
 	clamped.z = b2Clamp(impulse.z, low.z, high.z);
 	if (impulse.z != clamped.z){
+		m_torqueExceeded = true;
+	}
+	return clamped;
+}
+
+b2Vec2 b2ElasticPlasticJoint::GetClampedDeltaImpulse(b2Vec2 Cdot){
+	b2Vec2 impulse = -b2Mul22(m_mass, Cdot);
+	b2Vec2 clamped;
+	b2Vec3 high = m_maxImpulse - m_impulse;
+	b2Vec3 low = -m_maxImpulse - m_impulse;
+	clamped.x = b2Clamp(impulse.x, low.x, high.x);
+	clamped.y = b2Clamp(impulse.y, low.y, high.y);
+	if (impulse.x != clamped.x || impulse.y != clamped.y){
+		m_forceExceeded = true;
+	}
+	return clamped;
+}
+
+float32 b2ElasticPlasticJoint::GetClampedDeltaImpulse(float32 Cdot){
+	float32 impulse = -m_mass.ez.z * (Cdot + m_bias + m_gamma * m_impulse.z);
+	float32 clamped;
+	float32 high = m_maxImpulse.z - m_impulse.z;
+	float32 low = -m_maxImpulse.z - m_impulse.z;
+	clamped = b2Clamp(impulse, low, high);
+	if (impulse != clamped){
 		m_torqueExceeded = true;
 	}
 	return clamped;

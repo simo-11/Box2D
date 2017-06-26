@@ -94,9 +94,9 @@ public:
 					ImGui::SliderFloat("##sub body half length", &hx, 0.1f, 30, "%.2f", 2.f);
 					ImGui::Text("sub body half height");
 					ImGui::SliderFloat("##sub body half height", &hy, 0.05f, 3, "%.2f");
-					if (addSoft){
+					if (addSoft || addElasticPlastic){
 						ImGui::Text("Frequency for soft joints");
-						ImGui::SliderFloat("Hz##Hertz", &baseHz, 1.f, 60.f, "%.0f");
+						ImGui::SliderFloat("Hz##Hertz", &baseHz, 0.f, 60.f, "%.0f");
 						ImGui::Text("DampingRatio for soft joints");
 						ImGui::SliderFloat("##dratio", &baseDampingRatio, 0.f, 1.0f, "%.3f");
 					}
@@ -313,6 +313,8 @@ void Beam::build(){
 		jd.maxTorque = hy*hy* fy*1e6f;
 		jd.maxRotation = maxRotation;
 		jd.maxStrain = maxStrain*b2Min(hx, hy);
+		jd.frequencyHz = baseHz;
+		jd.dampingRatio = baseDampingRatio;
 
 		b2Body* prevBody = sbody;
 		noteElasticPlastic1.Set(-hy, sy + 2 + hy);
