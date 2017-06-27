@@ -35,7 +35,8 @@
 enum BeamType {
 	None=0,
 	Cantilever,
-	Axial
+	Axial,
+	Elastic
 };
 namespace {
 	BeamType beamType = None;
@@ -384,12 +385,41 @@ bool AxialBeam::isMyType(){
 }
 
 void AxialBeam::reset(){
+	Beam::reset();
 	hx = 1.f;
 	fy = 10;
 	beamType = Axial;
-	settings->reset();
 	settings->mouseJointForceScale = 10000;
 	settings->forceScale = 10;
+}
+
+class ElasticBeam : public Beam
+{
+public:
+	ElasticBeam(Settings *settings) :Beam(settings){
+	}
+	~ElasticBeam(){
+	}
+	virtual void reset();
+	virtual bool isMyType();
+	static Test* Create(Settings *settings)
+	{
+		Beam* t = new ElasticBeam(settings);
+		t->build();
+		t->CreateRigidTriangles();
+		return t;
+	}
+};
+
+bool ElasticBeam::isMyType(){
+	return beamType == Elastic;
+}
+
+void ElasticBeam::reset(){
+	Beam::reset();
+	hx = 30.f;
+	baseHz = 1.f;
+	beamType = Elastic;
 }
 
 #endif

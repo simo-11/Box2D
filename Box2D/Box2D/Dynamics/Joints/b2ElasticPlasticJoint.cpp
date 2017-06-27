@@ -71,6 +71,8 @@ b2ElasticPlasticJoint::b2ElasticPlasticJoint(const b2ElasticPlasticJointDef* def
 	m_currentRotation = 0.f;
 	aInitialized = false;
 	bInitialized = false;
+	m_forceExceeded = false;
+	m_torqueExceeded = false;
 	id = epId++;
 }
 

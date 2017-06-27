@@ -27,6 +27,7 @@ TestEntry g_testEntries[] =
 {
 	{ "Beam", Beam::Create },
 	{ "AxialBeam", AxialBeam::Create },
+	{ "ElasticBeam", ElasticBeam::Create },
 	{ "ImGui", ImGuiDemo::Create },
 	{ NULL, NULL }
 };

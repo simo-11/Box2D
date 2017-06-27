@@ -143,7 +143,7 @@ protected:
 	float32 m_maxTorque;
 	float32 m_maxStrain, m_maxRotation, m_currentStrain, m_currentRotation;
 	float32 positionError, angularError;
-	float32 m_forceExceeded, m_torqueExceeded;
+	bool m_forceExceeded, m_torqueExceeded;
 	// Impulse initialization
 	bool aInitialized, bInitialized;
 	int32 id;
