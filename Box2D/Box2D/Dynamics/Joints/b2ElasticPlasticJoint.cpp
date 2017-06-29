@@ -90,7 +90,7 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	if (m_forceExceeded){
 		float32 elasticPart = 0.f;
 		if (m_frequencyHz > 0.f){
-			elasticPart = 0.001f; // TODO, define better
+			elasticPart = 0.f; // TODO, define better
 		}
 		float32 newDistance = (1.f-elasticPart)*
 			(m_bodyA->GetTransform().p - m_bodyB->GetTransform().p)
@@ -105,7 +105,7 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	if (m_torqueExceeded){
 		float32 elasticPart = 0.f;
 		if (m_frequencyHz > 0.f){
-			elasticPart = 0.001f; // TODO, define better
+			elasticPart = 0.f; // TODO, define better
 		}
 		float32 newReferenceAngle = m_bodyB->GetAngle() - m_bodyA->GetAngle()-elasticPart;
 		m_currentRotation += b2Abs(newReferenceAngle - m_referenceAngle);
