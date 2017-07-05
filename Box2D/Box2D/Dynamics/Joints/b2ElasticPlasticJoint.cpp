@@ -102,15 +102,8 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 		m_currentStrain += b2Abs(newDistance - origDistance);
 		m_forceExceeded = false;
 	}
-	if (m_torqueExceeded){
-		float32 elasticPart = 0.f;
-		if (m_frequencyHz > 0.f){
-			elasticPart = 0.f; // TODO, define better
-		}
-		float32 newReferenceAngle = m_bodyB->GetAngle() - m_bodyA->GetAngle()-elasticPart;
-		m_currentRotation += b2Abs(newReferenceAngle - m_referenceAngle);
-		m_referenceAngle = newReferenceAngle;
-		m_torqueExceeded = false;
+	if (m_torqueExceeded && m_frequencyHz==0.f){
+		updateRotationalPlasticity(0.f);
 	}
 	// end ep
 	float32 aA = data.positions[m_indexA].a;
@@ -156,8 +149,6 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 		float32 invM = iA + iB;
 		float32 m = invM > 0.0f ? 1.0f / invM : 0.0f;
 
-		float32 C = aB - aA - m_referenceAngle;
-
 		// Frequency
 		float32 omega = 2.0f * b2_pi * m_frequencyHz;
 
@@ -171,10 +162,14 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 		float32 h = data.step.dt;
 		m_gamma = h * (d + h * k);
 		m_gamma = m_gamma != 0.0f ? 1.0f / m_gamma : 0.0f;
-		m_bias = C * h * k * m_gamma;
-
 		invM += m_gamma;
 		m_mass.ez.z = invM != 0.0f ? 1.0f / invM : 0.0f;
+		if (m_torqueExceeded) {
+			float32 elasticRotation = m_maxImpulse.z / h / k;
+			updateRotationalPlasticity(elasticRotation);
+		}
+		float32 C = aB - aA - m_referenceAngle;
+		m_bias = C * h * k * m_gamma;
 	}
 	else if (K.ez.z == 0.0f)
 	{
@@ -339,6 +334,18 @@ float32 b2ElasticPlasticJoint::GetClampedDeltaImpulse(float32 Cdot){
 		m_torqueExceeded = true;
 	}
 	return clamped;
+}
+
+void b2ElasticPlasticJoint::updateRotationalPlasticity(float32 elasticRotation)
+{
+	float32 currentAngleDiff = m_bodyB->GetAngle() - m_bodyA->GetAngle();
+	if (m_impulse.z < 0) {
+		elasticRotation =-elasticRotation;
+	}
+	float32 newReferenceAngle = currentAngleDiff + elasticRotation;
+	m_currentRotation += b2Abs(newReferenceAngle - m_referenceAngle);
+	m_referenceAngle = newReferenceAngle;
+	m_torqueExceeded = false;
 }
 
 

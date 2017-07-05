@@ -139,6 +139,7 @@ protected:
 	b2Vec3 GetClampedDeltaImpulse(b2Vec3 Cdot);
 	b2Vec2 GetClampedDeltaImpulse(b2Vec2 Cdot);
 	float32 GetClampedDeltaImpulse(float32 Cdot);
+	void updateRotationalPlasticity(float32 elasticRotation);
 	b2Vec2 m_maxForce;
 	float32 m_maxTorque;
 	float32 m_maxStrain, m_maxRotation, m_currentStrain, m_currentRotation;
