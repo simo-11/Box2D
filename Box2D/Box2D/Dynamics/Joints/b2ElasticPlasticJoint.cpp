@@ -284,12 +284,11 @@ bool b2ElasticPlasticJoint::WantsToBreak(){
 	}
 	if (m_currentStrain > m_maxStrain){
 		// do not break due to compression
-		// chain shapes are not supported
-		const b2Shape* shapeA = m_bodyA->GetFixtureList()->GetShape();
-		const b2Shape* shapeB = m_bodyB->GetFixtureList()->GetShape();
-		const b2Transform& xfA = m_bodyA->GetTransform();
-		const b2Transform& xfB = m_bodyB->GetTransform();
-		if (!b2TestOverlap(shapeA, 0, shapeB, 0, xfA, xfB)){
+		b2Vec2 iv;
+		iv.x = m_impulse.x;
+		iv.y = m_impulse.y;
+		float32 dotv=b2Dot(m_localAnchorA,iv);
+		if (dotv<0){
 			return true;
 		}
 	}
