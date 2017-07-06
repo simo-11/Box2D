@@ -555,7 +555,7 @@ int main(int, char**)
 	}
 
 	char title[64];
-	sprintf(title, "Box2D ElasticPlastic Version 0.1.0");
+	sprintf(title, "Box2D ElasticPlastic Version 0.2.0");
 
 #if defined(__APPLE__)
 	// Not sure why, but these settings cause glewInit below to crash.

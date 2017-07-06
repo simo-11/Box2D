@@ -20,6 +20,7 @@
 
 #include "Test.h"
 #include "Beam.h"
+#include "Frame.h"
 #include "ImGuiDemo.h"
 
 
@@ -28,6 +29,7 @@ TestEntry g_testEntries[] =
 	{ "Beam", Beam::Create },
 	{ "AxialBeam", AxialBeam::Create },
 	{ "ElasticBeam", ElasticBeam::Create },
+	{ "Frame", Frame::Create },
 	{ "ImGui", ImGuiDemo::Create },
 	{ NULL, NULL }
 };
