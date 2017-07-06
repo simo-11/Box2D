@@ -112,7 +112,7 @@ void Test::DeleteRigidTriangle(unsigned char label){
 	RigidTriangle* rtn = nullptr, *rtp=nullptr;
 	while (rt != nullptr){
 		rtn = rt->next;
-		if (rt->label = label){
+		if (rt->label == label){
 			if (rtWorld){
 				rtWorld->DestroyBody(rt->body);
 			}
