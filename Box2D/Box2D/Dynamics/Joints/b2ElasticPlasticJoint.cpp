@@ -209,10 +209,13 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	// ep
 	m_maxImpulse.z = m_maxTorque*data.step.dt;
 	// rotate original maxForce to match current average rotation
+	// this could probably made more precise but this scenario is seldom
+	// significant
 	b2Rot q((wA+wB)/2);
-	b2Vec2 rotatedMaxForce = b2Mul(q, m_maxForce);
-	m_maxImpulse.x = b2Abs(rotatedMaxForce.x)*data.step.dt;
-	m_maxImpulse.y = b2Abs(rotatedMaxForce.y)*data.step.dt;
+	m_maxImpulse.x = (b2Abs(q.c)*m_maxForce.x+b2Abs(q.s)*m_maxForce.y)
+		*data.step.dt;
+	m_maxImpulse.y = (b2Abs(q.s)*m_maxForce.x + b2Abs(q.c)*m_maxForce.y)
+		*data.step.dt;
 }
 
 void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
