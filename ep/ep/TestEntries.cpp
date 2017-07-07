@@ -26,10 +26,10 @@
 
 TestEntry g_testEntries[] =
 {
+	{ "Frame", Frame::Create },
 	{ "Beam", Beam::Create },
 	{ "AxialBeam", AxialBeam::Create },
 	{ "ElasticBeam", ElasticBeam::Create },
-	{ "Frame", Frame::Create },
 	{ "ImGui", ImGuiDemo::Create },
 	{ NULL, NULL }
 };

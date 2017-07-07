@@ -151,7 +151,7 @@ inline bool Frame::isMyType()
 }
 
 void Frame::reset() {
-	b2Frame::so_count = 1;
+	b2Frame::so_count = 2;
 	b2Frame::baseHz = 30;
 	b2Frame::baseDampingRatio = 0.2f;
 	b2Frame::density = 7800;
@@ -169,8 +169,8 @@ void Frame::build() {
 	if (!isMyType()) {
 		reset();
 	}
-	float32 totalLength = b2Frame::so_count * 2 * b2Frame::hx + 
-		2 * b2Frame::hy;
+	int soc2 = b2Frame::so_count*b2Frame::so_count;
+	float32 totalLength =  soc2* 2 * b2Frame::hx;
 	b2Body* ground = NULL;
 	{
 		int n = b2Frame::so_count;
@@ -183,10 +183,8 @@ void Frame::build() {
 
 		b2EdgeShape shape;
 		float32 floorLevel = 0;
-		shape.Set(b2Vec2(-5 * b2Frame::hy - 
-			b2Frame::so_count*b2Frame::hx - 10, floorLevel),
-			b2Vec2(b2Frame::so_count*b2Frame::so_count*b2Frame::hx * 2.5f +
-				5 * b2Frame::hy + 10, floorLevel));
+		shape.Set(b2Vec2(-totalLength, floorLevel),
+			b2Vec2(2*totalLength, floorLevel));
 		ground->CreateFixture(&shape, 0.0f);
 	}
 	b2PolygonShape staticShape;
@@ -209,11 +207,11 @@ void Frame::build() {
 	jd.maxStrain = b2Frame::maxStrain*b2Min(b2Frame::hx, b2Frame::hy);
 	jd.frequencyHz = b2Frame::baseHz;
 	jd.dampingRatio = b2Frame::baseDampingRatio;
-	b2Body* prevBody = ground;
+	b2Body *prevBody = NULL,*body;
 	int n = 0;
 	b2BodyDef bd;
 	bd.type = b2_dynamicBody;
-	// First create verticals bodies
+	// verticals bodies
 	bd.angle = b2_pi / 2;
 	float32 sx;
 	float32 step = b2Frame::so_count * 2 * b2Frame::hx;
@@ -221,48 +219,93 @@ void Frame::build() {
 		sx = 0;
 		for (int32 i = 0; i <= b2Frame::so_count; ++i) // walls
 		{
-			for (int32 k = 0; k < b2Frame::so_count; ++k) { // subparts
+			prevBody = NULL;
+			for (int32 k = 0; k < b2Frame::so_count; ++k) { 
+				// subparts with joints
 				bd.position.Set(sx, sy+(2 * k + 1)*b2Frame::hx);
-				b2Body* body = m_world->CreateBody(&bd);
+				body = m_world->CreateBody(&bd);
 				body->CreateFixture(&fd);
 				bodies[n++] = body;
+				if (prevBody != NULL) {
+					b2Vec2 anchor(sx,sy+2 * k*b2Frame::hx);
+					jd.Initialize(prevBody, body, anchor);
+					m_world->CreateJoint(&jd);
+				}
+				prevBody = body;
 			}
 			sx += step;
 		}
 		sy += step;
 	}
-	// then horizontal ones
+	// horizontal bodies
 	bd.angle = 0.f;
 	sy = step;
 	for (int32 j = 0; j < b2Frame::so_count; ++j) { // floors
 		sx = 0;
+		prevBody = NULL;
 		for (int32 i = 0; i < b2Frame::so_count; ++i) // walls
 		{
-			for (int32 k = 0; k < b2Frame::so_count; ++k) { // subparts
+			for (int32 k = 0; k < b2Frame::so_count; ++k) {
+				// subparts with joints
 				bd.position.Set(sx + (2 * k + 1)*b2Frame::hx, sy );
-				b2Body* body = m_world->CreateBody(&bd);
+				body = m_world->CreateBody(&bd);
 				body->CreateFixture(&fd);
 				bodies[n++] = body;
+				if (prevBody != NULL) {
+					b2Vec2 anchor(sx+2 * k*b2Frame::hx, sy);
+					jd.Initialize(prevBody, body, anchor);
+					m_world->CreateJoint(&jd);
+				}
+				prevBody = body;
 			}
 			sx += step;
 		}
 		sy += step;
 	}
-	// then create joints
-	bool act = false;
-	if (act) {
-		for (int32 i = 0; i < b2Frame::so_count; ++i)
-		{
-			b2BodyDef bd;
-			bd.type = b2_dynamicBody;
-			bd.position.Set((2 * i + 1)*b2Frame::hx, sy);
-			b2Body* body = m_world->CreateBody(&bd);
-			body->CreateFixture(&fd);
-			b2Vec2 anchor((2 * i)*b2Frame::hx, sy);
+	// joints for corners
+	// vertical anchors joining floors or to ground
+	sy = 0.f;
+	for (int32 j = 0; j < b2Frame::so_count; ++j) { // floors
+		sx = 0;
+		for (int32 i = 0; i <=b2Frame::so_count; ++i) { // walls
+			int ai=i*b2Frame::so_count+
+				j*b2Frame::so_count*(b2Frame::so_count+1);
+			int bi=ai-soc2-1;
+			prevBody = bodies[ai];
+			if (bi >= 0) {
+				body = bodies[bi];
+			}
+			else {
+				body = ground;
+			}
+			b2Vec2 anchor(sx, sy);
 			jd.Initialize(prevBody, body, anchor);
 			m_world->CreateJoint(&jd);
-			prevBody = body;
+			sx += step;
 		}
+		sy += step;
+	}
+	// corner joints
+	// a is vertical and b horizontal
+	int vbc = soc2*(b2Frame::so_count+1); // vertical body count
+	sy = step;
+	for (int32 j = 0; j < b2Frame::so_count; ++j) { // floors
+		sx = 0.f;
+		for (int32 i = 0; i <=b2Frame::so_count; ++i) { // walls
+			int ai = (i+1)*b2Frame::so_count-1 +
+				j*b2Frame::so_count*(b2Frame::so_count + 1);
+			int bi= ai + vbc - (j+1)*b2Frame::so_count + 1;
+			if (i == b2Frame::so_count) {
+				bi -= 1;
+			}
+			prevBody = bodies[ai];
+			body = bodies[bi];
+			b2Vec2 anchor(sx, sy);
+			jd.Initialize(prevBody, body, anchor);
+			m_world->CreateJoint(&jd);
+			sx += step;
+		}
+		sy += step;
 	}
 	{ // rescale using m_zoom and m_center if dimensions change
 		float32 cx = 2 * b2Frame::so_count*b2Frame::hx;
