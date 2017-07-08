@@ -88,7 +88,7 @@ struct Settings
 		enableSleep = true;
 		pause = false;
 		singleStep = false;
-		forceScale = 0.01f;
+		forceScale = 0.1f;
 		momentScale = 0.3f;
 		addRigidTriangles = false;
 		initImpulses = false;

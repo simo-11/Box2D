@@ -1184,8 +1184,9 @@ void b2World::DrawJointReaction(b2Joint* joint)
 	{
 	case e_elasticPlasticJoint:
 		b2ElasticPlasticJoint* ep = (b2ElasticPlasticJoint*)joint;
-		p2 = p1 + g_debugDraw->GetForceScale() / 1.e9f*ep->GetMaxForce();
+		b2Vec2 rf = ep->GetRotatedMaxForce();
 		color.Set(1, 0, 0);
+		p2 = p1 + g_debugDraw->GetForceScale() / 1.e9f*rf;
 		g_debugDraw->DrawSegment(p1, p2, color);
 		cs = g_debugDraw->GetMomentScale() / 1.e9f*ep->GetMaxTorque();
 		g_debugDraw->DrawCircle(p1, cs, color);

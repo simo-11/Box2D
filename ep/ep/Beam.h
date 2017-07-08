@@ -309,8 +309,9 @@ void Beam::build(){
 		fd.density = density;
 
 		b2ElasticPlasticJointDef jd;
-		jd.maxForce.x = 2 * hy*fy*1e6f;
-		jd.maxForce.y = 2 * hx*fy*1e6f;
+		// select smaller, either axial or cutting
+		jd.maxForce.x = b2Min(2 * hy,hx)*fy*1e6f;
+		jd.maxForce.y = b2Min(2 * hx,hy)*fy*1e6f;
 		jd.maxTorque = hy*hy* fy*1e6f;
 		jd.maxRotation = maxRotation;
 		jd.maxStrain = maxStrain*b2Min(hx, hy);

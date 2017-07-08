@@ -211,11 +211,9 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	// rotate original maxForce to match current average rotation
 	// this could probably made more precise but this scenario is seldom
 	// significant
-	b2Rot q((wA+wB)/2);
-	m_maxImpulse.x = (b2Abs(q.c)*m_maxForce.x+b2Abs(q.s)*m_maxForce.y)
-		*data.step.dt;
-	m_maxImpulse.y = (b2Abs(q.s)*m_maxForce.x + b2Abs(q.c)*m_maxForce.y)
-		*data.step.dt;
+	b2Vec2 rotatedForce = GetRotatedMaxForce();
+	m_maxImpulse.x = (rotatedForce.x)*data.step.dt;
+	m_maxImpulse.y = (rotatedForce.y)*data.step.dt;
 }
 
 void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
@@ -348,6 +346,15 @@ void b2ElasticPlasticJoint::updateRotationalPlasticity(float32 elasticRotation)
 	m_currentRotation += b2Abs(newReferenceAngle - m_referenceAngle);
 	m_referenceAngle = newReferenceAngle;
 	m_torqueExceeded = false;
+}
+
+b2Vec2 b2ElasticPlasticJoint::GetRotatedMaxForce()
+{
+	b2Vec2 rf;
+	b2Rot q((m_bodyB->GetAngle() - m_bodyA->GetAngle()) / 2);
+	rf.x = (b2Abs(q.c)*m_maxForce.x + b2Abs(q.s)*m_maxForce.y);
+	rf.y = (b2Abs(q.s)*m_maxForce.x + b2Abs(q.c)*m_maxForce.y);
+	return rf;
 }
 
 

@@ -68,9 +68,6 @@ struct b2ElasticPlasticJointDef : public b2JointDef
 
 };
 
-/// A motor joint is used to control the relative motion
-/// between two bodies. A typical usage is to control the movement
-/// of a dynamic body with respect to the ground.
 class b2ElasticPlasticJoint : public b2Joint
 {
 public:
@@ -89,18 +86,19 @@ public:
 	/// Get the reference angle.
 	float32 GetReferenceAngle() const { return m_referenceAngle; }
 
-	/// Set the maximum friction force in N.
+	/// Set the maximum plastic force in N.
 	void SetMaxForce(b2Vec2 force);
 
-	/// Get the maximum friction force in N.
+	/// Get the maximum plastic force in N.
 	b2Vec2 GetMaxForce() const;
 
-	/// Set the maximum friction torque in N*m.
+	/// Set the maximum plastic torque in N*m.
 	void SetMaxTorque(float32 torque);
 	float32 getCurrentStrain(){ return m_currentStrain; }
 	float32 getCurrentRotation(){ return m_currentRotation; }
 	float32 getMaxStrain(){ return m_maxStrain; }
 	float32 getMaxRotation(){ return m_maxRotation; }
+	b2Vec2 GetRotatedMaxForce();
 
 	/// Get the maximum friction torque in N*m.
 	float32 GetMaxTorque() const;

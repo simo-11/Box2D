@@ -200,8 +200,9 @@ void Frame::build() {
 	fd.density = b2Frame::density;
 
 	b2ElasticPlasticJointDef jd;
-	jd.maxForce.x = 2 * b2Frame::hy*b2Frame::fy*1e6f;
-	jd.maxForce.y = 2 * b2Frame::hx*b2Frame::fy*1e6f;
+	// select smaller, either axial or cutting
+	jd.maxForce.x = b2Min(2 * b2Frame::hy, b2Frame::hx)*b2Frame::fy*1e6f;
+	jd.maxForce.y = b2Min(2 * b2Frame::hx, b2Frame::hy)*b2Frame::fy*1e6f;
 	jd.maxTorque = b2Frame::hy*b2Frame::hy* b2Frame::fy*1e6f;
 	jd.maxRotation = b2Frame::maxRotation;
 	jd.maxStrain = b2Frame::maxStrain*b2Min(b2Frame::hx, b2Frame::hy);
