@@ -21,11 +21,13 @@
 #include "Test.h"
 #include "Beam.h"
 #include "Frame.h"
+#include "EPCar.h"
 #include "ImGuiDemo.h"
 
 
 TestEntry g_testEntries[] =
 {
+	{ "Car", EPCar::Create },
 	{ "Frame", Frame::Create },
 	{ "Beam", Beam::Create },
 	{ "AxialBeam", AxialBeam::Create },
