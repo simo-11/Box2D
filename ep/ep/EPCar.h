@@ -32,7 +32,11 @@ namespace epCar{
 	float32 hz;
 	float32 zeta;
 	float32 speed;
-	float32 wheelRadius;
+	float32 length, carDensity;
+	float32 wheelRadius, wheelDensity;
+	float32 motorTorque;
+	float32 brakeTorque;
+	float32 groundFriction,wheelFriction;
 }
 class EPCar : public Test
 {
@@ -47,7 +51,14 @@ public:
 		epCar::hz = 4.0f;
 		epCar::zeta = 0.7f;
 		epCar::speed = 50.0f;
+		epCar::length = 3.f;
+		epCar::carDensity = 200.f;
 		epCar::wheelRadius = 0.4f;
+		epCar::wheelDensity = 100.f;
+		epCar::groundFriction = 0.9f;
+		epCar::wheelFriction = 0.9f;
+		epCar::motorTorque = 1000.f;
+		epCar::brakeTorque = 3000.f;
 		epCar::carType = EpCar;
 		settings->reset();
 	}
@@ -65,9 +76,9 @@ public:
 			b2FixtureDef fd;
 			fd.shape = &shape;
 			fd.density = 0.0f;
-			fd.friction = 0.6f;
+			fd.friction = epCar::groundFriction;
 
-			shape.Set(b2Vec2(-20.0f, 0.0f), b2Vec2(20.0f, 0.0f));
+			shape.Set(b2Vec2(-50.0f, 0.0f), b2Vec2(20.0f, 0.0f));
 			ground->CreateFixture(&fd);
 
 			float32 hs[10] = { 0.25f, 1.0f, 4.0f, 0.0f, 0.0f, -1.0f, -2.0f, -2.0f, -1.25f, 0.0f };
@@ -99,7 +110,7 @@ public:
 			ground->CreateFixture(&fd);
 
 			x += 40.0f;
-			shape.Set(b2Vec2(x, 0.0f), b2Vec2(x, 20.0f));
+			shape.Set(b2Vec2(x, 0.0f), b2Vec2(x+100.f, 0.0f));
 			ground->CreateFixture(&fd);
 		}
 
@@ -107,12 +118,12 @@ public:
 		{
 			b2PolygonShape chassis;
 			b2Vec2 vertices[8];
-			vertices[0].Set(-1.5f, -0.5f);
-			vertices[1].Set(1.5f, -0.5f);
-			vertices[2].Set(1.5f, 0.0f);
+			vertices[0].Set(-0.5f*epCar::length, -0.5f);
+			vertices[1].Set(0.5f*epCar::length, -0.5f);
+			vertices[2].Set(0.5f*epCar::length, 0.0f);
 			vertices[3].Set(0.0f, 0.9f);
-			vertices[4].Set(-1.15f, 0.9f);
-			vertices[5].Set(-1.5f, 0.2f);
+			vertices[4].Set(-0.38f*epCar::length, 0.9f);
+			vertices[5].Set(-0.5f*epCar::length, 0.2f);
 			chassis.Set(vertices, 6);
 
 			b2CircleShape circle;
@@ -121,36 +132,36 @@ public:
 			b2BodyDef bd;
 			bd.type = b2_dynamicBody;
 			bd.position.Set(0.0f, 1.0f);
-			m_EPCar = m_world->CreateBody(&bd);
-			m_EPCar->CreateFixture(&chassis, 1.0f);
+			m_Car = m_world->CreateBody(&bd);
+			m_Car->CreateFixture(&chassis, epCar::carDensity);
 
 			b2FixtureDef fd;
 			fd.shape = &circle;
-			fd.density = 1.0f;
-			fd.friction = 0.9f;
+			fd.density = epCar::wheelDensity;
+			fd.friction = epCar::wheelFriction;
 
-			bd.position.Set(-1.0f, 0.35f);
+			bd.position.Set(-0.3f*epCar::length, 0.35f);
 			m_wheel1 = m_world->CreateBody(&bd);
 			m_wheel1->CreateFixture(&fd);
 
-			bd.position.Set(1.0f, 0.4f);
+			bd.position.Set(0.3f*epCar::length, 0.4f);
 			m_wheel2 = m_world->CreateBody(&bd);
 			m_wheel2->CreateFixture(&fd);
 
 			b2WheelJointDef jd;
 			b2Vec2 axis(0.0f, 1.0f);
 
-			jd.Initialize(m_EPCar, m_wheel1, m_wheel1->GetPosition(), axis);
+			jd.Initialize(m_Car, m_wheel1, m_wheel1->GetPosition(), axis);
 			jd.motorSpeed = 0.0f;
-			jd.maxMotorTorque = 20.0f;
+			jd.maxMotorTorque = epCar::motorTorque;
 			jd.enableMotor = true;
 			jd.frequencyHz = epCar::hz;
 			jd.dampingRatio = epCar::zeta;
 			m_spring1 = (b2WheelJoint*)m_world->CreateJoint(&jd);
 
-			jd.Initialize(m_EPCar, m_wheel2, m_wheel2->GetPosition(), axis);
+			jd.Initialize(m_Car, m_wheel2, m_wheel2->GetPosition(), axis);
 			jd.motorSpeed = 0.0f;
-			jd.maxMotorTorque = 10.0f;
+			jd.maxMotorTorque = epCar::brakeTorque;
 			jd.enableMotor = false;
 			jd.frequencyHz = epCar::hz;
 			jd.dampingRatio = epCar::zeta;
@@ -164,21 +175,45 @@ public:
 		{
 		case GLFW_KEY_A:
 			m_spring1->SetMotorSpeed(epCar::speed);
+			m_spring1->SetMaxMotorTorque(epCar::motorTorque);
+			m_spring2->EnableMotor(false);
 			break;
 
 		case GLFW_KEY_S:
 			m_spring1->SetMotorSpeed(0.0f);
+			m_spring1->SetMaxMotorTorque(epCar::brakeTorque);
+			m_spring2->EnableMotor(true);
 			break;
 
 		case GLFW_KEY_D:
 			m_spring1->SetMotorSpeed(-epCar::speed);
+			m_spring1->SetMaxMotorTorque(epCar::motorTorque);
+			m_spring2->EnableMotor(false);
 			break;
 		}
 	}
-
+	void updateX(b2Body* b, float32 xmove) {
+		b2Vec2 p = b->GetPosition();
+		p.x += xmove;
+		float32 a = b->GetAngle();
+		b->SetTransform(p, a);
+	}
 	void Step()
 	{
-		g_camera.m_center.x = m_EPCar->GetPosition().x;
+		float32 upperLimit = 270, lowerLimit=-10;
+		float32 move=0.f;
+		float32 cx = m_Car->GetPosition().x;
+		if ( cx> upperLimit) {
+			move = -cx;
+		}else if (cx <lowerLimit) {
+			move = upperLimit + cx;
+		}
+		if(move!=0.f){
+			updateX(m_Car,move);
+			updateX(m_wheel1, move);
+			updateX(m_wheel2, move);
+		}
+		g_camera.m_center.x = m_Car->GetPosition().x;
 		Test::Step();
 	}
 
@@ -190,7 +225,7 @@ public:
 		return t;
 	}
 
-	b2Body* m_EPCar;
+	b2Body* m_Car;
 	b2Body* m_wheel1;
 	b2Body* m_wheel2;
 
@@ -198,7 +233,12 @@ public:
 	b2WheelJoint* m_spring2;
 	bool showMenu = true;
 	void drawNotes() {
+		float32 s = m_Car->GetLinearVelocity().Length();
+		float32 rs = b2Abs(m_spring1->GetMotorSpeed());
 		g_debugDraw.DrawString(g_camera.m_center, "Keys: left = a, brake = s, right = d");
+		g_debugDraw.DrawString(g_camera.m_center+b2Vec2(0,-2.f), 
+			"%.0f rad/s, %.0f m/s, %0.f km/h",
+			rs,s,3.6f*s);
 	}
 	virtual void Ui() {
 		int menuWidth = 220;
@@ -220,10 +260,24 @@ public:
 						m_spring1->SetSpringDampingRatio(epCar::zeta);
 						m_spring2->SetSpringDampingRatio(epCar::zeta);
 					}
-					ImGui::Text("Car max speed");
+					ImGui::Text("Length");
+					ImGui::SliderFloat("##length", &epCar::length, 3.f, 10.0f, "%.1f");
+					ImGui::Text("Density");
+					ImGui::SliderFloat("##density", &epCar::carDensity, 100.f, 300.f, "%.0f");
+					ImGui::Text("Max speed rad/s");
 					ImGui::SliderFloat("##speed", &epCar::speed, 0.f, 100.0f, "%.0f");
-					ImGui::Text("Car wheel radius");
+					ImGui::Text("Wheel radius");
 					ImGui::SliderFloat("##wheelRadius", &epCar::wheelRadius, 0.2f, 1.f, "%.2f");
+					ImGui::Text("motor torque");
+					ImGui::SliderFloat("##motorTorque", &epCar::motorTorque, 300.f, 3000.f, "%.0f",2.f);
+					ImGui::Text("break torque");
+					ImGui::SliderFloat("##breakTorque", &epCar::brakeTorque, 1000.f, 10000.f, "%.0f",2.f);
+					ImGui::Text("ground friction");
+					ImGui::SliderFloat("##groundFriction", &epCar::groundFriction, 0.1f, 1.f, "%.2f");
+					ImGui::Text("wheel friction");
+					ImGui::SliderFloat("##wheelFriction", &epCar::wheelFriction, 0.1f, 1.f, "%.2f");
+					ImGui::Text("wheel density");
+					ImGui::SliderFloat("##wheelDensity", &epCar::wheelDensity, 10.f, 100.f, "%.1f");
 				}
 			}
 			if (ImGui::CollapsingHeader("Joint forces N/Nm"))
