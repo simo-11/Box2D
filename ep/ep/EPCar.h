@@ -23,15 +23,38 @@
 #define EPCAR_H
 #include "Test.h"
 
+enum CarType {
+	NoCar=0,
+	EpCar,
+};
+namespace epCar{
+	CarType carType;
+	float32 hz;
+	float32 zeta;
+	float32 speed;
+	float32 wheelRadius;
+}
 class EPCar : public Test
 {
 public:
 	EPCar(Settings* sp) :Test(sp)
 	{
-		m_hz = 4.0f;
-		m_zeta = 0.7f;
-		m_speed = 50.0f;
-
+	}
+	bool isMyType() {
+		return (epCar::carType == EpCar);
+	}
+	void reset() {
+		epCar::hz = 4.0f;
+		epCar::zeta = 0.7f;
+		epCar::speed = 50.0f;
+		epCar::wheelRadius = 0.4f;
+		epCar::carType = EpCar;
+		settings->reset();
+	}
+	void build() {
+		if (!isMyType()) {
+			reset();
+		}
 		b2Body* ground = NULL;
 		{
 			b2BodyDef bd;
@@ -93,7 +116,7 @@ public:
 			chassis.Set(vertices, 6);
 
 			b2CircleShape circle;
-			circle.m_radius = 0.4f;
+			circle.m_radius = epCar::wheelRadius; 
 
 			b2BodyDef bd;
 			bd.type = b2_dynamicBody;
@@ -121,16 +144,16 @@ public:
 			jd.motorSpeed = 0.0f;
 			jd.maxMotorTorque = 20.0f;
 			jd.enableMotor = true;
-			jd.frequencyHz = m_hz;
-			jd.dampingRatio = m_zeta;
+			jd.frequencyHz = epCar::hz;
+			jd.dampingRatio = epCar::zeta;
 			m_spring1 = (b2WheelJoint*)m_world->CreateJoint(&jd);
 
 			jd.Initialize(m_EPCar, m_wheel2, m_wheel2->GetPosition(), axis);
 			jd.motorSpeed = 0.0f;
 			jd.maxMotorTorque = 10.0f;
 			jd.enableMotor = false;
-			jd.frequencyHz = m_hz;
-			jd.dampingRatio = m_zeta;
+			jd.frequencyHz = epCar::hz;
+			jd.dampingRatio = epCar::zeta;
 			m_spring2 = (b2WheelJoint*)m_world->CreateJoint(&jd);
 		}
 	}
@@ -140,7 +163,7 @@ public:
 		switch (key)
 		{
 		case GLFW_KEY_A:
-			m_spring1->SetMotorSpeed(m_speed);
+			m_spring1->SetMotorSpeed(epCar::speed);
 			break;
 
 		case GLFW_KEY_S:
@@ -148,30 +171,29 @@ public:
 			break;
 
 		case GLFW_KEY_D:
-			m_spring1->SetMotorSpeed(-m_speed);
+			m_spring1->SetMotorSpeed(-epCar::speed);
 			break;
 		}
 	}
 
 	void Step()
 	{
-
 		g_camera.m_center.x = m_EPCar->GetPosition().x;
 		Test::Step();
 	}
 
 	static Test* Create(Settings *settings)
 	{
-		return new EPCar(settings);
+		EPCar* t = new EPCar(settings);
+		t->build();
+		t->CreateRigidTriangles();
+		return t;
 	}
 
 	b2Body* m_EPCar;
 	b2Body* m_wheel1;
 	b2Body* m_wheel2;
 
-	float32 m_hz;
-	float32 m_zeta;
-	float32 m_speed;
 	b2WheelJoint* m_spring1;
 	b2WheelJoint* m_spring2;
 	bool showMenu = true;
@@ -189,18 +211,35 @@ public:
 				if (ImGui::CollapsingHeader("Settings", "CarSettings"))
 				{
 					ImGui::Text("Frequency for car suspension");
-					if (ImGui::SliderFloat("Hz##Hertz", &m_hz, 0.f, 10.f, "%.0f")) {
-						m_spring1->SetSpringFrequencyHz(m_hz);
-						m_spring2->SetSpringFrequencyHz(m_hz);
+					if (ImGui::SliderFloat("Hz##Hertz", &epCar::hz, 0.f, 10.f, "%.1f")) {
+						m_spring1->SetSpringFrequencyHz(epCar::hz);
+						m_spring2->SetSpringFrequencyHz(epCar::hz);
 					}
 					ImGui::Text("DampingRatio for car suspension");
-					if (ImGui::SliderFloat("##dratio", &m_zeta, 0.f, 1.0f, "%.3f")) {
-						m_spring1->SetSpringDampingRatio(m_zeta);
-						m_spring2->SetSpringDampingRatio(m_zeta);
+					if (ImGui::SliderFloat("##dratio", &epCar::zeta, 0.f, 1.0f, "%.2f")) {
+						m_spring1->SetSpringDampingRatio(epCar::zeta);
+						m_spring2->SetSpringDampingRatio(epCar::zeta);
 					}
+					ImGui::Text("Car max speed");
+					ImGui::SliderFloat("##speed", &epCar::speed, 0.f, 100.0f, "%.0f");
+					ImGui::Text("Car wheel radius");
+					ImGui::SliderFloat("##wheelRadius", &epCar::wheelRadius, 0.2f, 1.f, "%.2f");
 				}
-				ImGui::End();
 			}
+			if (ImGui::CollapsingHeader("Joint forces N/Nm"))
+			{
+				float locs[4] = { 40, 80, 120, 160 };
+				ImGui::Text(" x-f"); ImGui::SameLine(locs[0]);
+				ImGui::Text(" y-f"); ImGui::SameLine(locs[1]);
+				ImGui::Text(" z-m"); ImGui::SameLine(locs[2]);
+				ImGui::Text(" j-x"); ImGui::SameLine(locs[3]);
+				ImGui::Text(" j-y");
+				for (b2Joint* j = m_world->GetJointList(); j; j = j->GetNext())
+				{
+					LogJoint(j, 1.f, 1.f, locs,"%5.0f");
+				}
+			}
+			ImGui::End();
 			if (settings->drawNotes) {
 				drawNotes();
 			}

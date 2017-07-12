@@ -666,14 +666,15 @@ void Test::Step()
 	}
 }
 
-void Test::LogJoint(b2Joint* j,float32 fScale, float32 mScale, float* locs){
+void Test::LogJoint(b2Joint* j,float32 fScale, float32 mScale, float* locs,
+	const char * fmt){
 	b2Vec2 p = 0.5f*(j->GetAnchorA() + j->GetAnchorB());
 	float32 idt=g_debugDraw.GetInvDt();
 	b2Vec2 f = j->GetReactionForce(idt);
 	float32 m = j->GetReactionTorque(idt);
-	ImGui::Text("%5.2f", fScale*f.x); ImGui::SameLine(locs[0]);
-	ImGui::Text("%5.2f", fScale*f.y); ImGui::SameLine(locs[1]);
-	ImGui::Text("%5.2f", mScale*m); ImGui::SameLine(locs[2]);
+	ImGui::Text(fmt, fScale*f.x); ImGui::SameLine(locs[0]);
+	ImGui::Text(fmt, fScale*f.y); ImGui::SameLine(locs[1]);
+	ImGui::Text(fmt, mScale*m); ImGui::SameLine(locs[2]);
 	ImGui::Text("%4.1f",p.x); ImGui::SameLine(locs[3]);
 	ImGui::Text("%4.1f",p.y);
 }
