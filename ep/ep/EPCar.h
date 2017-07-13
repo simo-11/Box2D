@@ -234,11 +234,16 @@ public:
 	bool showMenu = true;
 	void drawNotes() {
 		float32 s = m_Car->GetLinearVelocity().Length();
-		float32 rs = b2Abs(m_spring1->GetMotorSpeed());
+		float32 rs1 = b2Abs(m_spring1->GetJointAngularSpeed());
+		float32 rs2 = b2Abs(m_spring2->GetJointAngularSpeed());
+		char * tc = "";
+		if (b2Abs(rs1 - rs2) > 3) {
+			tc = "!";
+		}
 		g_debugDraw.DrawString(g_camera.m_center, "Keys: left = a, brake = s, right = d");
 		g_debugDraw.DrawString(g_camera.m_center+b2Vec2(0,-2.f), 
-			"%.0f rad/s, %.0f m/s, %0.f km/h",
-			rs,s,3.6f*s);
+			"%s %.0f rad/s, %.0f rad/s, %.0f m/s, %0.f km/h",
+			tc,rs1,rs2,s,3.6f*s);
 	}
 	virtual void Ui() {
 		int menuWidth = 220;
@@ -265,11 +270,32 @@ public:
 					ImGui::Text("Density");
 					ImGui::SliderFloat("##density", &epCar::carDensity, 100.f, 300.f, "%.0f");
 					ImGui::Text("Max speed rad/s");
-					ImGui::SliderFloat("##speed", &epCar::speed, 0.f, 100.0f, "%.0f");
+					if (ImGui::SliderFloat("##speed",
+						&epCar::speed, 0.f, 100.0f, "%.0f")) {
+						float32 s = epCar::speed;
+						float32 cs = m_spring1->GetMotorSpeed();
+						if (cs != 0.f) {
+							if (cs < 0) {
+								s = -s;
+							}
+							m_spring1->SetMotorSpeed(s);
+						}
+
+					}
 					ImGui::Text("Wheel radius");
 					ImGui::SliderFloat("##wheelRadius", &epCar::wheelRadius, 0.2f, 1.f, "%.2f");
 					ImGui::Text("motor torque");
-					ImGui::SliderFloat("##motorTorque", &epCar::motorTorque, 300.f, 3000.f, "%.0f",2.f);
+					if (ImGui::SliderFloat("##motorTorque", 
+						&epCar::motorTorque, 300.f, 3000.f, "%.0f", 2.f)) {
+						float32 t = epCar::motorTorque;
+						float32 ct = m_spring1->GetMaxMotorTorque();
+						if (ct != 0.f) {
+							if (ct < 0) {
+								t = -t;
+							}
+							m_spring1->SetMaxMotorTorque(t);
+						}
+					}
 					ImGui::Text("break torque");
 					ImGui::SliderFloat("##breakTorque", &epCar::brakeTorque, 1000.f, 10000.f, "%.0f",2.f);
 					ImGui::Text("ground friction");
