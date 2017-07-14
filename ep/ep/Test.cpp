@@ -82,6 +82,7 @@ Test::~Test()
 	rtWorld = NULL;
 }
 
+
 bool Test::WantRigidTriangles(){
 	return true;
 }
@@ -458,7 +459,6 @@ void Test::Step()
 	m_world->SetSubStepping(settings->enableSubStepping);
 
 	m_pointCount = 0;
-
 	m_world->Step(timeStep, settings->velocityIterations, settings->positionIterations);
 	for (b2Joint* j = m_world->GetJointList(); j;)
 	{
@@ -678,6 +678,20 @@ void Test::LogJoint(b2Joint* j,float32 fScale, float32 mScale, float* locs,
 	ImGui::Text("%4.1f",p.x); ImGui::SameLine(locs[3]);
 	ImGui::Text("%4.1f",p.y);
 }
+
+void Test::LogContact(ContactPoint * cp, float32 scale, float* locs,
+	const char * fmt)
+{
+	b2Vec2 f,p=cp->position;
+	float32 idt = g_debugDraw.GetInvDt();
+	f = idt*(cp->normalImpulse*cp->normal + cp->tangentImpulse*cp->normal.Skew());
+	ImGui::Text(fmt, scale*f.x); ImGui::SameLine(locs[0]);
+	ImGui::Text(fmt, scale*f.y); ImGui::SameLine(locs[1]);
+	ImGui::Text("%4.1f", p.x); ImGui::SameLine(locs[2]);
+	ImGui::Text("%4.1f", p.y);
+}
+
+
 void Test::LogEpCapasity(b2ElasticPlasticJoint* j, float* locs){
 	float32 idt = g_debugDraw.GetInvDt();
 	b2Vec2 f = j->GetReactionForce(idt);

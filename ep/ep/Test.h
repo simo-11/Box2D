@@ -186,14 +186,15 @@ public:
 	{
 		B2_NOT_USED(contact);
 		B2_NOT_USED(impulse);
-	}
-
+	};
 	void ShiftOrigin(const b2Vec2& newOrigin);
 	// ep-start
 	virtual void Ui(){};
 	virtual void drawNotes(){};
 	virtual void LogJoint(b2Joint* j,float32 fScale, float32 mScale, float[4],
 		const char * fmt="%5.2f");
+	virtual void LogContact(ContactPoint* cp, float32 scale, float[3],
+		const char * fmt = "%5.2f");
 	virtual void LogEpCapasity(b2ElasticPlasticJoint* j,float[4]);
 	virtual bool WantRigidTriangles();
 	virtual void AddRigidTriangle(const b2Vec2& p);

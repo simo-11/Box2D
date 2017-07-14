@@ -319,6 +319,17 @@ public:
 					LogJoint(j, 1.f, 1.f, locs,"%5.0f");
 				}
 			}
+			if (ImGui::CollapsingHeader("Contact forces N"))
+			{
+				float locs[] = { 50, 100, 150};
+				ImGui::Text(" x-f"); ImGui::SameLine(locs[0]);
+				ImGui::Text(" y-f"); ImGui::SameLine(locs[1]);
+				ImGui::Text(" c-x"); ImGui::SameLine(locs[2]);
+				ImGui::Text(" c-y");
+				for (int i = 0; i < m_pointCount; i++) {
+					LogContact(m_points+i, 1.0f, locs, "%5.0f");
+				}
+			}
 			ImGui::End();
 			if (settings->drawNotes) {
 				drawNotes();
