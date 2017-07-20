@@ -48,7 +48,7 @@ namespace {
 	float32 hy;
 	float E; // GPa
 	float fy; //MPa
-	float maxRotation, maxStrain;
+	float maxElasticRotation, maxRotation, maxStrain;
 	bool addSoft, addHard, addElasticPlastic, firstIsHinge;
 	float32 lastCx,lastCy;
 }
@@ -97,7 +97,7 @@ public:
 					ImGui::SliderFloat("##sub body half height", &hy, 0.05f, 3, "%.2f");
 					if (addSoft || addElasticPlastic){
 						ImGui::Text("Frequency for soft joints");
-						ImGui::SliderFloat("Hz##Hertz", &baseHz, 0.f, 60.f, "%.0f");
+						ImGui::SliderFloat("Hz##Hertz", &baseHz, 0.f, 10.f, "%.2f");
 						ImGui::Text("DampingRatio for soft joints");
 						ImGui::SliderFloat("##dratio", &baseDampingRatio, 0.f, 1.0f, "%.3f");
 					}
@@ -105,6 +105,11 @@ public:
 					ImGui::SliderFloat("kg/m^3##density", &density, 1000.f, 20000.f, "%.0f");
 					ImGui::Text("Elastic modulus");
 					ImGui::SliderFloat("GPa##E", &E, 10.f, 1000.f, "%.0f");
+					if (addElasticPlastic) {
+						ImGui::Text("max elastic rotation");
+						ImGui::SliderFloat("radians##maxElasticRotation", 
+							&maxElasticRotation, 0.f, 1.f, "%.2f");
+					}
 					ImGui::Text("yield stress");
 					ImGui::SliderFloat("MPa##fy", &fy, 10.f, 1000.f, "%.0f");
 					ImGui::Text("maxRotation");
@@ -186,7 +191,7 @@ bool Beam::isMyType(){
 
 void Beam::reset(){
 	so_count = 1;
-	baseHz = 30;
+	baseHz = 2;
 	baseDampingRatio = 0.2f;
 	density = 7800;
 	hx = 10.f;
@@ -194,6 +199,7 @@ void Beam::reset(){
 	fy = 350;
 	E = 200;
 	maxRotation = 3.f;
+	maxElasticRotation = 0.f;
 	maxStrain = 0.2f;
 	addSoft = false;
 	addHard = false;
@@ -313,6 +319,7 @@ void Beam::build(){
 		jd.maxForce.x = b2Min(2 * hy,hx)*fy*1e6f;
 		jd.maxForce.y = b2Min(2 * hx,hy)*fy*1e6f;
 		jd.maxTorque = hy*hy* fy*1e6f;
+		jd.maxElasticRotation = maxElasticRotation;
 		jd.maxRotation = maxRotation;
 		jd.maxStrain = maxStrain*b2Min(hx, hy);
 		jd.frequencyHz = baseHz;

@@ -65,6 +65,7 @@ b2ElasticPlasticJoint::b2ElasticPlasticJoint(const b2ElasticPlasticJointDef* def
 
 	m_maxForce = def->maxForce;
 	m_maxTorque = def->maxTorque;
+	m_maxElasticRotation = def->maxElasticRotation;
 	m_maxStrain = def->maxStrain;
 	m_maxRotation = def->maxRotation;
 	m_currentStrain = 0.f;
@@ -167,6 +168,9 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 		if (m_torqueExceeded) {
 			float32 elasticRotation = m_maxImpulse.z / h / k;
 			updateRotationalPlasticity(elasticRotation);
+		}
+		if(m_maxElasticRotation!=0.f){
+			m_maxTorque = k*m_maxElasticRotation;
 		}
 		float32 C = aB - aA - m_referenceAngle;
 		m_bias = C * h * k * m_gamma;
@@ -503,6 +507,11 @@ void b2ElasticPlasticJoint::SetMaxTorque(float32 torque)
 {
 	b2Assert(b2IsValid(torque) && torque >= 0.0f);
 	m_maxTorque = torque;
+}
+
+void b2ElasticPlasticJoint::SetMaxElasticRotation(float32 val)
+{
+	m_maxElasticRotation = val;
 }
 
 float32 b2ElasticPlasticJoint::GetMaxTorque() const

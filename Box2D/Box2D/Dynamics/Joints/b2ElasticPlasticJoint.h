@@ -35,6 +35,8 @@ struct b2ElasticPlasticJointDef : public b2JointDef
 		localAnchorB.Set(0.0f, 0.0f);
 		referenceAngle = 0.0f;
 		dampingRatio = 0.0f;
+		maxElasticRotation = 0.f;
+		maxTorque = 0.f;
 	}
 
 	/// Initialize the bodies and offsets using the current transforms.
@@ -61,6 +63,8 @@ struct b2ElasticPlasticJointDef : public b2JointDef
 
 	/// The maximum joint torque in N-m.
 	float32 maxTorque;
+	// or max elastic rotation
+	float32 maxElasticRotation;
 	// meters, typically less than about 10 % of joint distance
 	float32 maxStrain;
 	// radians, typically 1 - 6 
@@ -94,6 +98,8 @@ public:
 
 	/// Set the maximum plastic torque in N*m.
 	void SetMaxTorque(float32 torque);
+	// or set maximum elastic rotation
+	void SetMaxElasticRotation(float32 val);
 	float32 getCurrentStrain(){ return m_currentStrain; }
 	float32 getCurrentRotation(){ return m_currentRotation; }
 	float32 getMaxStrain(){ return m_maxStrain; }
@@ -140,6 +146,7 @@ protected:
 	void updateRotationalPlasticity(float32 elasticRotation);
 	b2Vec2 m_maxForce;
 	float32 m_maxTorque;
+	float32 m_maxElasticRotation;
 	float32 m_maxStrain, m_maxRotation, m_currentStrain, m_currentRotation;
 	float32 positionError, angularError;
 	bool m_forceExceeded, m_torqueExceeded;
