@@ -192,7 +192,7 @@ public:
 	virtual void Ui(){};
 	virtual void drawNotes(){};
 	virtual void LogJoint(b2Joint* j,float32 fScale, float32 mScale, float[4],
-		const char * fmt="%5.2f");
+		const char * fmt="%5.2f", float32 maxValue=(float32)FLT_MAX, float32 minMaxValue=0.f);
 	virtual void LogContact(ContactPoint* cp, float32 scale, float[3],
 		const char * fmt = "%5.2f");
 	virtual void LogEpCapasity(b2ElasticPlasticJoint* j,float[4]);

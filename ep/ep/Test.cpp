@@ -666,15 +666,30 @@ void Test::Step()
 	}
 }
 
-void Test::LogJoint(b2Joint* j,float32 fScale, float32 mScale, float* locs,
-	const char * fmt){
+void Test::LogJoint(b2Joint* j, float32 fScale, float32 mScale, float* locs,
+	const char * fmt, float32 maxValue, float32 minMaxValue) {
 	b2Vec2 p = 0.5f*(j->GetAnchorA() + j->GetAnchorB());
-	float32 idt=g_debugDraw.GetInvDt();
+	float32 idt = g_debugDraw.GetInvDt();
 	b2Vec2 f = j->GetReactionForce(idt);
 	float32 m = j->GetReactionTorque(idt);
-	ImGui::Text(fmt, fScale*f.x); ImGui::SameLine(locs[0]);
-	ImGui::Text(fmt, fScale*f.y); ImGui::SameLine(locs[1]);
-	ImGui::Text(fmt, mScale*m); ImGui::SameLine(locs[2]);
+	float32 va[3];
+	va[0] = fScale*f.x;
+	va[1] = fScale*f.y;
+	va[2] = mScale*m;
+	float32 largest = 0.0f;
+	for (int i = 0; i < 3; i++) {
+		float32 absValue = b2Abs(va[i]);
+		if ( absValue> maxValue) {
+			return;
+		}
+		largest = b2Max(largest, absValue);
+	}
+	if (largest < minMaxValue) {
+		return;
+	}
+	ImGui::Text(fmt, va[0]); ImGui::SameLine(locs[0]);
+	ImGui::Text(fmt, va[1]); ImGui::SameLine(locs[1]);
+	ImGui::Text(fmt, va[2]); ImGui::SameLine(locs[2]);
 	ImGui::Text("%4.1f",p.x); ImGui::SameLine(locs[3]);
 	ImGui::Text("%4.1f",p.y);
 }
