@@ -482,6 +482,7 @@ void Test::Step()
 	if (timeStep > 0.f){
 		g_debugDraw.SetInvDt(1.f/timeStep);
 	}
+	UpdateCamera();
 	m_world->DrawDebugData();
     g_debugDraw.Flush();
 

@@ -190,6 +190,7 @@ public:
 	void ShiftOrigin(const b2Vec2& newOrigin);
 	// ep-start
 	virtual void Ui(){};
+	virtual void UpdateCamera() {};
 	virtual void drawNotes(){};
 	virtual void LogJoint(b2Joint* j,float32 fScale, float32 mScale, float[4],
 		const char * fmt="%5.2f", float32 maxValue=(float32)FLT_MAX, float32 minMaxValue=0.f);

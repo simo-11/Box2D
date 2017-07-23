@@ -289,10 +289,11 @@ public:
 			updateX(m_wheel1, move);
 			updateX(m_wheel2, move);
 		}
-		g_camera.m_center.x = m_Car->GetPosition().x;
 		Test::Step();
 	}
-
+	void UpdateCamera() {
+		g_camera.m_center.x = m_Car->GetPosition().x;
+	}
 	static Test* Create(Settings *settings)
 	{
 		EPCar* t = new EPCar(settings);
