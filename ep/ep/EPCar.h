@@ -50,7 +50,7 @@ public:
 	void reset() {
 		epCar::hz = 4.0f;
 		epCar::zeta = 0.7f;
-		epCar::speed = 50.0f;
+		epCar::speed = 40.0f;
 		epCar::length = 3.f;
 		epCar::carDensity = 200.f;
 		epCar::wheelRadius = 0.4f;
@@ -123,6 +123,7 @@ public:
 				// joint at x,y
 				float32 x = 60.f,fhx=25.f;
 				float32 y = 5.f;
+				float32 hx = 9.f;
 				b2BodyDef bd;
 				bd.position.Set(x+fhx, y);
 				b2FixtureDef fd;
@@ -132,7 +133,6 @@ public:
 				fd.density = 0.f;
 				b2Body* rf = m_world->CreateBody(&bd);
 				rf->CreateFixture(&fd);
-				float32 hx = 10.f;
 				shape.SetAsBox(hx, 0.02f);
 				fd.shape = &shape;
 				fd.density = 3000.f;
@@ -142,10 +142,10 @@ public:
 				b2Body* body = m_world->CreateBody(&bd);
 				body->CreateFixture(&fd);
 				b2ElasticPlasticJointDef jd;
-				jd.maxForce = b2Vec2(0.02*300.e6,0.02*150e6);
+				jd.maxForce = b2Vec2(0.02f*300.e6f,0.02*150e6f);
 				jd.maxElasticRotation = 0.12f;
-				jd.maxRotation = 0.5;
-				jd.maxStrain = 0.5;
+				jd.maxRotation = 0.4f;
+				jd.maxStrain = 0.5f;
 				jd.frequencyHz = 1;
 				jd.dampingRatio = 0.2f;
 				b2Vec2 anchor(x, y);
