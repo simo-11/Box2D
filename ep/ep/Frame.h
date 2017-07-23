@@ -87,7 +87,7 @@ public:
 					ImGui::Text("bomb density");
 					ImGui::SliderFloat("kg/m^3##bombDensity", &b2Frame::bombDensity, 1000.f, 20000.f, "%.0f");
 					ImGui::Text("bomb radius");
-					ImGui::SliderFloat("kg/m^3##bombRadius", &b2Frame::bombRadius, 0.1f, 100.f, "%.0f");
+					ImGui::SliderFloat("kg/m^3##bombRadius", &b2Frame::bombRadius, 0.1f, 100.f, "%.1f");
 					// E is not currently used as elastic behaviour is based on frequency
 					// ImGui::Text("Elastic modulus");
 					// ImGui::SliderFloat("GPa##E", &b2Frame::E, 10.f, 1000.f, "%.0f");
