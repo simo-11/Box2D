@@ -38,6 +38,7 @@ namespace b2Frame {
 	float E; // GPa
 	float fy; //MPa
 	float maxRotation, maxStrain;
+	float bombRadius, bombDensity;
 	float32 lastCx, lastCy;
 }
 class Frame : public Test
@@ -47,10 +48,10 @@ public:
 	b2Body **bodies;
 	virtual bool isMyType();
 	virtual float getBombRadius() {
-		return b2Frame::hy;
+		return b2Frame::bombRadius;
 	}
 	virtual float getBombDensity() {
-		return b2Frame::density;
+		return b2Frame::bombDensity;
 	}
 	virtual void reset();
 	virtual void build();
@@ -81,10 +82,15 @@ public:
 					ImGui::SliderFloat("Hz##Hertz", &b2Frame::baseHz, 0.f, 60.f, "%.0f");
 					ImGui::Text("DampingRatio for soft joints");
 					ImGui::SliderFloat("##dratio", &b2Frame::baseDampingRatio, 0.f, 1.0f, "%.3f");
-					ImGui::Text("density");
-					ImGui::SliderFloat("kg/m^3##density", &b2Frame::density, 1000.f, 20000.f, "%.0f");
-					ImGui::Text("Elastic modulus");
-					ImGui::SliderFloat("GPa##E", &b2Frame::E, 10.f, 1000.f, "%.0f");
+					ImGui::Text("frame density");
+					ImGui::SliderFloat("kg/m^3##frameDensity", &b2Frame::density, 1000.f, 20000.f, "%.0f");
+					ImGui::Text("bomb density");
+					ImGui::SliderFloat("kg/m^3##bombDensity", &b2Frame::bombDensity, 1000.f, 20000.f, "%.0f");
+					ImGui::Text("bomb radius");
+					ImGui::SliderFloat("kg/m^3##bombRadius", &b2Frame::bombRadius, 0.1f, 100.f, "%.0f");
+					// E is not currently used as elastic behaviour is based on frequency
+					// ImGui::Text("Elastic modulus");
+					// ImGui::SliderFloat("GPa##E", &b2Frame::E, 10.f, 1000.f, "%.0f");
 					ImGui::Text("yield stress");
 					ImGui::SliderFloat("MPa##fy", &b2Frame::fy, 10.f, 1000.f, "%.0f");
 					ImGui::Text("maxRotation");
@@ -151,16 +157,18 @@ inline bool Frame::isMyType()
 }
 
 void Frame::reset() {
-	b2Frame::so_count = 2;
-	b2Frame::baseHz = 30;
+	b2Frame::so_count = 4;
+	b2Frame::baseHz = 0;
 	b2Frame::baseDampingRatio = 0.2f;
 	b2Frame::density = 7800;
-	b2Frame::hx = 10.f;
-	b2Frame::hy = 1.f;
+	b2Frame::hx = 2.f;
+	b2Frame::hy = 0.2f;
 	b2Frame::fy = 350;
-	b2Frame::E = 200;
+	b2Frame::E = 200; // not used
 	b2Frame::maxRotation = 3.f;
 	b2Frame::maxStrain = 0.2f;
+	b2Frame::bombRadius = 1;
+	b2Frame::bombDensity = 7800;
 	b2Frame::frameType = SimpleFrame;
 	settings->reset();
 }
