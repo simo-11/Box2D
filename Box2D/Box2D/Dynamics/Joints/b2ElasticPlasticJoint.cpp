@@ -88,7 +88,7 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	m_invIA = m_bodyA->m_invI;
 	m_invIB = m_bodyB->m_invI;
 	// ep, update anchors if needed
-	if (m_forceExceeded){
+	if (m_forceExceeded || m_torqueExceeded){
 		float32 elasticPart = 0.f;
 		if (m_frequencyHz > 0.f){
 			elasticPart = 0.f; // TODO, define better

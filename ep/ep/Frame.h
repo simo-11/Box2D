@@ -79,15 +79,17 @@ public:
 					ImGui::Text("sub body half height");
 					ImGui::SliderFloat("##sub body half height", &b2Frame::hy, 0.05f, 3, "%.2f");
 					ImGui::Text("Frequency for soft joints");
-					ImGui::SliderFloat("Hz##Hertz", &b2Frame::baseHz, 0.f, 60.f, "%.0f");
-					ImGui::Text("DampingRatio for soft joints");
-					ImGui::SliderFloat("##dratio", &b2Frame::baseDampingRatio, 0.f, 1.0f, "%.3f");
+					ImGui::SliderFloat("Hz##Hertz", &b2Frame::baseHz, 0.f, 60.f, "%.1f");
+					if (b2Frame::baseHz > 0.f) {
+						ImGui::Text("DampingRatio for soft joints");
+						ImGui::SliderFloat("##dratio", &b2Frame::baseDampingRatio, 0.f, 1.0f, "%.3f");
+					}
 					ImGui::Text("frame density");
 					ImGui::SliderFloat("kg/m^3##frameDensity", &b2Frame::density, 1000.f, 20000.f, "%.0f");
 					ImGui::Text("bomb density");
 					ImGui::SliderFloat("kg/m^3##bombDensity", &b2Frame::bombDensity, 1000.f, 20000.f, "%.0f");
 					ImGui::Text("bomb radius");
-					ImGui::SliderFloat("kg/m^3##bombRadius", &b2Frame::bombRadius, 0.1f, 100.f, "%.1f");
+					ImGui::SliderFloat("kg/m^3##bombRadius", &b2Frame::bombRadius, 0.1f, 1.f, "%.2f");
 					// E is not currently used as elastic behaviour is based on frequency
 					// ImGui::Text("Elastic modulus");
 					// ImGui::SliderFloat("GPa##E", &b2Frame::E, 10.f, 1000.f, "%.0f");
@@ -167,7 +169,7 @@ void Frame::reset() {
 	b2Frame::E = 200; // not used
 	b2Frame::maxRotation = 3.f;
 	b2Frame::maxStrain = 0.2f;
-	b2Frame::bombRadius = 1;
+	b2Frame::bombRadius = 0.4f;
 	b2Frame::bombDensity = 7800;
 	b2Frame::frameType = SimpleFrame;
 	settings->reset();
