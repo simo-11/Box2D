@@ -589,25 +589,32 @@ void Test::Step()
 		c.Set(0.8f, 0.8f, 0.8f);
 		g_debugDraw.DrawSegment(p1, p2, c);
 	}
-
+	b2Body* lb = loggedBody;
+	if (lb == NULL && m_bomb != NULL) {
+		lb = m_bomb;
+	}
 	// ep
-	if (loggedBody){
-		const b2Vec2 p = loggedBody->GetWorldPoint(b2Vec2(0, 0));
+	if (lb){
+		const b2Vec2 p = lb->GetWorldPoint(b2Vec2(0, 0));
 		b2Color c;
 		c.Set(0.0f, 0.0f, 1.0f);
 		g_debugDraw.DrawPoint(p, 4.0f, c);
 		g_debugDraw.DrawString(5, m_textLine, "(x,y,a) = %6.2f %6.2f %6.2f",
-			p.x, p.y, loggedBody->GetAngle());
+			p.x, p.y, lb->GetAngle());
+		m_textLine += DRAW_STRING_NEW_LINE;
+		b2Vec2 v = lb->GetLinearVelocity();
+		g_debugDraw.DrawString(5, m_textLine, "(vx,vy,va,m) = %6.2f %6.2f %6.2f %6.2f",
+			v.x,v.y,lb->GetAngularVelocity(),lb->GetMass());
 		m_textLine += DRAW_STRING_NEW_LINE;
 		min.x = b2Min(min.x, p.x);
 		min.y = b2Min(min.y, p.y);
-		min.z = b2Min(min.z, loggedBody->GetAngle());
+		min.z = b2Min(min.z, lb->GetAngle());
 		g_debugDraw.DrawString(5, m_textLine, "min (x,y,a) = %6.2f %6.2f %6.2f",
 			min.x, min.y, min.z);
 		m_textLine += DRAW_STRING_NEW_LINE;
 		max.x = b2Max(max.x, p.x);
 		max.y = b2Max(max.y, p.y);
-		max.z = b2Max(max.z, loggedBody->GetAngle());
+		max.z = b2Max(max.z, lb->GetAngle());
 		g_debugDraw.DrawString(5, m_textLine, "max (x,y,a) = %6.2f %6.2f %6.2f",
 			max.x, max.y, max.z);
 		m_textLine += DRAW_STRING_NEW_LINE;
