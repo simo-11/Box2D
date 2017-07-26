@@ -34,7 +34,7 @@ namespace b2Frame {
 	float baseDampingRatio;
 	float density;
 	float32 hx;
-	float32 hy;
+	float32 fh,hy;
 	float E; // GPa
 	float fy; //MPa
 	float maxRotation, maxStrain;
@@ -74,10 +74,10 @@ public:
 				{
 					ImGui::Text("sub body count");
 					ImGui::SliderInt("##sub body count", &b2Frame::so_count, 1, 50);
-					ImGui::Text("sub body half length");
-					ImGui::SliderFloat("##sub body half length", &b2Frame::hx, 0.1f, 30, "%.2f", 2.f);
+					ImGui::Text("frame height");
+					ImGui::SliderFloat("##frame height", &b2Frame::fh, 0.1f, 30, "%.2f", 2.f);
 					ImGui::Text("sub body half height");
-					ImGui::SliderFloat("##sub body half height", &b2Frame::hy, 0.05f, 3, "%.2f");
+					ImGui::SliderFloat("##sub body half height", &b2Frame::hy, 0.01f, 0.1f, "%.2f");
 					ImGui::Text("Frequency for soft joints");
 					ImGui::SliderFloat("Hz##Hertz", &b2Frame::baseHz, 0.f, 60.f, "%.1f");
 					if (b2Frame::baseHz > 0.f) {
@@ -89,7 +89,7 @@ public:
 					ImGui::Text("bomb density");
 					ImGui::SliderFloat("kg/m^3##bombDensity", &b2Frame::bombDensity, 1000.f, 20000.f, "%.0f");
 					ImGui::Text("bomb radius");
-					ImGui::SliderFloat("kg/m^3##bombRadius", &b2Frame::bombRadius, 0.1f, 1.f, "%.2f");
+					ImGui::SliderFloat("m##bombRadius", &b2Frame::bombRadius, 0.05f, 0.2f, "%.2f");
 					// E is not currently used as elastic behaviour is based on frequency
 					// ImGui::Text("Elastic modulus");
 					// ImGui::SliderFloat("GPa##E", &b2Frame::E, 10.f, 1000.f, "%.0f");
@@ -163,13 +163,13 @@ void Frame::reset() {
 	b2Frame::baseHz = 0;
 	b2Frame::baseDampingRatio = 0.2f;
 	b2Frame::density = 7800;
-	b2Frame::hx = 2.f;
-	b2Frame::hy = 0.2f;
+	b2Frame::fh = 10.f;
+	b2Frame::hy = 0.05f;
 	b2Frame::fy = 350;
 	b2Frame::E = 200; // not used
 	b2Frame::maxRotation = 3.f;
 	b2Frame::maxStrain = 0.2f;
-	b2Frame::bombRadius = 0.4f;
+	b2Frame::bombRadius = 0.1f;
 	b2Frame::bombDensity = 7800;
 	b2Frame::frameType = SimpleFrame;
 	settings->reset();
@@ -180,7 +180,8 @@ void Frame::build() {
 		reset();
 	}
 	int soc2 = b2Frame::so_count*b2Frame::so_count;
-	float32 totalLength =  soc2* 2 * b2Frame::hx;
+	b2Frame::hx = b2Frame::fh / 2 / soc2;
+	float32 totalLength = b2Frame::fh;
 	b2Body* ground = NULL;
 	{
 		int n = b2Frame::so_count;

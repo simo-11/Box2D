@@ -28,6 +28,7 @@ namespace {
 	bool rigidTriangleInitialized = false;
 	b2PolygonShape rigidTriangle;
 	RigidTriangle* rigidTriangleList = nullptr;
+	b2Joint* currentJoint;
 }
 
 void DestructionListener::SayGoodbye(b2Joint* joint)
@@ -39,6 +40,9 @@ void DestructionListener::SayGoodbye(b2Joint* joint)
 	else
 	{
 		test->JointDestroyed(joint);
+	}
+	if (currentJoint == joint) {
+		currentJoint = NULL;
 	}
 }
 
@@ -52,6 +56,7 @@ Test::Test(Settings *sp)
 	m_textLine = 30;
 	m_mouseJoint = NULL;
 	m_movingBody = NULL;
+	currentJoint = NULL;
 	loggedBody = NULL;
 	steppedTime = 0;
 	m_pointCount = 0;
@@ -695,11 +700,19 @@ void Test::LogJoint(b2Joint* j, float32 fScale, float32 mScale, float* locs,
 	if (largest < minMaxValue) {
 		return;
 	}
+	ImGui::BeginGroup();
 	ImGui::Text(fmt, va[0]); ImGui::SameLine(locs[0]);
 	ImGui::Text(fmt, va[1]); ImGui::SameLine(locs[1]);
 	ImGui::Text(fmt, va[2]); ImGui::SameLine(locs[2]);
 	ImGui::Text("%4.1f",p.x); ImGui::SameLine(locs[3]);
 	ImGui::Text("%4.1f",p.y);
+	ImGui::EndGroup();
+	if (ImGui::IsItemHovered()) {
+		currentJoint = j;
+		float32 radius = (j->GetAnchorA()-j->GetBodyA()->GetWorldCenter()).Length();
+		b2Color color(1.0f,1.0f,1.0f);
+		g_debugDraw.DrawCircle(p, radius, color);
+	}
 }
 
 void Test::LogContact(ContactPoint * cp, float32 scale, float* locs,
