@@ -35,6 +35,15 @@
 class Test;
 struct Settings;
 
+#if defined (DEFINE_EPTEST_NS)
+#define XTERN
+#else
+#define XTERN extern
+#endif
+namespace epTest {
+	XTERN b2Joint* currentJoint;
+}
+
 typedef Test* TestCreateFcn(Settings*);
 
 #define	RAND_LIMIT	32767
@@ -192,11 +201,14 @@ public:
 	virtual void Ui(){};
 	virtual void UpdateCamera() {};
 	virtual void drawNotes(){};
-	virtual void LogJoint(b2Joint* j,float32 fScale, float32 mScale, float[4],
-		const char * fmt="%5.2f", float32 maxValue=(float32)FLT_MAX, float32 minMaxValue=0.f);
+	void LogJoint(b2Joint* j, float32 fScale, float32 mScale, float[4],
+		const char * fmt = "%5.2f", float32 maxValue = (float32)FLT_MAX, float32 minMaxValue = 0.f);
 	virtual void LogContact(ContactPoint* cp, float32 scale, float[3],
 		const char * fmt = "%5.2f");
 	virtual void LogEpCapasity(b2ElasticPlasticJoint* j,float[4]);
+	virtual void HighLightJoint(b2Joint* j);
+	void StartTextHighLight();
+	void EndTextHighLight();
 	virtual bool WantRigidTriangles();
 	virtual void AddRigidTriangle(const b2Vec2& p);
 	// static Allows RigidTriangles to survive during restarts
@@ -204,7 +216,6 @@ public:
 	static void DeleteRigidTriangles();
 	virtual void CreateRigidTriangles();
 	virtual void AddRigidTriangleBody(RigidTriangle*);
-	static bool IsRigidTriangle(b2Body*);
 	virtual RigidTriangle* GetRigidTriangleList();
 	virtual RigidTriangle* GetLastRigidTriangle();
 	/** reset configurable settings */

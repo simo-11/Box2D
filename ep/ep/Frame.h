@@ -102,9 +102,9 @@ public:
 					ImGui::SliderFloat("##maxStrain",
 						&b2Frame::maxStrain, 0.01f, 10.f, "%.2f");
 				}
+				float locs[4] = { 40, 80, 120, 160 };
 				if (ImGui::CollapsingHeader("Joint forces MN/MNm"))
 				{
-					float locs[4] = { 40, 80, 120, 160 };
 					ImGui::Text(" x-f"); ImGui::SameLine(locs[0]);
 					ImGui::Text(" y-f"); ImGui::SameLine(locs[1]);
 					ImGui::Text(" z-m"); ImGui::SameLine(locs[2]);
@@ -115,9 +115,11 @@ public:
 						LogJoint(j, 1e-6f, 1e-6f, locs);
 					}
 				}
+				else if (epTest::currentJoint!=NULL) {
+					LogJoint(epTest::currentJoint, 1e-6f, 1e-6f, locs);
+				}
 				if (ImGui::CollapsingHeader("Capasity usage [%]"))
 				{
-					float locs[4] = { 40, 80, 120, 160 };
 					ImGui::Text(" x"); ImGui::SameLine(locs[0]);
 					ImGui::Text(" y"); ImGui::SameLine(locs[1]);
 					ImGui::Text(" z"); ImGui::SameLine(locs[2]);
@@ -131,6 +133,9 @@ public:
 							break;
 						}
 					}
+				}
+				else if (epTest::currentJoint != NULL) {
+					LogEpCapasity((b2ElasticPlasticJoint*)epTest::currentJoint, locs);
 				}
 			}
 			ImGui::End();

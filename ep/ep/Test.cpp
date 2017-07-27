@@ -15,7 +15,7 @@
 * misrepresented as being the original software.
 * 3. This notice may not be removed or altered from any source distribution.
 */
-
+#define DEFINE_EPTEST_NS
 #include "Test.h"
 #include "RigidTriangle.h"
 #include <stdio.h>
@@ -28,7 +28,6 @@ namespace {
 	bool rigidTriangleInitialized = false;
 	b2PolygonShape rigidTriangle;
 	RigidTriangle* rigidTriangleList = nullptr;
-	b2Joint* currentJoint;
 }
 
 void DestructionListener::SayGoodbye(b2Joint* joint)
@@ -41,8 +40,8 @@ void DestructionListener::SayGoodbye(b2Joint* joint)
 	{
 		test->JointDestroyed(joint);
 	}
-	if (currentJoint == joint) {
-		currentJoint = NULL;
+	if (epTest::currentJoint == joint) {
+		epTest::currentJoint = NULL;
 	}
 }
 
@@ -56,7 +55,7 @@ Test::Test(Settings *sp)
 	m_textLine = 30;
 	m_mouseJoint = NULL;
 	m_movingBody = NULL;
-	currentJoint = NULL;
+	epTest::currentJoint = NULL;
 	loggedBody = NULL;
 	steppedTime = 0;
 	m_pointCount = 0;
@@ -474,6 +473,7 @@ void Test::Step()
 		{
 			b2ElasticPlasticJoint* ej = (b2ElasticPlasticJoint*)j;
 			if (ej->WantsToBreak()){
+				m_destructionListener.SayGoodbye(ej);
 				m_world->DestroyJoint(ej);
 			}
 			break;
@@ -700,6 +700,9 @@ void Test::LogJoint(b2Joint* j, float32 fScale, float32 mScale, float* locs,
 	if (largest < minMaxValue) {
 		return;
 	}
+	if (epTest::currentJoint == j) {
+		StartTextHighLight();
+	}
 	ImGui::BeginGroup();
 	ImGui::Text(fmt, va[0]); ImGui::SameLine(locs[0]);
 	ImGui::Text(fmt, va[1]); ImGui::SameLine(locs[1]);
@@ -707,12 +710,28 @@ void Test::LogJoint(b2Joint* j, float32 fScale, float32 mScale, float* locs,
 	ImGui::Text("%4.1f",p.x); ImGui::SameLine(locs[3]);
 	ImGui::Text("%4.1f",p.y);
 	ImGui::EndGroup();
-	if (ImGui::IsItemHovered()) {
-		currentJoint = j;
-		float32 radius = (j->GetAnchorA()-j->GetBodyA()->GetWorldCenter()).Length();
-		b2Color color(1.0f,1.0f,1.0f);
-		g_debugDraw.DrawCircle(p, radius, color);
+	if (epTest::currentJoint == j) {
+		EndTextHighLight();
 	}
+	if (ImGui::IsItemHovered()) {
+		epTest::currentJoint = j;
+		HighLightJoint(j);
+	}
+}
+
+void Test::StartTextHighLight(){
+	ImGui::PushStyleColor(ImGuiCol_Text, ImColor(1.f, 0.6f, 0.6f));
+}
+
+void Test::EndTextHighLight() {
+	ImGui::PopStyleColor();
+}
+
+void Test::HighLightJoint(b2Joint* j) {
+	b2Vec2 p = 0.5f*(j->GetAnchorA() + j->GetAnchorB());
+	float32 radius = (j->GetAnchorA() - j->GetBodyA()->GetWorldCenter()).Length();
+	b2Color color(1.0f, 1.0f, 1.0f);
+	g_debugDraw.DrawCircle(p, radius, color);
 }
 
 void Test::LogContact(ContactPoint * cp, float32 scale, float* locs,
@@ -734,12 +753,24 @@ void Test::LogEpCapasity(b2ElasticPlasticJoint* j, float* locs){
 	b2Vec2 mf = j->GetMaxForce();
 	float32 m = j->GetReactionTorque(idt);
 	float32 mm = j->GetMaxTorque();
+	if (epTest::currentJoint == j) {
+		StartTextHighLight();
+	}
+	ImGui::BeginGroup();
 	ImGui::Text("%3.0f", 100.f*f.x / mf.x); ImGui::SameLine(locs[0]);
 	ImGui::Text("%3.0f", 100.f*f.y/mf.y); ImGui::SameLine(locs[1]);
 	ImGui::Text("%3.0f", 100.f*m/mm); ImGui::SameLine(locs[2]);
 	ImGui::Text("%3.0f", 100.f*j->getCurrentStrain()/j->getMaxStrain());
 	ImGui::SameLine(locs[3]);
 	ImGui::Text("%3.0f", 100.f*j->getCurrentRotation() / j->getMaxRotation());
+	ImGui::EndGroup();
+	if (epTest::currentJoint == j) {
+		EndTextHighLight();
+	}
+	if (ImGui::IsItemHovered()) {
+		epTest::currentJoint = j;
+		HighLightJoint(j);
+	}
 }
 void Test::ShiftOrigin(const b2Vec2& newOrigin)
 {
