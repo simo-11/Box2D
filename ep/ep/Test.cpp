@@ -334,8 +334,29 @@ void Test::ControlMouseDown(const b2Vec2& p)
 	if (settings->addRigidTriangles){
 		AddRigidTriangle(p);
 	}
+	else if (settings->selectEPJoint) {
+		SelectJoint(p);
+	}
 }
 
+void Test::SelectJoint(const b2Vec2 & p)
+{
+	for (b2Joint* j = m_world->GetJointList(); j; j = j->GetNext())
+	{
+		switch (j->GetType()) {
+		case e_elasticPlasticJoint:
+			b2Vec2 jp = 0.5f*(j->GetAnchorA() + j->GetAnchorB());
+			float32 r2 = (j->GetAnchorA() - j->GetBodyA()->GetWorldCenter()).LengthSquared();
+			float32 d2 = (p - jp).LengthSquared();
+			if (d2 < r2) {
+				epTest::currentJoint = (b2ElasticPlasticJoint*)j;
+				HighLightJoint(j);
+				return;
+			}
+			break;
+		}
+	}
+}
 
 void Test::MouseUp(const b2Vec2& p)
 {
@@ -714,7 +735,11 @@ void Test::LogJoint(b2Joint* j, float32 fScale, float32 mScale, float* locs,
 		EndTextHighLight();
 	}
 	if (ImGui::IsItemHovered()) {
-		epTest::currentJoint = j;
+		switch (j->GetType()) {
+		case e_elasticPlasticJoint:
+			epTest::currentJoint = (b2ElasticPlasticJoint*)j;
+			break;
+		}
 		HighLightJoint(j);
 	}
 }

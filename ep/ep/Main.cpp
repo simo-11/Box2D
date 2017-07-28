@@ -450,8 +450,16 @@ static void sInterface()
 			ImGui::Checkbox("Notes", &settings.drawNotes);
 			ImGui::Checkbox("Init Impulses", &settings.initImpulses);
 		}
+		if (ImGui::Checkbox("Select current EPJoint", &settings.selectEPJoint)) {
+			settings.addRigidTriangles = false;
+		}
+		if (ImGui::IsItemHovered()) {
+			ImGui::SetTooltip("Use CTRL-MB1");
+		}
 		if (test->WantRigidTriangles() && ImGui::CollapsingHeader("RigidTriangles")){
-			ImGui::Checkbox("Add RigidTrianges", &settings.addRigidTriangles);
+			if (ImGui::Checkbox("Add RigidTriangles", &settings.addRigidTriangles)) {
+				settings.selectEPJoint = false;
+			}
 			if (ImGui::IsItemHovered()){
 				ImGui::SetTooltip("Use CTRL-MB1");
 			}

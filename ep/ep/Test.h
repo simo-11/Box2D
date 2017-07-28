@@ -41,7 +41,7 @@ struct Settings;
 #define XTERN extern
 #endif
 namespace epTest {
-	XTERN b2Joint* currentJoint;
+	XTERN b2ElasticPlasticJoint* currentJoint;
 }
 
 typedef Test* TestCreateFcn(Settings*);
@@ -124,7 +124,7 @@ struct Settings
 	bool enableSleep;
 	bool pause;
 	bool singleStep;
-	bool addRigidTriangles;
+	bool addRigidTriangles, selectEPJoint; // using CTRL-MB1 if active
 	bool initImpulses;
 	float32 forceScale, momentScale;
 };
@@ -207,6 +207,7 @@ public:
 		const char * fmt = "%5.2f");
 	virtual void LogEpCapasity(b2ElasticPlasticJoint* j,float[4]);
 	virtual void HighLightJoint(b2Joint* j);
+	virtual void SelectJoint(const b2Vec2& p);
 	void StartTextHighLight();
 	void EndTextHighLight();
 	virtual bool WantRigidTriangles();
