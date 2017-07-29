@@ -70,6 +70,8 @@ b2ElasticPlasticJoint::b2ElasticPlasticJoint(const b2ElasticPlasticJointDef* def
 	m_maxRotation = def->maxRotation;
 	m_currentStrain = 0.f;
 	m_currentRotation = 0.f;
+	angularError = 0.f;
+	positionError = 0.f;
 	aInitialized = false;
 	bInitialized = false;
 	m_forceExceeded = false;
@@ -97,10 +99,16 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 			(m_bodyA->GetTransform().p - m_bodyB->GetTransform().p)
 			.Length();
 		float32 origDistance = m_localAnchorA.Length() + m_localAnchorB.Length();
-		float32 sf = newDistance/origDistance;
-		m_localAnchorA *= sf;
-		m_localAnchorB *= sf;
-		m_currentStrain += b2Abs(newDistance - origDistance);
+		// this needs more analysis
+		// current implementation is based on idea
+		// that tearing joint up joint should be more meaningful
+		// than pushing
+		if (m_forceExceeded || origDistance < newDistance) {
+			float32 sf = newDistance / origDistance;
+			m_localAnchorA *= sf;
+			m_localAnchorB *= sf;
+			m_currentStrain += b2Abs(newDistance - origDistance);
+		}
 		m_forceExceeded = false;
 	}
 	if (m_torqueExceeded && m_frequencyHz==0.f){

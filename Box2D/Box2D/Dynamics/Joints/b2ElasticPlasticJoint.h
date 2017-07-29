@@ -102,6 +102,8 @@ public:
 	void SetMaxElasticRotation(float32 val);
 	float32 getCurrentStrain(){ return m_currentStrain; }
 	float32 getCurrentRotation(){ return m_currentRotation; }
+	float32 getAngularError() { return angularError; }
+	float32 getPositionError() { return positionError; }
 	float32 getMaxStrain(){ return m_maxStrain; }
 	float32 getMaxRotation(){ return m_maxRotation; }
 	b2Vec2 GetRotatedMaxForce();

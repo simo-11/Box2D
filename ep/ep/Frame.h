@@ -135,7 +135,24 @@ public:
 					}
 				}
 				else if (epTest::currentJoint != NULL) {
-					LogEpCapasity((b2ElasticPlasticJoint*)epTest::currentJoint, locs);
+					LogEpCapasity(epTest::currentJoint, locs);
+				}
+				float jelocs[] = { 100 };
+				if (ImGui::CollapsingHeader("Joint errors"))
+				{
+					ImGui::Text(" p"); ImGui::SameLine(jelocs[0]);
+					ImGui::Text(" a"); 
+					for (b2Joint* j = m_world->GetJointList(); j; j = j->GetNext())
+					{
+						switch (j->GetType()) {
+						case e_elasticPlasticJoint:
+							LogEpJointErrors((b2ElasticPlasticJoint*)j, jelocs);
+							break;
+						}
+					}
+				}
+				else if (epTest::currentJoint != NULL) {
+					LogEpJointErrors(epTest::currentJoint, jelocs);
 				}
 			}
 			ImGui::End();

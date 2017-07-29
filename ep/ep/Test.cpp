@@ -778,6 +778,9 @@ void Test::LogEpCapasity(b2ElasticPlasticJoint* j, float* locs){
 	b2Vec2 mf = j->GetMaxForce();
 	float32 m = j->GetReactionTorque(idt);
 	float32 mm = j->GetMaxTorque();
+	if (mm == 0.f) {
+		mm = 1.f;
+	}
 	if (epTest::currentJoint == j) {
 		StartTextHighLight();
 	}
@@ -797,6 +800,25 @@ void Test::LogEpCapasity(b2ElasticPlasticJoint* j, float* locs){
 		HighLightJoint(j);
 	}
 }
+
+void Test::LogEpJointErrors(b2ElasticPlasticJoint * j, float* locs)
+{
+	if (epTest::currentJoint == j) {
+		StartTextHighLight();
+	}
+	ImGui::BeginGroup();
+	ImGui::Text("%.4f", j->getAngularError()); ImGui::SameLine(locs[0]);
+	ImGui::Text("%.4f", j->getPositionError()); 
+	ImGui::EndGroup();
+	if (epTest::currentJoint == j) {
+		EndTextHighLight();
+	}
+	if (ImGui::IsItemHovered()) {
+		epTest::currentJoint = j;
+		HighLightJoint(j);
+	}
+}
+
 void Test::ShiftOrigin(const b2Vec2& newOrigin)
 {
 	m_world->ShiftOrigin(newOrigin);

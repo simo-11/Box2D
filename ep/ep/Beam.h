@@ -126,6 +126,7 @@ public:
 					ImGui::Checkbox("ElasticPlastic", &addElasticPlastic);
 					ImGui::Checkbox("FirstIsHinge", &firstIsHinge);
 				}
+				float locs[4] = { 40, 80, 120, 160 };
 				if (ImGui::CollapsingHeader("Joint forces MN/MNm"))
 				{
 					float locs[4] = { 40, 80, 120, 160 };
@@ -139,9 +140,12 @@ public:
 						LogJoint(j, 1e-6f, 1e-6f, locs);
 					}
 				}
+				else if (epTest::currentJoint != NULL) {
+					LogJoint(epTest::currentJoint, 1e-6f, 1e-6f, locs);
+				}
+
 				if (addElasticPlastic && ImGui::CollapsingHeader("Capasity usage [%]"))
 				{
-					float locs[4] = { 40, 80, 120, 160 };
 					ImGui::Text(" x"); ImGui::SameLine(locs[0]);
 					ImGui::Text(" y"); ImGui::SameLine(locs[1]);
 					ImGui::Text(" z"); ImGui::SameLine(locs[2]);
@@ -155,6 +159,26 @@ public:
 							break;
 						}
 					}
+				}
+				else if (epTest::currentJoint != NULL) {
+					LogEpCapasity(epTest::currentJoint, locs);
+				}
+				float jelocs[] = { 100 };
+				if (ImGui::CollapsingHeader("Joint errors"))
+				{
+					ImGui::Text(" p"); ImGui::SameLine(jelocs[0]);
+					ImGui::Text(" a");
+					for (b2Joint* j = m_world->GetJointList(); j; j = j->GetNext())
+					{
+						switch (j->GetType()) {
+						case e_elasticPlasticJoint:
+							LogEpJointErrors((b2ElasticPlasticJoint*)j, jelocs);
+							break;
+						}
+					}
+				}
+				else if (epTest::currentJoint != NULL) {
+					LogEpJointErrors(epTest::currentJoint, jelocs);
 				}
 			}
 			ImGui::End();

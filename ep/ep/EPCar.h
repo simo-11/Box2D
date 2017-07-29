@@ -121,9 +121,12 @@ public:
 				// upper level
 				// ramp is dynamic body with joint to ramp fixpoint rf.
 				// joint at x,y
+				// fhx is half length of fixed horizontal part
+				// hx is half length of dynamic part of ramp
 				float32 x = 60.f,fhx=25.f;
 				float32 y = 5.f;
 				float32 hx = 9.f;
+				// fixed horizontal part
 				b2BodyDef bd;
 				bd.position.Set(x+fhx, y);
 				b2FixtureDef fd;
@@ -133,6 +136,7 @@ public:
 				fd.density = 0.f;
 				b2Body* rf = m_world->CreateBody(&bd);
 				rf->CreateFixture(&fd);
+				// dynamic part of ramp
 				shape.SetAsBox(hx, 0.02f);
 				fd.shape = &shape;
 				fd.density = 3000.f;
@@ -394,9 +398,9 @@ public:
 					ImGui::SliderFloat("##wheelDensity", &epCar::wheelDensity, 10.f, 100.f, "%.1f");
 				}
 			}
+			float locs[4] = { 40, 80, 120, 160 };
 			if (ImGui::CollapsingHeader("Joint forces N/Nm"))
 			{
-				float locs[4] = { 40, 80, 120, 160 };
 				ImGui::Text(" x-f"); ImGui::SameLine(locs[0]);
 				ImGui::Text(" y-f"); ImGui::SameLine(locs[1]);
 				ImGui::Text(" z-m"); ImGui::SameLine(locs[2]);
@@ -407,6 +411,10 @@ public:
 					LogJoint(j, 1.f, 1.f, locs,"%5.0f",99999);
 				}
 			}
+			else if (epTest::currentJoint != NULL) {
+				LogJoint(epTest::currentJoint, 1.f, 1.f, locs, "%5.0f", 99999);
+			}
+
 			if (ImGui::CollapsingHeader("Joint forces MN/MNm"))
 			{
 				float locs[4] = { 40, 80, 120, 160 };
@@ -420,9 +428,12 @@ public:
 					LogJoint(j, 1e-6f, 1e-6f, locs, "%5.2f",(float32)FLT_MAX,0.099999f);
 				}
 			}
+			else if (epTest::currentJoint != NULL) {
+				LogJoint(epTest::currentJoint, 1e-6f, 1e-6f,
+					locs, "%5.2f", (float32)FLT_MAX, 0.099999f);
+			}
 			if (ImGui::CollapsingHeader("Capasity usage [%]"))
 			{
-				float locs[4] = { 40, 80, 120, 160 };
 				ImGui::Text(" x"); ImGui::SameLine(locs[0]);
 				ImGui::Text(" y"); ImGui::SameLine(locs[1]);
 				ImGui::Text(" z"); ImGui::SameLine(locs[2]);
@@ -437,6 +448,10 @@ public:
 					}
 				}
 			}
+			else if (epTest::currentJoint != NULL) {
+				LogEpCapasity((b2ElasticPlasticJoint*)epTest::currentJoint, locs);
+			}
+
 			if (ImGui::CollapsingHeader("Contact forces N"))
 			{
 				float locs[] = { 50, 100, 150};
