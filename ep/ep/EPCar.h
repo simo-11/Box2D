@@ -411,8 +411,8 @@ public:
 					LogJoint(j, 1.f, 1.f, locs,"%5.0f",99999);
 				}
 			}
-			else if (epTest::currentJoint != NULL) {
-				LogJoint(epTest::currentJoint, 1.f, 1.f, locs, "%5.0f", 99999);
+			else  {
+				LogSelectedJoints( 1.f, 1.f, locs, "%5.0f", 99999);
 			}
 
 			if (ImGui::CollapsingHeader("Joint forces MN/MNm"))
@@ -428,8 +428,8 @@ public:
 					LogJoint(j, 1e-6f, 1e-6f, locs, "%5.2f",(float32)FLT_MAX,0.099999f);
 				}
 			}
-			else if (epTest::currentJoint != NULL) {
-				LogJoint(epTest::currentJoint, 1e-6f, 1e-6f,
+			else {
+				LogSelectedJoints(1e-6f, 1e-6f,
 					locs, "%5.2f", (float32)FLT_MAX, 0.099999f);
 			}
 			if (ImGui::CollapsingHeader("Capasity usage [%]"))
@@ -448,8 +448,8 @@ public:
 					}
 				}
 			}
-			else if (epTest::currentJoint != NULL) {
-				LogEpCapasity((b2ElasticPlasticJoint*)epTest::currentJoint, locs);
+			else {
+				LogEpCapasityForSelectedJoints(locs);
 			}
 
 			if (ImGui::CollapsingHeader("Contact forces N"))

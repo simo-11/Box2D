@@ -28,6 +28,7 @@ namespace {
 	bool rigidTriangleInitialized = false;
 	b2PolygonShape rigidTriangle;
 	RigidTriangle* rigidTriangleList = nullptr;
+	SelectedEPJoint* currentJointList=nullptr;
 }
 
 void DestructionListener::SayGoodbye(b2Joint* joint)
@@ -40,9 +41,7 @@ void DestructionListener::SayGoodbye(b2Joint* joint)
 	{
 		test->JointDestroyed(joint);
 	}
-	if (epTest::currentJoint == joint) {
-		epTest::currentJoint = NULL;
-	}
+	test->DeleteSelectedJoint(joint);
 }
 
 Test::Test(Settings *sp)
@@ -55,7 +54,6 @@ Test::Test(Settings *sp)
 	m_textLine = 30;
 	m_mouseJoint = NULL;
 	m_movingBody = NULL;
-	epTest::currentJoint = NULL;
 	loggedBody = NULL;
 	steppedTime = 0;
 	m_pointCount = 0;
@@ -84,8 +82,120 @@ Test::~Test()
 	delete m_world;
 	m_world = NULL;
 	rtWorld = NULL;
+	// joints in list are no longer valid
+	for (SelectedEPJoint* j = GetSelectedJointList();
+		j != nullptr; j = j->next) {
+		j->joint = NULL;
+	}
 }
 
+void Test::AddSelectedJoint(b2ElasticPlasticJoint * j, b2Vec2 jp)
+{
+	SelectedEPJoint* rt = GetLastSelectedJoint();
+	if (rt->joint != nullptr) {
+		rt->next = new SelectedEPJoint();
+		rt->next->label = (rt->label + 1);
+		rt = rt->next;
+	}
+	rt->p = jp;
+	rt->joint = j;
+}
+
+bool Test::IsSelectedJoint(b2Joint * jc)
+{
+	for (SelectedEPJoint* j = GetSelectedJointList();
+		j != nullptr; j = j->next) {
+		if(j->joint==jc){
+			return true;
+		}
+	}
+	return false;
+}
+
+void Test::DeleteSelectedJoint(b2Joint * j)
+{
+	SelectedEPJoint* rt = currentJointList;
+	SelectedEPJoint* rtn = nullptr, *rtp = nullptr;
+	while (rt != nullptr) {
+		rtn = rt->next;
+		if (rt->joint == j) {
+			delete rt;
+			if (rtp != nullptr) { // second or later
+				rtp->next = rtn;
+			}
+			goto deleteDone;
+		}
+		rtp = rt;
+		rt = rtn;
+	}
+deleteDone:
+	if (rt == currentJointList) { // if first was deleted
+		currentJointList = rtn;
+	}
+}
+
+void Test::SyncSelectedJoints()
+{
+	SelectedEPJoint* rt = GetSelectedJointList();
+	SelectedEPJoint* rtn = nullptr, *rtp = rt;
+	while (rt != nullptr) {
+		rtn = rt->next;
+		for (b2Joint* j = m_world->GetJointList(); j; j = j->GetNext())
+		{
+			switch (j->GetType()) {
+			case e_elasticPlasticJoint:
+				b2Vec2 jp = 0.5f*(j->GetAnchorA() + j->GetAnchorB());
+				if (rt->p.x == jp.x && rt->p.y == jp.y) {
+					rt->joint = (b2ElasticPlasticJoint*)j;
+					goto found;
+				}
+				break;
+			}
+		}
+		// not found, remove from list
+		if (rt == currentJointList) { // if first was deleted
+			currentJointList = rtn;
+		}
+		else {
+			rtp->next = rtn;
+		}
+		delete rt;
+		rt = rtp;
+	found:
+		rtp = rt;
+		rt = rtn;
+	}
+}
+
+
+void Test::DeleteSelectedJoints()
+{
+	SelectedEPJoint* rt = currentJointList;
+	while (rt != nullptr) {
+		SelectedEPJoint* rtn = rt->next;
+		delete rt;
+		rt = rtn;
+	}
+	currentJointList = nullptr;
+}
+
+SelectedEPJoint * Test::GetSelectedJointList()
+{
+	return currentJointList;
+}
+
+SelectedEPJoint * Test::GetLastSelectedJoint()
+{
+	SelectedEPJoint* rt = currentJointList;
+	if (rt == nullptr) {
+		currentJointList = new SelectedEPJoint();
+		return currentJointList;
+	}
+	while (rt->next != nullptr) {
+		rt = rt->next;
+	}
+	return rt;
+}
 
 bool Test::WantRigidTriangles(){
 	return true;
@@ -96,7 +206,9 @@ void Test::CreateRigidTriangles(){
 		AddRigidTriangleBody(rt);
 		rt = rt->next;
 	}
+	SyncSelectedJoints();
 }
+
 
 void Test::DeleteRigidTriangles(){
 	RigidTriangle* rt = rigidTriangleList;
@@ -349,7 +461,7 @@ void Test::SelectJoint(const b2Vec2 & p)
 			float32 r2 = (j->GetAnchorA() - j->GetBodyA()->GetWorldCenter()).LengthSquared();
 			float32 d2 = (p - jp).LengthSquared();
 			if (d2 < r2) {
-				epTest::currentJoint = (b2ElasticPlasticJoint*)j;
+				AddSelectedJoint((b2ElasticPlasticJoint*)j, jp);
 				HighLightJoint(j);
 				return;
 			}
@@ -700,6 +812,35 @@ void Test::Step()
 	}
 }
 
+void Test::LogSelectedJoints(float32 fScale, float32 mScale, 
+	float* locs, const char * fmt, float32 maxValue, float32 minMaxValue)
+{
+	for (SelectedEPJoint* sj=GetSelectedJointList(); sj!=nullptr; sj=sj->next)
+	{
+		b2Joint* j = sj->joint;
+		LogJoint(j, 1e-6f, 1e-6f, locs, fmt, maxValue, minMaxValue);
+	}
+
+}
+
+void Test::LogEpCapasityForSelectedJoints(float* locs)
+{
+	for (SelectedEPJoint* sj = GetSelectedJointList(); sj != nullptr; sj = sj->next)
+	{
+		b2Joint* j = sj->joint;
+		LogEpCapasity((b2ElasticPlasticJoint*)j,locs);
+	}
+}
+
+void Test::LogEpJointErrorsForSelectedJoints(float* locs)
+{
+	for (SelectedEPJoint* sj = GetSelectedJointList(); sj != nullptr; sj = sj->next)
+	{
+		b2Joint* j = sj->joint;
+		LogEpJointErrors((b2ElasticPlasticJoint*)j, locs);
+	}
+}
+
 void Test::LogJoint(b2Joint* j, float32 fScale, float32 mScale, float* locs,
 	const char * fmt, float32 maxValue, float32 minMaxValue) {
 	b2Vec2 p = 0.5f*(j->GetAnchorA() + j->GetAnchorB());
@@ -721,7 +862,7 @@ void Test::LogJoint(b2Joint* j, float32 fScale, float32 mScale, float* locs,
 	if (largest < minMaxValue) {
 		return;
 	}
-	if (epTest::currentJoint == j) {
+	if (IsSelectedJoint(j)) {
 		StartTextHighLight();
 	}
 	ImGui::BeginGroup();
@@ -731,15 +872,10 @@ void Test::LogJoint(b2Joint* j, float32 fScale, float32 mScale, float* locs,
 	ImGui::Text("%4.1f",p.x); ImGui::SameLine(locs[3]);
 	ImGui::Text("%4.1f",p.y);
 	ImGui::EndGroup();
-	if (epTest::currentJoint == j) {
+	if (IsSelectedJoint(j)) {
 		EndTextHighLight();
 	}
 	if (ImGui::IsItemHovered()) {
-		switch (j->GetType()) {
-		case e_elasticPlasticJoint:
-			epTest::currentJoint = (b2ElasticPlasticJoint*)j;
-			break;
-		}
 		HighLightJoint(j);
 	}
 }
@@ -781,7 +917,8 @@ void Test::LogEpCapasity(b2ElasticPlasticJoint* j, float* locs){
 	if (mm == 0.f) {
 		mm = 1.f;
 	}
-	if (epTest::currentJoint == j) {
+	bool isSelected = IsSelectedJoint(j);
+	if (isSelected) {
 		StartTextHighLight();
 	}
 	ImGui::BeginGroup();
@@ -792,29 +929,28 @@ void Test::LogEpCapasity(b2ElasticPlasticJoint* j, float* locs){
 	ImGui::SameLine(locs[3]);
 	ImGui::Text("%3.0f", 100.f*j->getCurrentRotation() / j->getMaxRotation());
 	ImGui::EndGroup();
-	if (epTest::currentJoint == j) {
+	if (isSelected) {
 		EndTextHighLight();
 	}
 	if (ImGui::IsItemHovered()) {
-		epTest::currentJoint = j;
 		HighLightJoint(j);
 	}
 }
 
 void Test::LogEpJointErrors(b2ElasticPlasticJoint * j, float* locs)
 {
-	if (epTest::currentJoint == j) {
+	bool isSelected = IsSelectedJoint(j);
+	if (isSelected) {
 		StartTextHighLight();
 	}
 	ImGui::BeginGroup();
 	ImGui::Text("%.4f", j->getAngularError()); ImGui::SameLine(locs[0]);
 	ImGui::Text("%.4f", j->getPositionError()); 
 	ImGui::EndGroup();
-	if (epTest::currentJoint == j) {
+	if (isSelected) {
 		EndTextHighLight();
 	}
 	if (ImGui::IsItemHovered()) {
-		epTest::currentJoint = j;
 		HighLightJoint(j);
 	}
 }

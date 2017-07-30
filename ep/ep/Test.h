@@ -31,18 +31,10 @@
 #include <glfw/glfw3.h>
 
 #include <stdlib.h>
+#include "SelectedEPJoint.h"
 
 class Test;
 struct Settings;
-
-#if defined (DEFINE_EPTEST_NS)
-#define XTERN
-#else
-#define XTERN extern
-#endif
-namespace epTest {
-	XTERN b2ElasticPlasticJoint* currentJoint;
-}
 
 typedef Test* TestCreateFcn(Settings*);
 
@@ -203,12 +195,23 @@ public:
 	virtual void drawNotes(){};
 	void LogJoint(b2Joint* j, float32 fScale, float32 mScale, float[4],
 		const char * fmt = "%5.2f", float32 maxValue = (float32)FLT_MAX, float32 minMaxValue = 0.f);
+	void LogSelectedJoints(float32 fScale, float32 mScale, float[4],
+		const char * fmt = "%5.2f", float32 maxValue = (float32)FLT_MAX, float32 minMaxValue = 0.f);
 	virtual void LogContact(ContactPoint* cp, float32 scale, float[3],
 		const char * fmt = "%5.2f");
 	virtual void LogEpCapasity(b2ElasticPlasticJoint* j,float[4]);
+	virtual void LogEpCapasityForSelectedJoints(float[4]);
 	virtual void LogEpJointErrors(b2ElasticPlasticJoint* j, float[2]);
+	virtual void LogEpJointErrorsForSelectedJoints(float[2]);
 	virtual void HighLightJoint(b2Joint* j);
+	virtual bool IsSelectedJoint(b2Joint* j);
 	virtual void SelectJoint(const b2Vec2& p);
+	virtual void AddSelectedJoint(b2ElasticPlasticJoint* j, b2Vec2 jp);
+	void DeleteSelectedJoint(b2Joint* j);
+	void DeleteSelectedJoints();
+	virtual SelectedEPJoint* GetSelectedJointList();
+	virtual SelectedEPJoint* GetLastSelectedJoint();
+	virtual void SyncSelectedJoints();
 	void StartTextHighLight();
 	void EndTextHighLight();
 	virtual bool WantRigidTriangles();

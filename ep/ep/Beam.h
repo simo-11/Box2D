@@ -129,7 +129,6 @@ public:
 				float locs[4] = { 40, 80, 120, 160 };
 				if (ImGui::CollapsingHeader("Joint forces MN/MNm"))
 				{
-					float locs[4] = { 40, 80, 120, 160 };
 					ImGui::Text(" x-f"); ImGui::SameLine(locs[0]);
 					ImGui::Text(" y-f"); ImGui::SameLine(locs[1]);
 					ImGui::Text(" z-m"); ImGui::SameLine(locs[2]);
@@ -140,8 +139,8 @@ public:
 						LogJoint(j, 1e-6f, 1e-6f, locs);
 					}
 				}
-				else if (epTest::currentJoint != NULL) {
-					LogJoint(epTest::currentJoint, 1e-6f, 1e-6f, locs);
+				else {
+					LogSelectedJoints(1e-6f, 1e-6f, locs);
 				}
 
 				if (addElasticPlastic && ImGui::CollapsingHeader("Capasity usage [%]"))
@@ -160,8 +159,8 @@ public:
 						}
 					}
 				}
-				else if (epTest::currentJoint != NULL) {
-					LogEpCapasity(epTest::currentJoint, locs);
+				else{
+					LogEpCapasityForSelectedJoints(locs);
 				}
 				float jelocs[] = { 100 };
 				if (ImGui::CollapsingHeader("Joint errors"))
@@ -177,8 +176,8 @@ public:
 						}
 					}
 				}
-				else if (epTest::currentJoint != NULL) {
-					LogEpJointErrors(epTest::currentJoint, jelocs);
+				else {
+					LogEpJointErrorsForSelectedJoints(jelocs);
 				}
 			}
 			ImGui::End();

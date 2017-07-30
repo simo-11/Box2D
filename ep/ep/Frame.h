@@ -115,8 +115,8 @@ public:
 						LogJoint(j, 1e-6f, 1e-6f, locs);
 					}
 				}
-				else if (epTest::currentJoint!=NULL) {
-					LogJoint(epTest::currentJoint, 1e-6f, 1e-6f, locs);
+				else {
+					LogSelectedJoints(1e-6f, 1e-6f, locs);
 				}
 				if (ImGui::CollapsingHeader("Capasity usage [%]"))
 				{
@@ -134,8 +134,8 @@ public:
 						}
 					}
 				}
-				else if (epTest::currentJoint != NULL) {
-					LogEpCapasity(epTest::currentJoint, locs);
+				else {
+					LogEpCapasityForSelectedJoints(locs);
 				}
 				float jelocs[] = { 100 };
 				if (ImGui::CollapsingHeader("Joint errors"))
@@ -151,8 +151,8 @@ public:
 						}
 					}
 				}
-				else if (epTest::currentJoint != NULL) {
-					LogEpJointErrors(epTest::currentJoint, jelocs);
+				else{
+					LogEpJointErrorsForSelectedJoints(jelocs);
 				}
 			}
 			ImGui::End();
