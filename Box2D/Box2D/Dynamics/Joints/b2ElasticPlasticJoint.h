@@ -118,6 +118,7 @@ public:
 	static void SetAngularSlop(float32 value);
 	static float32 GetAngularSlop();
 	static void resetEpId();
+	int32 GetId() { return id; }
 protected:
 
 	friend class b2Joint;

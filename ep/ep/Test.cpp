@@ -46,6 +46,7 @@ void DestructionListener::SayGoodbye(b2Joint* joint)
 
 Test::Test(Settings *sp)
 {
+	b2ElasticPlasticJoint::resetEpId();
 	settings = sp;
 	b2Vec2 gravity;
 	gravity.Set(0.0f, -10.0f);
@@ -89,15 +90,17 @@ Test::~Test()
 	}
 }
 
-void Test::AddSelectedJoint(b2ElasticPlasticJoint * j, b2Vec2 jp)
+void Test::AddSelectedJoint(b2ElasticPlasticJoint * j)
 {
+	if (IsSelectedJoint(j)) {
+		return; // already selected
+	}
 	SelectedEPJoint* rt = GetLastSelectedJoint();
 	if (rt->joint != nullptr) {
 		rt->next = new SelectedEPJoint();
-		rt->next->label = (rt->label + 1);
 		rt = rt->next;
 	}
-	rt->p = jp;
+	rt->id = j->GetId();
 	rt->joint = j;
 }
 
@@ -145,8 +148,9 @@ void Test::SyncSelectedJoints()
 			switch (j->GetType()) {
 			case e_elasticPlasticJoint:
 				b2Vec2 jp = 0.5f*(j->GetAnchorA() + j->GetAnchorB());
-				if (rt->p.x == jp.x && rt->p.y == jp.y) {
-					rt->joint = (b2ElasticPlasticJoint*)j;
+				b2ElasticPlasticJoint* epj = (b2ElasticPlasticJoint*)j;
+				if (rt->id == epj->GetId()) {
+					rt->joint = epj;
 					goto found;
 				}
 				break;
@@ -457,13 +461,13 @@ void Test::SelectJoint(const b2Vec2 & p)
 	{
 		switch (j->GetType()) {
 		case e_elasticPlasticJoint:
+			b2ElasticPlasticJoint* epj=(b2ElasticPlasticJoint*)j;
 			b2Vec2 jp = 0.5f*(j->GetAnchorA() + j->GetAnchorB());
 			float32 r2 = (j->GetAnchorA() - j->GetBodyA()->GetWorldCenter()).LengthSquared();
 			float32 d2 = (p - jp).LengthSquared();
 			if (d2 < r2) {
-				AddSelectedJoint((b2ElasticPlasticJoint*)j, jp);
+				AddSelectedJoint(epj);
 				HighLightJoint(j);
-				return;
 			}
 			break;
 		}
@@ -890,9 +894,14 @@ void Test::EndTextHighLight() {
 
 void Test::HighLightJoint(b2Joint* j) {
 	b2Vec2 p = 0.5f*(j->GetAnchorA() + j->GetAnchorB());
-	float32 radius = (j->GetAnchorA() - j->GetBodyA()->GetWorldCenter()).Length();
+	b2Vec2 bac = j->GetBodyA()->GetWorldCenter();
+	b2Vec2 bbc = j->GetBodyB()->GetWorldCenter();
+	float32 radius = (j->GetAnchorA() - bac).Length();
 	b2Color color(1.0f, 1.0f, 1.0f);
 	g_debugDraw.DrawCircle(p, radius, color);
+	radius *= 0.3f;
+	g_debugDraw.DrawCircle(bac, radius, color);
+	g_debugDraw.DrawCircle(bbc, radius, color);
 }
 
 void Test::LogContact(ContactPoint * cp, float32 scale, float* locs,

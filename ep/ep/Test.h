@@ -206,7 +206,7 @@ public:
 	virtual void HighLightJoint(b2Joint* j);
 	virtual bool IsSelectedJoint(b2Joint* j);
 	virtual void SelectJoint(const b2Vec2& p);
-	virtual void AddSelectedJoint(b2ElasticPlasticJoint* j, b2Vec2 jp);
+	virtual void AddSelectedJoint(b2ElasticPlasticJoint* j);
 	void DeleteSelectedJoint(b2Joint* j);
 	void DeleteSelectedJoints();
 	virtual SelectedEPJoint* GetSelectedJointList();

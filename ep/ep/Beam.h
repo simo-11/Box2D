@@ -327,7 +327,6 @@ void Beam::build(){
 	if (addElasticPlastic)
 	{
 		sy += 5 + totalLength;
-		b2ElasticPlasticJoint::resetEpId();
 		b2Body* sbody = getStaticBody(staticShape, sy);
 
 		b2PolygonShape shape;

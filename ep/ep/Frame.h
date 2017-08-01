@@ -224,7 +224,6 @@ void Frame::build() {
 	staticShape.SetAsBox(b2Frame::hy, b2Frame::hy);
 	float32 sy = 0;
 	b2RevoluteJointDef hd;
-	b2ElasticPlasticJoint::resetEpId();
 	b2PolygonShape shape;
 	shape.SetAsBox(b2Frame::hx, b2Frame::hy);
 

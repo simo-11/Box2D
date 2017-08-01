@@ -27,12 +27,11 @@
 
 struct SelectedEPJoint
 {
-	unsigned char label;
-	b2Vec2 p;
+	int32 id; // allows survival during restarts
 	b2ElasticPlasticJoint * joint;
 	SelectedEPJoint* next;
 	SelectedEPJoint() {
-		label = 1;
+		id = 0;
 		next = nullptr;
 		joint = nullptr;
 	}

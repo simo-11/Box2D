@@ -450,29 +450,35 @@ static void sInterface()
 			ImGui::Checkbox("Notes", &settings.drawNotes);
 			ImGui::Checkbox("Init Impulses", &settings.initImpulses);
 		}
-		if (ImGui::Checkbox("Select current EPJoint(s)", &settings.selectEPJoint)) {
-			settings.addRigidTriangles = false;
-		}
-		if (ImGui::IsItemHovered()) {
-			ImGui::SetTooltip("Use CTRL-MB1");
-		}
-		if (ImGui::SmallButton("Empty current EPJoint list")) {
-			test->DeleteSelectedJoints();
-		}
-		else {
-			b2ElasticPlasticJoint* ep = NULL;
-			for (SelectedEPJoint* j = test->GetSelectedJointList();
-				j != nullptr; j = j->next) {
-				char buff[20];
-				const char* label = buff;
-				sprintf(buff, "X##depj-%d", j->label);
-				if (ImGui::SmallButton(label)) {
-					ep = j->joint;
-				}
-				test->HighLightJoint(j->joint);
+		if (ImGui::CollapsingHeader("ElasticPlastic Joints")) {
+			if (ImGui::Checkbox("Select current EPJoint(s)", &settings.selectEPJoint)) {
+				settings.addRigidTriangles = false;
 			}
-			if (ep != NULL) {
-				test->DeleteSelectedJoint(ep);
+			if (ImGui::IsItemHovered()) {
+				ImGui::SetTooltip("Use CTRL-MB1");
+			}
+			if (nullptr != test->GetSelectedJointList()) {
+				if (ImGui::SmallButton("Empty current EPJoint list")) {
+					test->DeleteSelectedJoints();
+				}
+				else {
+					b2ElasticPlasticJoint* ep = NULL;
+					for (SelectedEPJoint* j = test->GetSelectedJointList();
+						j != nullptr; j = j->next) {
+						char buff[20];
+						const char* label = buff;
+						sprintf(buff, "X##depj-%d", j->id);
+						if (ImGui::SmallButton(label)) {
+							ep = j->joint;
+						}
+						if (ImGui::IsItemHovered()) {
+							test->HighLightJoint(j->joint);
+						}
+					}
+					if (ep != NULL) {
+						test->DeleteSelectedJoint(ep);
+					}
+				}
 			}
 		}
 		if (test->WantRigidTriangles() && ImGui::CollapsingHeader("RigidTriangles")){
@@ -675,6 +681,7 @@ int main(int, char**)
 
 	if (test)
 	{
+		test->DeleteSelectedJoints();
 		delete test;
 		test = nullptr;
 	}
