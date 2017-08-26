@@ -453,6 +453,7 @@ static void sInterface()
 		if (ImGui::CollapsingHeader("ElasticPlastic Joints")) {
 			if (ImGui::Checkbox("Select current EPJoint(s)", &settings.selectEPJoint)) {
 				settings.addRigidTriangles = false;
+				settings.addEPBeams = false;
 			}
 			if (ImGui::IsItemHovered()) {
 				ImGui::SetTooltip("Use CTRL-MB1");
@@ -484,6 +485,7 @@ static void sInterface()
 		if (test->WantRigidTriangles() && ImGui::CollapsingHeader("RigidTriangles")){
 			if (ImGui::Checkbox("Add RigidTriangles", &settings.addRigidTriangles)) {
 				settings.selectEPJoint = false;
+				settings.addEPBeams = false;
 			}
 			if (ImGui::IsItemHovered()){
 				ImGui::SetTooltip("Use CTRL-MB1");
@@ -541,8 +543,62 @@ static void sInterface()
 				Test::DeleteRigidTriangles();
 			}
 		}
-		else{
+		else {
 			settings.addRigidTriangles = false;
+		}
+		if (test->WantEPBeams() && ImGui::CollapsingHeader("ElasticPlasticBeams")) {
+			if (ImGui::Checkbox("Add Elastic Plastic Beams", &settings.addEPBeams)) {
+				settings.selectEPJoint = false;
+				settings.addRigidTriangles = false;
+			}
+			if (ImGui::IsItemHovered()) {
+				ImGui::SetTooltip("Use CTRL-MB1");
+			}
+			bool deleteEPBeams =
+				ImGui::SmallButton("Delete all ElasticPlasticBeams");
+			unsigned char labelForDelete = 0;
+			for (EPBeam* rt = test->GetEPBeamList();
+				rt != nullptr; rt = rt->next)
+			{ // draw labels
+				b2Body *body = rt->body;
+				char lbuff[4];
+				_itoa(rt->label, lbuff, 10);
+				ImGui::TextDisabled("%d", rt->label);
+				ImGui::SameLine();
+				int decimals = 3;
+				char buff[20];
+				const char* label = buff;
+				sprintf(buff, "X##depb-%d", rt->label);
+				if (ImGui::SmallButton(label)) {
+					labelForDelete = rt->label;
+				}
+				ImGui::SameLine();
+				b2Vec2 p = body->GetTransform().p;
+				float32 ox,oy;
+				ox = rt->position[0];
+				oy = rt->position[1];
+				bool valueChanged = ImGui::InputFloat2(buff, rt->position, decimals);
+				float32 zoom = g_camera.m_zoom;
+				b2Vec2 lp = p;
+				lp.x -= 1.5f*zoom;
+				lp.y += 1.f*zoom;
+				g_debugDraw.DrawString(lp, "%s", lbuff);
+				b2Vec2 np;
+				if (valueChanged) {
+					np.x = p.x+rt->position[0]-ox;
+					np.y = p.y+rt->position[1]-oy;
+					body->SetTransform(np, 0);
+				}
+			}
+			if (labelForDelete) {
+				Test::DeleteEPBeam(labelForDelete);
+			}
+			if (deleteEPBeams) {
+				Test::DeleteEPBeams();
+			}
+		}
+		else{
+			settings.addEPBeams = false;
 		}
 		if (ImGui::SmallButton("Pause (P)"))
 			settings.pause = !settings.pause;
@@ -686,6 +742,7 @@ int main(int, char**)
 		test = nullptr;
 	}
 	Test::DeleteRigidTriangles();
+	Test::DeleteEPBeams();
 	g_debugDraw.Destroy();
 	ImGui_ImplGlfwGL3_Shutdown();
 	glfwTerminate();

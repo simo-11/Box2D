@@ -116,7 +116,7 @@ struct Settings
 	bool enableSleep;
 	bool pause;
 	bool singleStep;
-	bool addRigidTriangles, selectEPJoint; // using CTRL-MB1 if active
+	bool addRigidTriangles, addEPBeams,selectEPJoint; // using CTRL-MB1 if active
 	bool initImpulses;
 	float32 forceScale, momentScale;
 };
@@ -214,6 +214,7 @@ public:
 	virtual void SyncSelectedJoints();
 	void StartTextHighLight();
 	void EndTextHighLight();
+	/* Rigid triangles */
 	virtual bool WantRigidTriangles();
 	virtual void AddRigidTriangle(const b2Vec2& p);
 	// static Allows RigidTriangles to survive during restarts
@@ -223,6 +224,19 @@ public:
 	virtual void AddRigidTriangleBody(RigidTriangle*);
 	virtual RigidTriangle* GetRigidTriangleList();
 	virtual RigidTriangle* GetLastRigidTriangle();
+	/* Elastic plastic beams */
+	virtual bool WantEPBeams();
+	virtual void AddEPBeam(const b2Vec2& p);
+	// static Allows EPBeam to survive during restarts
+	static void DeleteEPBeam(unsigned char label);
+	static void DeleteEPBeams();
+	virtual void CreateEPBeams();
+	virtual void AddEPBeamBody(EPBeam*);
+	virtual EPBeam* GetEPBeamList();
+	virtual EPBeam* GetLastEPBeam();
+	virtual float getEpBeamDensity() { return 200; }
+	virtual float getEpBeamXSizeFactor() { return 0.04f; }
+	virtual float  getEpBeamMaxForce() { return 1; }
 	/** reset configurable settings */
 	virtual void reset(){};
 	virtual float getBombDensity(){ return 1000; }

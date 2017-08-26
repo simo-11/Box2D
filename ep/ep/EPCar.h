@@ -469,5 +469,8 @@ public:
 			}
 		}
 	}
+	float32 getEpBeamMaxForce() {
+		return m_Car->GetMass();
+	}
 };
 #endif

@@ -28,6 +28,11 @@ namespace {
 	bool rigidTriangleInitialized = false;
 	b2PolygonShape rigidTriangle;
 	RigidTriangle* rigidTriangleList = nullptr;
+	bool allowEPBeam = false;
+	bool epBeamInitialized = false;
+	float32 iZoom;
+	b2PolygonShape epBeam;
+	EPBeam* epBeamList = nullptr;
 	SelectedEPJoint* currentJointList=nullptr;
 }
 
@@ -210,6 +215,9 @@ void Test::CreateRigidTriangles(){
 		AddRigidTriangleBody(rt);
 		rt = rt->next;
 	}
+	if (WantEPBeams()) {
+		CreateEPBeams();
+	}
 	SyncSelectedJoints();
 }
 
@@ -296,6 +304,119 @@ void Test::AddRigidTriangleBody(RigidTriangle* rt){
 	b2Body* body = m_world->CreateBody(&bd);
 	body->CreateFixture(&fd);
 	rt->body = body;
+}
+
+bool Test::WantEPBeams() {
+	return true;
+}
+void Test::CreateEPBeams() {
+	EPBeam* rt = epBeamList;
+	while (rt != nullptr) {
+		AddEPBeamBody(rt);
+		rt = rt->next;
+	}
+}
+
+
+void Test::DeleteEPBeams() {
+	EPBeam* rt = epBeamList;
+	while (rt != nullptr) {
+		EPBeam* rtn = rt->next;
+		if (rtWorld) {
+			rtWorld->DestroyBody(rt->body);
+		}
+		delete rt;
+		rt = rtn;
+	}
+	epBeamList = nullptr;
+	epBeamInitialized = false;
+}
+
+void Test::DeleteEPBeam(unsigned char label) {
+	EPBeam* rt = epBeamList;
+	EPBeam* rtn = nullptr, *rtp = nullptr;
+	while (rt != nullptr) {
+		rtn = rt->next;
+		if (rt->label == label) {
+			if (rtWorld) {
+				rtWorld->DestroyBody(rt->body);
+			}
+			delete rt;
+			if (rtp != nullptr) { // second or later
+				rtp->next = rtn;
+			}
+			goto deleteDone;
+		}
+		rtp = rt;
+		rt = rtn;
+	}
+deleteDone:
+	if (rt == epBeamList) { // if first was deleted
+		epBeamList = rtn;
+	}
+}
+
+EPBeam* Test::GetEPBeamList() {
+	return epBeamList;
+}
+EPBeam* Test::GetLastEPBeam() {
+	EPBeam* rt = epBeamList;
+	if (rt == nullptr) {
+		epBeamList = new EPBeam();
+		return epBeamList;
+	}
+	while (rt->next != nullptr) {
+		rt = rt->next;
+	}
+	return rt;
+}
+void Test::AddEPBeam(const b2Vec2& p) {
+	if (!epBeamInitialized) {
+		b2Vec2 vertices[3];
+		iZoom = g_camera.m_zoom;
+		epBeam.SetAsBox(getEpBeamXSizeFactor(), 3 * iZoom);
+		epBeamInitialized = true;
+	}
+	EPBeam* rt = GetLastEPBeam();
+	if (rt->body != nullptr) {
+		rt->next = new EPBeam();
+		rt->next->label = (rt->label + 1);
+		rt = rt->next;
+	}
+	rt->position[0] = p.x;
+	rt->position[1] = p.y;
+	AddEPBeamBody(rt);
+}
+
+void Test::AddEPBeamBody(EPBeam* rt) {
+	b2FixtureDef fd;
+	fd.density = getEpBeamDensity();
+	fd.shape = &epBeam;
+	b2BodyDef bd;
+	bd.type = b2_dynamicBody;
+	bd.position.Set(rt->position[0], rt->position[1]+3*iZoom);
+	bd.angle = 0.0f;
+	b2Body* body = m_world->CreateBody(&bd);
+	body->CreateFixture(&fd);
+	b2ElasticPlasticJointDef jd;
+	float32 hx = iZoom*getEpBeamXSizeFactor();
+	float32 mf = getEpBeamMaxForce();
+	jd.maxForce.x = mf;
+	jd.maxForce.y = mf;
+	jd.maxTorque = mf*iZoom;
+	jd.maxRotation = 1.f;
+	jd.maxStrain = 0.3f*iZoom*getEpBeamXSizeFactor();
+	jd.frequencyHz = 0.f;
+	jd.maxElasticRotation = 0.2f;
+	jd.dampingRatio = 0.1f;
+	rt->body = body;
+	const b2Vec2 anchor(rt->position[0],rt->position[1]);
+	bd.type = b2_staticBody;
+	bd.position.Set(rt->position[0], rt->position[1]);
+	b2Body* sBody = m_world->CreateBody(&bd);
+	rt->sBody = sBody;
+	jd.Initialize(sBody, body, anchor);
+	m_world->CreateJoint(&jd);
 }
 
 void Test::PreSolve(b2Contact* contact, const b2Manifold* oldManifold)
@@ -449,6 +570,8 @@ void Test::ControlMouseDown(const b2Vec2& p)
 {
 	if (settings->addRigidTriangles){
 		AddRigidTriangle(p);
+	}else if(settings->addEPBeams) {
+		AddEPBeam(p);
 	}
 	else if (settings->selectEPJoint) {
 		SelectJoint(p);

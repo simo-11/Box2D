@@ -38,5 +38,17 @@ struct RigidTriangle
 	}
 };
 
+struct EPBeam
+{
+	unsigned char label;
+	float position[2];
+	b2Body * body, *sBody;
+	EPBeam* next;
+	EPBeam() {
+		label = 1;
+		next = nullptr;
+		body = nullptr;
+	}
+};
 
 #endif
