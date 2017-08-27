@@ -470,7 +470,7 @@ public:
 		}
 	}
 	float32 getEpBeamMaxForce() {
-		return m_Car->GetMass();
+		return m_Car->GetMass()*b2Abs(m_world->GetGravity().y);
 	}
 };
 #endif

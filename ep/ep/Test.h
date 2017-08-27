@@ -91,7 +91,9 @@ struct Settings
 		singleStep = false;
 		forceScale = 0.1f;
 		momentScale = 0.3f;
+		epbScale = 10.f;
 		addRigidTriangles = false;
+		addEPBeams = false;
 		initImpulses = false;
 	}
 	float32 hz;
@@ -118,7 +120,7 @@ struct Settings
 	bool singleStep;
 	bool addRigidTriangles, addEPBeams,selectEPJoint; // using CTRL-MB1 if active
 	bool initImpulses;
-	float32 forceScale, momentScale;
+	float32 forceScale, momentScale, epbScale;
 };
 
 struct TestEntry

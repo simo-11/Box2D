@@ -30,8 +30,8 @@ namespace {
 	RigidTriangle* rigidTriangleList = nullptr;
 	bool allowEPBeam = false;
 	bool epBeamInitialized = false;
-	float32 iZoom;
-	b2PolygonShape epBeam;
+	float32 iZoom,epbHx;
+	b2PolygonShape epBeam, epBeamHolder;
 	EPBeam* epBeamList = nullptr;
 	SelectedEPJoint* currentJointList=nullptr;
 }
@@ -374,7 +374,9 @@ void Test::AddEPBeam(const b2Vec2& p) {
 	if (!epBeamInitialized) {
 		b2Vec2 vertices[3];
 		iZoom = g_camera.m_zoom;
-		epBeam.SetAsBox(getEpBeamXSizeFactor(), 3 * iZoom);
+		epbHx = getEpBeamXSizeFactor();
+		epBeam.SetAsBox(epbHx, 3 * iZoom);
+		epBeamHolder.SetAsBox(epbHx, epbHx);
 		epBeamInitialized = true;
 	}
 	EPBeam* rt = GetLastEPBeam();
@@ -400,7 +402,7 @@ void Test::AddEPBeamBody(EPBeam* rt) {
 	body->CreateFixture(&fd);
 	b2ElasticPlasticJointDef jd;
 	float32 hx = iZoom*getEpBeamXSizeFactor();
-	float32 mf = getEpBeamMaxForce();
+	float32 mf = getEpBeamMaxForce()*settings->epbScale;
 	jd.maxForce.x = mf;
 	jd.maxForce.y = mf;
 	jd.maxTorque = mf*iZoom;
@@ -410,10 +412,13 @@ void Test::AddEPBeamBody(EPBeam* rt) {
 	jd.maxElasticRotation = 0.2f;
 	jd.dampingRatio = 0.1f;
 	rt->body = body;
-	const b2Vec2 anchor(rt->position[0],rt->position[1]);
+	const b2Vec2 anchor(rt->position[0],rt->position[1]-epbHx);
 	bd.type = b2_staticBody;
 	bd.position.Set(rt->position[0], rt->position[1]);
 	b2Body* sBody = m_world->CreateBody(&bd);
+	fd.density = 0.f;
+	fd.shape = &epBeamHolder;
+	sBody->CreateFixture(&fd);
 	rt->sBody = sBody;
 	jd.Initialize(sBody, body, anchor);
 	m_world->CreateJoint(&jd);

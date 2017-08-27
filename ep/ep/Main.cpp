@@ -547,6 +547,9 @@ static void sInterface()
 			settings.addRigidTriangles = false;
 		}
 		if (test->WantEPBeams() && ImGui::CollapsingHeader("ElasticPlasticBeams")) {
+			ImGui::Text("Scale");
+			ImGui::SameLine();
+			ImGui::SliderFloat("##epbScale", &settings.epbScale, 1.f, 100.f,"%.2f",3.f);
 			if (ImGui::Checkbox("Add Elastic Plastic Beams", &settings.addEPBeams)) {
 				settings.selectEPJoint = false;
 				settings.addRigidTriangles = false;
