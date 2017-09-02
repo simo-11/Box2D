@@ -487,7 +487,7 @@ static void sInterface()
 				settings.selectEPJoint = false;
 				settings.addEPBeams = false;
 			}
-			if (ImGui::IsItemHovered()){
+			if (ImGui::IsItemHovered() && settings.addRigidTriangles){
 				ImGui::SetTooltip("Use CTRL-MB1");
 			}
 			bool deleteRigidTriangles = 
@@ -554,7 +554,7 @@ static void sInterface()
 				settings.selectEPJoint = false;
 				settings.addRigidTriangles = false;
 			}
-			if (ImGui::IsItemHovered()) {
+			if (ImGui::IsItemHovered() && settings.addEPBeams) {
 				ImGui::SetTooltip("Use CTRL-MB1");
 			}
 			bool deleteEPBeams =
@@ -562,8 +562,8 @@ static void sInterface()
 			unsigned char labelForDelete = 0;
 			for (EPBeam* rt = test->GetEPBeamList();
 				rt != nullptr; rt = rt->next)
-			{ // draw labels
-				b2Body *body = rt->body;
+			{ // draw labels and update positions
+				b2Body *body = rt->sBody;
 				char lbuff[4];
 				_itoa(rt->label, lbuff, 10);
 				ImGui::TextDisabled("%d", rt->label);
@@ -577,9 +577,8 @@ static void sInterface()
 				}
 				ImGui::SameLine();
 				b2Vec2 p = body->GetTransform().p;
-				float32 ox,oy;
-				ox = rt->position[0];
-				oy = rt->position[1];
+				rt->position[0] = p.x;
+				rt->position[1] = p.y;
 				bool valueChanged = ImGui::InputFloat2(buff, rt->position, decimals);
 				float32 zoom = g_camera.m_zoom;
 				b2Vec2 lp = p;
@@ -588,8 +587,8 @@ static void sInterface()
 				g_debugDraw.DrawString(lp, "%s", lbuff);
 				b2Vec2 np;
 				if (valueChanged) {
-					np.x = p.x+rt->position[0]-ox;
-					np.y = p.y+rt->position[1]-oy;
+					np.x = rt->position[0];
+					np.y = rt->position[1];
 					body->SetTransform(np, 0);
 				}
 			}

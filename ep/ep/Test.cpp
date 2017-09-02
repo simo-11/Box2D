@@ -396,7 +396,7 @@ void Test::AddEPBeamBody(EPBeam* rt) {
 	fd.shape = &epBeam;
 	b2BodyDef bd;
 	bd.type = b2_dynamicBody;
-	bd.position.Set(rt->position[0], rt->position[1]+3*iZoom);
+	bd.position.Set(rt->position[0], rt->position[1]+3*iZoom+2*epbHx);
 	bd.angle = 0.0f;
 	b2Body* body = m_world->CreateBody(&bd);
 	body->CreateFixture(&fd);
@@ -412,7 +412,7 @@ void Test::AddEPBeamBody(EPBeam* rt) {
 	jd.maxElasticRotation = 0.2f;
 	jd.dampingRatio = 0.1f;
 	rt->body = body;
-	const b2Vec2 anchor(rt->position[0],rt->position[1]-epbHx);
+	const b2Vec2 anchor(rt->position[0],rt->position[1]+epbHx);
 	bd.type = b2_staticBody;
 	bd.position.Set(rt->position[0], rt->position[1]);
 	b2Body* sBody = m_world->CreateBody(&bd);
