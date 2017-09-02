@@ -399,7 +399,7 @@ public:
 				}
 			}
 			float locs[4] = { 40, 80, 120, 160 };
-			if (ImGui::CollapsingHeader("Joint forces N/Nm"))
+			if (ImGui::CollapsingHeader("Joint forces kN/kNm"))
 			{
 				ImGui::Text(" x-f"); ImGui::SameLine(locs[0]);
 				ImGui::Text(" y-f"); ImGui::SameLine(locs[1]);
@@ -408,11 +408,11 @@ public:
 				ImGui::Text(" j-y");
 				for (b2Joint* j = m_world->GetJointList(); j; j = j->GetNext())
 				{
-					LogJoint(j, 1.f, 1.f, locs,"%5.0f",99999);
+					LogJoint(j, 1.e-3f, 1.e-3f, locs,"%4.1f",999.9f);
 				}
 			}
 			else  {
-				LogSelectedJoints( 1.f, 1.f, locs, "%5.0f", 99999);
+				LogSelectedJoints( 1.e-3f, 1.e-3f, locs, "%4.1f", 999.9f);
 			}
 
 			if (ImGui::CollapsingHeader("Joint forces MN/MNm"))
@@ -425,7 +425,7 @@ public:
 				ImGui::Text(" j-y");
 				for (b2Joint* j = m_world->GetJointList(); j; j = j->GetNext())
 				{
-					LogJoint(j, 1e-6f, 1e-6f, locs, "%5.2f",(float32)FLT_MAX,0.099999f);
+					LogJoint(j, 1e-6f, 1e-6f, locs, "%4.2f",(float32)FLT_MAX,0.09999f);
 				}
 			}
 			else {

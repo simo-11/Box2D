@@ -293,7 +293,10 @@ bool b2ElasticPlasticJoint::WantsToBreak(){
 		return true;
 	}
 	if (m_currentStrain > m_maxStrain){
-		// do not break due to compression
+		return true;
+		// TODO,
+		// avoid breaking due to pure compression
+		//
 		b2Vec2 iv;
 		iv.x = m_impulse.x;
 		iv.y = m_impulse.y;

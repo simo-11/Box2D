@@ -455,7 +455,7 @@ static void sInterface()
 				settings.addRigidTriangles = false;
 				settings.addEPBeams = false;
 			}
-			if (ImGui::IsItemHovered()) {
+			if (ImGui::IsItemHovered() && settings.selectEPJoint) {
 				ImGui::SetTooltip("Use CTRL-MB1");
 			}
 			if (nullptr != test->GetSelectedJointList()) {

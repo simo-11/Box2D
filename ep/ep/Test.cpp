@@ -405,7 +405,13 @@ void Test::AddEPBeamBody(EPBeam* rt) {
 	float32 mf = getEpBeamMaxForce()*settings->epbScale;
 	jd.maxForce.x = mf;
 	jd.maxForce.y = mf;
-	jd.maxTorque = mf*iZoom;
+	/**
+	* h/4 - h
+	* h/4 for solid rectangle
+	* h is theoretical maximum for infinite thin web(s)
+	* here half is used
+	*/
+	jd.maxTorque = mf*epbHx;
 	jd.maxRotation = 1.f;
 	jd.maxStrain = 0.3f*iZoom*getEpBeamXSizeFactor();
 	jd.frequencyHz = 0.f;

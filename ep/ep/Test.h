@@ -236,8 +236,8 @@ public:
 	virtual void AddEPBeamBody(EPBeam*);
 	virtual EPBeam* GetEPBeamList();
 	virtual EPBeam* GetLastEPBeam();
-	virtual float getEpBeamDensity() { return 200; }
-	virtual float getEpBeamXSizeFactor() { return 0.04f; }
+	virtual float getEpBeamDensity() { return 100; } /* rectangular, hollow 4% wall 10% in depth*/
+	virtual float getEpBeamXSizeFactor() { return 0.05f; }
 	virtual float  getEpBeamMaxForce() { return 1; }
 	/** reset configurable settings */
 	virtual void reset(){};
