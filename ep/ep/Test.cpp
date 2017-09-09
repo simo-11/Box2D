@@ -340,6 +340,7 @@ void Test::DeleteEPBeam(unsigned char label) {
 		if (rt->label == label) {
 			if (rtWorld) {
 				rtWorld->DestroyBody(rt->body);
+				rtWorld->DestroyBody(rt->sBody);
 			}
 			delete rt;
 			if (rtp != nullptr) { // second or later
