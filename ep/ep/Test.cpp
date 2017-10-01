@@ -209,6 +209,9 @@ SelectedEPJoint * Test::GetLastSelectedJoint()
 bool Test::WantRigidTriangles(){
 	return true;
 }
+bool Test::WantMasses() {
+	return true;
+}
 void Test::CreateRigidTriangles(){
 	RigidTriangle* rt = rigidTriangleList;
 	while (rt != nullptr){
@@ -293,6 +296,21 @@ void Test::AddRigidTriangle(const b2Vec2& p){
 	rt->position[0] = p.x;
 	rt->position[1] = p.y;
 	AddRigidTriangleBody(rt);
+}
+
+void Test::AddMass(const b2Vec2& p) {
+	b2FixtureDef fd;
+	b2PolygonShape shape;
+	float32 zoom = g_camera.m_zoom;
+	shape.SetAsBox(zoom, zoom);
+	fd.shape = &shape;
+	fd.density = settings->addMass/4.f/zoom/zoom;
+	b2BodyDef bd;
+	bd.type = b2_dynamicBody;
+	bd.position.Set(p.x,p.y);
+	b2Body* body = m_world->CreateBody(&bd);
+	body->SetBullet(true);
+	body->CreateFixture(&fd);
 }
 
 void Test::AddRigidTriangleBody(RigidTriangle* rt){
@@ -582,10 +600,11 @@ void Test::ControlMouseDown(const b2Vec2& p)
 {
 	if (settings->addRigidTriangles){
 		AddRigidTriangle(p);
+	}else if (settings->addMasses) {
+		AddMass(p);
 	}else if(settings->addEPBeams) {
 		AddEPBeam(p);
-	}
-	else if (settings->selectEPJoint) {
+	}else if (settings->selectEPJoint) {
 		SelectJoint(p);
 	}
 }

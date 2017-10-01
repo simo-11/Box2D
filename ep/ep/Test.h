@@ -118,7 +118,8 @@ struct Settings
 	bool enableSleep;
 	bool pause;
 	bool singleStep;
-	bool addRigidTriangles, addEPBeams,selectEPJoint; // using CTRL-MB1 if active
+	bool addRigidTriangles, addMasses, addEPBeams,selectEPJoint; // using CTRL-MB1 if active
+	float32 addMass = 1000000;
 	bool initImpulses;
 	float32 forceScale, momentScale, epbScale;
 };
@@ -216,6 +217,9 @@ public:
 	virtual void SyncSelectedJoints();
 	void StartTextHighLight();
 	void EndTextHighLight();
+	/* Add masses */
+	virtual bool WantMasses();
+	virtual void AddMass(const b2Vec2& p);
 	/* Rigid triangles */
 	virtual bool WantRigidTriangles();
 	virtual void AddRigidTriangle(const b2Vec2& p);

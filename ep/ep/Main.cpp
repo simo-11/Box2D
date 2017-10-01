@@ -486,6 +486,7 @@ static void sInterface()
 			if (ImGui::Checkbox("Add RigidTriangles", &settings.addRigidTriangles)) {
 				settings.selectEPJoint = false;
 				settings.addEPBeams = false;
+				settings.addMasses = false;
 			}
 			if (ImGui::IsItemHovered() && settings.addRigidTriangles){
 				ImGui::SetTooltip("Use CTRL-MB1");
@@ -545,6 +546,21 @@ static void sInterface()
 		}
 		else {
 			settings.addRigidTriangles = false;
+		}
+		if (test->WantMasses() && ImGui::CollapsingHeader("AddMasses")) {
+			if (ImGui::Checkbox("Add Masses", &settings.addMasses)) {
+				settings.selectEPJoint = false;
+				settings.addRigidTriangles = false;
+				settings.addEPBeams = false;
+			}
+			if (ImGui::IsItemHovered() && settings.addMasses) {
+				ImGui::SetTooltip("Use CTRL-MB1");
+			}
+			bool valueChanged = ImGui::InputFloat
+				("Mass [kg]", &settings.addMass, 1000,1000000,0);
+		}
+		else {
+			settings.addMasses = false;
 		}
 		if (test->WantEPBeams() && ImGui::CollapsingHeader("ElasticPlasticBeams")) {
 			ImGui::Text("Scale");
