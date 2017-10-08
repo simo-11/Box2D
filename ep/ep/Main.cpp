@@ -564,6 +564,9 @@ static void sInterface()
 		}
 		if (test->WantEPBeams() && ImGui::CollapsingHeader("ElasticPlasticBeams")) {
 			ImGui::Text("Scale");
+			if (ImGui::IsItemHovered()) {
+				ImGui::SetTooltip("Scale maximum forces for joint");
+			}
 			ImGui::SameLine();
 			ImGui::SliderFloat("##epbScale", &settings.epbScale, 1.f, 100.f,"%.2f",3.f);
 			if (ImGui::Checkbox("Add Elastic Plastic Beams", &settings.addEPBeams)) {
