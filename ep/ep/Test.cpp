@@ -342,6 +342,7 @@ void Test::DeleteEPBeams() {
 		EPBeam* rtn = rt->next;
 		if (rtWorld) {
 			rtWorld->DestroyBody(rt->body);
+			rtWorld->DestroyBody(rt->sBody);
 		}
 		delete rt;
 		rt = rtn;
