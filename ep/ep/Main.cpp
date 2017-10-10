@@ -583,6 +583,11 @@ static void sInterface()
 				rt != nullptr; rt = rt->next)
 			{ // draw labels and update positions
 				b2Body *body = rt->sBody;
+				if (rt->deleteSbody) {
+					// turn to sensor
+					body->GetFixtureList()->SetSensor(true);
+					rt->deleteSbody = false;
+				}
 				char lbuff[4];
 				_itoa(rt->label, lbuff, 10);
 				ImGui::TextDisabled("%d", rt->label);

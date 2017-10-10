@@ -236,6 +236,7 @@ public:
 	// static Allows EPBeam to survive during restarts
 	static void DeleteEPBeam(unsigned char label);
 	static void DeleteEPBeams();
+	static void DeleteSBodyforEPBeams(b2Body * b);
 	virtual void CreateEPBeams();
 	virtual void AddEPBeamBody(EPBeam*);
 	virtual EPBeam* GetEPBeamList();

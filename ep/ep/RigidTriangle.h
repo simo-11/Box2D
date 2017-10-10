@@ -41,6 +41,7 @@ struct RigidTriangle
 struct EPBeam
 {
 	unsigned char label;
+	bool deleteSbody = false;
 	float position[2]; // for static body
 	b2Body * body, *sBody;
 	EPBeam* next;

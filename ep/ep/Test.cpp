@@ -140,6 +140,7 @@ deleteDone:
 	if (rt == currentJointList) { // if first was deleted
 		currentJointList = rtn;
 	}
+	DeleteSBodyforEPBeams(j->GetBodyA());
 }
 
 void Test::SyncSelectedJoints()
@@ -335,6 +336,16 @@ void Test::CreateEPBeams() {
 	}
 }
 
+void Test::DeleteSBodyforEPBeams(b2Body *b) {
+	EPBeam* rt = epBeamList;
+	while (rt != nullptr) {
+		EPBeam* rtn = rt->next;
+		if (rt->sBody == b) {
+			rt->deleteSbody = true;
+		}
+		rt = rtn;
+	}
+}
 
 void Test::DeleteEPBeams() {
 	EPBeam* rt = epBeamList;
@@ -421,7 +432,6 @@ void Test::AddEPBeamBody(EPBeam* rt) {
 	b2Body* body = m_world->CreateBody(&bd);
 	body->CreateFixture(&fd);
 	b2ElasticPlasticJointDef jd;
-	float32 hx = iZoom*getEpBeamXSizeFactor();
 	float32 mf = getEpBeamMaxForce()*settings->epbScale;
 	jd.maxForce.x = mf;
 	jd.maxForce.y = mf;
@@ -429,13 +439,15 @@ void Test::AddEPBeamBody(EPBeam* rt) {
 	* h/4 - h
 	* h/4 for solid rectangle
 	* h is theoretical maximum for infinite thin web(s)
-	* here half is used
+	* 
 	*/
-	jd.maxTorque = mf*epbHx;
+	jd.maxTorque = mf*epbHx/2;
 	jd.maxRotation = 1.f;
-	jd.maxStrain = 0.3f*iZoom*getEpBeamXSizeFactor();
+	jd.maxStrain = 0.5f*epbHx;
 	jd.frequencyHz = 0.f;
-	jd.maxElasticRotation = 0.2f;
+	if (jd.frequencyHz > 0.f) {
+		jd.maxElasticRotation = 0.2f;
+	}
 	jd.dampingRatio = 0.1f;
 	rt->body = body;
 	const b2Vec2 anchor(rt->position[0],rt->position[1]+epbHx);
