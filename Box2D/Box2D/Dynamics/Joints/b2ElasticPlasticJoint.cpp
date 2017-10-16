@@ -242,7 +242,7 @@ void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 	{
 		float32 Cdot2 = wB - wA;
 
-		float32 impulse2 = GetClampedDeltaImpulse(Cdot2);
+		float32 impulse2 = GetClampedDeltaImpulse(Cdot2, data);
 		m_impulse.z += impulse2;
 
 		wA -= iA * impulse2;
@@ -250,7 +250,7 @@ void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 
 		b2Vec2 Cdot1 = vB + b2Cross(wB, m_rB) - vA - b2Cross(wA, m_rA);
 
-		b2Vec2 impulse1 = GetClampedDeltaImpulse(Cdot1);
+		b2Vec2 impulse1 = GetClampedDeltaImpulse(Cdot1, data);
 		m_impulse.x += impulse1.x;
 		m_impulse.y += impulse1.y;
 
@@ -270,7 +270,7 @@ void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 
 		// ep, limit impulse so that m_impulse does not exceed
 		// m_maxImpulse
-		b2Vec3 impulse = GetClampedDeltaImpulse(Cdot);
+		b2Vec3 impulse = GetClampedDeltaImpulse(Cdot, data);
 		m_impulse += impulse;
 
 		b2Vec2 P(impulse.x, impulse.y);
@@ -309,11 +309,13 @@ bool b2ElasticPlasticJoint::WantsToBreak(){
 }
 /**
 */
-b2Vec3 b2ElasticPlasticJoint::GetClampedDeltaImpulse(b2Vec3 Cdot){
+b2Vec3 b2ElasticPlasticJoint::GetClampedDeltaImpulse(b2Vec3 Cdot, 
+	const b2SolverData& data){
 	b2Vec3 impulse = -b2Mul(m_mass, Cdot);
 	b2Vec3 clamped;
-	b2Vec3 high = m_maxImpulse - m_impulse;
-	b2Vec3 low = -m_maxImpulse - m_impulse;
+	b2Vec3 maxImpulse = GetClampedMaxImpulse(Cdot, data);
+	b2Vec3 high = maxImpulse - m_impulse;
+	b2Vec3 low = -maxImpulse - m_impulse;
 	clamped.x = b2Clamp(impulse.x, low.x, high.x);
 	clamped.y = b2Clamp(impulse.y, low.y, high.y);
 	if (impulse.x != clamped.x || impulse.y != clamped.y){
@@ -325,12 +327,21 @@ b2Vec3 b2ElasticPlasticJoint::GetClampedDeltaImpulse(b2Vec3 Cdot){
 	}
 	return clamped;
 }
+/**
+* scale maxImpulse if joint is about to break
+*/
+b2Vec3 b2ElasticPlasticJoint::GetClampedMaxImpulse(b2Vec3 Cdot, 
+	const b2SolverData& data) {
+	return m_maxImpulse;
+}
 
-b2Vec2 b2ElasticPlasticJoint::GetClampedDeltaImpulse(b2Vec2 Cdot){
+b2Vec2 b2ElasticPlasticJoint::GetClampedDeltaImpulse(b2Vec2 Cdot, 
+	const b2SolverData& data){
 	b2Vec2 impulse = -b2Mul22(m_mass, Cdot);
 	b2Vec2 clamped;
-	b2Vec3 high = m_maxImpulse - m_impulse;
-	b2Vec3 low = -m_maxImpulse - m_impulse;
+	b2Vec3 maxImpulse = GetClampedMaxImpulse(Cdot, data);
+	b2Vec3 high = maxImpulse - m_impulse;
+	b2Vec3 low = -maxImpulse - m_impulse;
 	clamped.x = b2Clamp(impulse.x, low.x, high.x);
 	clamped.y = b2Clamp(impulse.y, low.y, high.y);
 	if (impulse.x != clamped.x || impulse.y != clamped.y){
@@ -339,16 +350,35 @@ b2Vec2 b2ElasticPlasticJoint::GetClampedDeltaImpulse(b2Vec2 Cdot){
 	return clamped;
 }
 
-float32 b2ElasticPlasticJoint::GetClampedDeltaImpulse(float32 Cdot){
+/**
+* scale maxImpulse if joint is about to break
+*/
+b2Vec3 b2ElasticPlasticJoint::GetClampedMaxImpulse(b2Vec2 Cdot, 
+	const b2SolverData& data) {
+	return m_maxImpulse;
+}
+
+
+float32 b2ElasticPlasticJoint::GetClampedDeltaImpulse(float32 Cdot, 
+	const b2SolverData& data){
 	float32 impulse = -m_mass.ez.z * (Cdot + m_bias + m_gamma * m_impulse.z);
 	float32 clamped;
-	float32 high = m_maxImpulse.z - m_impulse.z;
-	float32 low = -m_maxImpulse.z - m_impulse.z;
+	float32 maxImpulse = GetClampedMaxImpulse(Cdot, data);
+	float32 high = maxImpulse - m_impulse.z;
+	float32 low = -maxImpulse - m_impulse.z;
 	clamped = b2Clamp(impulse, low, high);
 	if (impulse != clamped){
 		m_torqueExceeded = true;
 	}
 	return clamped;
+}
+
+/**
+* scale maxImpulse if joint is about to break
+*/
+float32 b2ElasticPlasticJoint::GetClampedMaxImpulse(float32 Cdot, 
+	const b2SolverData& data) {
+	return m_maxImpulse.z;
 }
 
 void b2ElasticPlasticJoint::updateRotationalPlasticity(float32 elasticRotation)
