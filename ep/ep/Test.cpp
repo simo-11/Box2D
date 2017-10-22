@@ -608,8 +608,10 @@ void Test::ShiftMouseDown(const b2Vec2& p)
 	SpawnBomb(p);
 }
 
-
 void Test::ControlMouseDown(const b2Vec2& p)
+{
+}
+void Test::AltMouseDown(const b2Vec2& p)
 {
 	if (settings->addRigidTriangles){
 		AddRigidTriangle(p);

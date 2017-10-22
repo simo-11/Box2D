@@ -118,7 +118,7 @@ struct Settings
 	bool enableSleep;
 	bool pause;
 	bool singleStep;
-	bool addRigidTriangles, addMasses, addEPBeams,selectEPJoint; // using CTRL-MB1 if active
+	bool addRigidTriangles, addMasses, addEPBeams,selectEPJoint; // using ALT-MB1 if active
 	float32 addMass = 1000000;
 	bool initImpulses;
 	float32 forceScale, momentScale, epbScale;
@@ -170,6 +170,7 @@ public:
 	virtual void KeyboardUp(int key) { B2_NOT_USED(key); }
 	void ShiftMouseDown(const b2Vec2& p);
 	void ControlMouseDown(const b2Vec2& p);
+	void AltMouseDown(const b2Vec2& p);
 	virtual void MouseDown(const b2Vec2& p, int32 mods);
 	virtual void MouseUp(const b2Vec2& p);
 	void MouseMove(const b2Vec2& p);

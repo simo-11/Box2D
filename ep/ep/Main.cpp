@@ -288,6 +288,9 @@ static void sMouseButton(GLFWwindow* window, int32 button, int32 action, int32 m
 			else if (mods == GLFW_MOD_CONTROL){
 				test->ControlMouseDown(pw);
 			}
+			else if (mods == GLFW_MOD_ALT) {
+				test->AltMouseDown(pw);
+			}
 			else
 			{
 				test->MouseDown(pw, mods);
@@ -456,7 +459,7 @@ static void sInterface()
 				settings.addEPBeams = false;
 			}
 			if (ImGui::IsItemHovered() && settings.selectEPJoint) {
-				ImGui::SetTooltip("Use CTRL-MB1");
+				ImGui::SetTooltip("Use ALT-MB1");
 			}
 			if (nullptr != test->GetSelectedJointList()) {
 				if (ImGui::SmallButton("Empty current EPJoint list")) {
@@ -489,7 +492,7 @@ static void sInterface()
 				settings.addMasses = false;
 			}
 			if (ImGui::IsItemHovered() && settings.addRigidTriangles){
-				ImGui::SetTooltip("Use CTRL-MB1");
+				ImGui::SetTooltip("Use ALT-MB1");
 			}
 			bool deleteRigidTriangles = 
 				ImGui::SmallButton("Delete all RigidTriangles");
@@ -554,7 +557,7 @@ static void sInterface()
 				settings.addEPBeams = false;
 			}
 			if (ImGui::IsItemHovered() && settings.addMasses) {
-				ImGui::SetTooltip("Use CTRL-MB1");
+				ImGui::SetTooltip("Use ALT-MB1");
 			}
 			bool valueChanged = ImGui::InputFloat
 				("Mass [kg]", &settings.addMass, 1000,1000000,0);
@@ -575,7 +578,7 @@ static void sInterface()
 				settings.addMasses = false;
 			}
 			if (ImGui::IsItemHovered() && settings.addEPBeams) {
-				ImGui::SetTooltip("Use CTRL-MB1");
+				ImGui::SetTooltip("Use ALT-MB1");
 			}
 			bool deleteEPBeams =
 				ImGui::SmallButton("Delete all ElasticPlasticBeams");
