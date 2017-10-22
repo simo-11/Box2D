@@ -572,6 +572,7 @@ static void sInterface()
 			if (ImGui::Checkbox("Add Elastic Plastic Beams", &settings.addEPBeams)) {
 				settings.selectEPJoint = false;
 				settings.addRigidTriangles = false;
+				settings.addMasses = false;
 			}
 			if (ImGui::IsItemHovered() && settings.addEPBeams) {
 				ImGui::SetTooltip("Use CTRL-MB1");
