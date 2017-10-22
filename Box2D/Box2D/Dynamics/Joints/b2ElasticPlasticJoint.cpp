@@ -332,7 +332,20 @@ b2Vec3 b2ElasticPlasticJoint::GetClampedDeltaImpulse(b2Vec3 Cdot,
 */
 b2Vec3 b2ElasticPlasticJoint::GetClampedMaxImpulse(b2Vec3 Cdot, 
 	const b2SolverData& data) {
-	return m_maxImpulse;
+	float32 dt = data.step.dt;
+	b2Vec3 d = dt*Cdot;
+	float32 maxStrain = m_maxStrain - m_currentStrain;
+	float32 maxRotation = m_maxRotation - m_currentRotation;
+	float32 ssx = (d.x !=0 ? maxStrain / b2Abs(d.x) :b2_maxFloat);
+	float32 ssy = (d.y != 0 ? maxStrain / b2Abs(d.y) :b2_maxFloat);
+	float32 sr = (d.z != 0 ? maxRotation / b2Abs(d.z) :b2_maxFloat);
+	float32 s = b2Min(b2Min(ssx, ssy),sr);
+	if (s > 1) {
+		return m_maxImpulse;
+	}
+	else {
+		return s*m_maxImpulse;
+	}
 }
 
 b2Vec2 b2ElasticPlasticJoint::GetClampedDeltaImpulse(b2Vec2 Cdot, 
@@ -355,7 +368,18 @@ b2Vec2 b2ElasticPlasticJoint::GetClampedDeltaImpulse(b2Vec2 Cdot,
 */
 b2Vec3 b2ElasticPlasticJoint::GetClampedMaxImpulse(b2Vec2 Cdot, 
 	const b2SolverData& data) {
-	return m_maxImpulse;
+	float32 dt = data.step.dt;
+	b2Vec2 d = dt*Cdot;
+	float32 maxStrain = m_maxStrain - m_currentStrain;
+	float32 ssx = (d.x!=0?maxStrain / b2Abs(d.x):b2_maxFloat);
+	float32 ssy = (d.y!=0?maxStrain / b2Abs(d.y):b2_maxFloat);
+	float32 s =b2Min(ssx, ssy);
+	if (s > 1) {
+		return m_maxImpulse;
+	}
+	else {
+		return s*m_maxImpulse;
+	}
 }
 
 
@@ -378,7 +402,17 @@ float32 b2ElasticPlasticJoint::GetClampedDeltaImpulse(float32 Cdot,
 */
 float32 b2ElasticPlasticJoint::GetClampedMaxImpulse(float32 Cdot, 
 	const b2SolverData& data) {
+	if (Cdot != 0) {
+		float32 dt = data.step.dt;
+		float32 d = dt*Cdot;
+		float32 maxRotation = m_maxRotation - m_currentRotation;
+		float32 s = maxRotation / b2Abs(d);
+		if (s < 1) {
+			return s*m_maxImpulse.z;
+		}
+	}
 	return m_maxImpulse.z;
+	
 }
 
 void b2ElasticPlasticJoint::updateRotationalPlasticity(float32 elasticRotation)
