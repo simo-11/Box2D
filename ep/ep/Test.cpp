@@ -912,8 +912,13 @@ void Test::Step()
 			p.x, p.y, lb->GetAngle());
 		m_textLine += DRAW_STRING_NEW_LINE;
 		b2Vec2 v = lb->GetLinearVelocity();
-		g_debugDraw.DrawString(5, m_textLine, "(vx,vy,va,m) = %6.2f %6.2f %6.2f %6.2f",
-			v.x,v.y,lb->GetAngularVelocity(),lb->GetMass());
+		float32 m = lb->GetMass();
+		float32 i = lb->GetInertia();
+		float32 va = lb->GetAngularVelocity();
+		float32 ke = 0.5f*(m*v.LengthSquared() + i*va*va);
+		g_debugDraw.DrawString(5, m_textLine,
+			"(vx,vy,va,m,i,ke) = %6.2f %6.2f %6.2f %6.2f %6.2f %6.2f",
+			v.x,v.y,va,m,i,ke);
 		m_textLine += DRAW_STRING_NEW_LINE;
 		min.x = b2Min(min.x, p.x);
 		min.y = b2Min(min.y, p.y);
