@@ -423,7 +423,7 @@ void Test::AddEPBeam(const b2Vec2& p) {
 
 void Test::AddEPBeamBody(EPBeam* rt) {
 	b2FixtureDef fd;
-	fd.density = getEpBeamDensity();
+	fd.density = getEpBeamDensity()*settings->epbMassScale;
 	fd.shape = &epBeam;
 	b2BodyDef bd;
 	bd.type = b2_dynamicBody;

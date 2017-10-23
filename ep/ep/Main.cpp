@@ -568,10 +568,16 @@ static void sInterface()
 		if (test->WantEPBeams() && ImGui::CollapsingHeader("ElasticPlasticBeams")) {
 			ImGui::Text("Scale");
 			if (ImGui::IsItemHovered()) {
-				ImGui::SetTooltip("Scale maximum forces for joint");
+				ImGui::SetTooltip("Scale maximum force for joint");
 			}
 			ImGui::SameLine();
-			ImGui::SliderFloat("##epbScale", &settings.epbScale, 1.f, 100.f,"%.2f",3.f);
+			ImGui::SliderFloat("##epbScale", &settings.epbScale, 0.1f, 100.f,"%.2f",3.f);
+			ImGui::Text("Mass scale");
+			if (ImGui::IsItemHovered()) {
+				ImGui::SetTooltip("Scale mass for beam");
+			}
+			ImGui::SameLine();
+			ImGui::SliderFloat("##epbMassScale", &settings.epbMassScale, 0.1f, 100.f, "%.2f", 3.f);
 			if (ImGui::Checkbox("Add Elastic Plastic Beams", &settings.addEPBeams)) {
 				settings.selectEPJoint = false;
 				settings.addRigidTriangles = false;
