@@ -28,7 +28,12 @@ public:
 	virtual bool WantRigidTriangles(){
 		return false;
 	}
-
+	virtual bool WantEPBeams() {
+		return false;
+	}
+	virtual bool WantMasses() {
+		return false;
+	}
 	static Test* Create(Settings *settings)
 	{
 		return new ImGuiDemo(settings);
