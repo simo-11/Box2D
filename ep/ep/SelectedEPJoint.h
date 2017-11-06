@@ -24,10 +24,11 @@
 #include <Box2D/Box2D.h>
 
 #include <stdlib.h>
-
+#define EP_MAX_VALUES 10
 struct SelectedEPJoint
 {
 	int32 id; // allows survival during restarts
+	float *values=NULL; // store at most EP_MAX_VALUES values
 	b2ElasticPlasticJoint * joint;
 	SelectedEPJoint* next;
 	SelectedEPJoint() {

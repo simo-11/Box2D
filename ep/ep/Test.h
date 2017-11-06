@@ -213,6 +213,7 @@ public:
 	virtual void SelectJoint(const b2Vec2& p);
 	virtual void AddSelectedJoint(b2ElasticPlasticJoint* j);
 	void DeleteSelectedJoint(b2Joint* j);
+	void SelectedJointDeleted(b2Joint* j);
 	void DeleteSelectedJoints();
 	virtual SelectedEPJoint* GetSelectedJointList();
 	virtual SelectedEPJoint* GetLastSelectedJoint();

@@ -46,7 +46,7 @@ void DestructionListener::SayGoodbye(b2Joint* joint)
 	{
 		test->JointDestroyed(joint);
 	}
-	test->DeleteSelectedJoint(joint);
+	test->SelectedJointDeleted(joint);
 }
 
 Test::Test(Settings *sp)
@@ -118,6 +118,18 @@ bool Test::IsSelectedJoint(b2Joint * jc)
 		}
 	}
 	return false;
+}
+
+void Test::SelectedJointDeleted(b2Joint * j)
+{
+	SelectedEPJoint* rt = currentJointList;
+	while (rt != nullptr) {
+		if (rt->joint == j) {
+			rt->joint = nullptr;
+			return;
+		}
+		rt = rt->next;
+	}
 }
 
 void Test::DeleteSelectedJoint(b2Joint * j)
@@ -996,7 +1008,9 @@ void Test::LogSelectedJoints(float32 fScale, float32 mScale,
 	for (SelectedEPJoint* sj=GetSelectedJointList(); sj!=nullptr; sj=sj->next)
 	{
 		b2Joint* j = sj->joint;
-		LogJoint(j, 1e-6f, 1e-6f, locs, fmt, maxValue, minMaxValue);
+		if (j != nullptr) {
+			LogJoint(j, 1e-6f, 1e-6f, locs, fmt, maxValue, minMaxValue);
+		}
 	}
 
 }
@@ -1006,7 +1020,9 @@ void Test::LogEpCapasityForSelectedJoints(float* locs)
 	for (SelectedEPJoint* sj = GetSelectedJointList(); sj != nullptr; sj = sj->next)
 	{
 		b2Joint* j = sj->joint;
-		LogEpCapasity((b2ElasticPlasticJoint*)j,locs);
+		if (j != nullptr) {
+			LogEpCapasity((b2ElasticPlasticJoint*)j, locs);
+		}
 	}
 }
 
@@ -1015,7 +1031,9 @@ void Test::LogEpJointErrorsForSelectedJoints(float* locs)
 	for (SelectedEPJoint* sj = GetSelectedJointList(); sj != nullptr; sj = sj->next)
 	{
 		b2Joint* j = sj->joint;
-		LogEpJointErrors((b2ElasticPlasticJoint*)j, locs);
+		if (j != nullptr) {
+			LogEpJointErrors((b2ElasticPlasticJoint*)j, locs);
+		}
 	}
 }
 
@@ -1067,10 +1085,13 @@ void Test::EndTextHighLight() {
 }
 
 void Test::HighLightJoint(b2Joint* j) {
+	if (j == nullptr) {
+		return;
+	}
 	b2Vec2 p = 0.5f*(j->GetAnchorA() + j->GetAnchorB());
 	b2Vec2 bac = j->GetBodyA()->GetWorldCenter();
 	b2Vec2 bbc = j->GetBodyB()->GetWorldCenter();
-	float32 radius = (j->GetAnchorA() - bac).Length();
+	float32 radius = (bbc - bac).Length();
 	b2Color color(1.0f, 1.0f, 1.0f);
 	g_debugDraw.DrawCircle(p, radius, color);
 	radius *= 0.3f;
