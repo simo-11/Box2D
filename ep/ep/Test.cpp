@@ -139,6 +139,9 @@ void Test::DeleteSelectedJoint(b2Joint * j)
 	while (rt != nullptr) {
 		rtn = rt->next;
 		if (rt->joint == j) {
+			if (rt->values != NULL) {
+				delete rtn->values;
+			}
 			delete rt;
 			if (rtp != nullptr) { // second or later
 				rtp->next = rtn;
@@ -195,6 +198,9 @@ void Test::DeleteSelectedJoints()
 	SelectedEPJoint* rt = currentJointList;
 	while (rt != nullptr) {
 		SelectedEPJoint* rtn = rt->next;
+		if (rt->values != NULL) {
+			delete rtn->values;
+		}
 		delete rt;
 		rt = rtn;
 	}

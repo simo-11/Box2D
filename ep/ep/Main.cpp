@@ -478,6 +478,26 @@ static void sInterface()
 						if (ImGui::IsItemHovered()) {
 							test->HighLightJoint(j->joint);
 						}
+						ImGui::SameLine();
+						if (NULL == j->values) {
+							if (ImGui::SmallButton("Plot forces")) {
+								j->values = new float[3 * EP_MAX_VALUES]();
+								for (int i = 0; i < 3 * EP_MAX_VALUES; i++) {
+									j->values[i] = 0.f;
+								}
+							}
+						}
+						else {
+							if (ImGui::SmallButton("Don't plot forces")) {
+								delete j->values;
+								j->values = NULL;
+							}
+							else {
+								ImGui::PlotLines("x", &j->values[0], EP_MAX_VALUES);
+								ImGui::PlotLines("y", &j->values[EP_MAX_VALUES], EP_MAX_VALUES);
+								ImGui::PlotLines("rz",&j->values[2* EP_MAX_VALUES], EP_MAX_VALUES);
+							}
+						}
 					}
 					if (ep != NULL) {
 						test->DeleteSelectedJoint(ep);
