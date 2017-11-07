@@ -217,6 +217,7 @@ public:
 	void DeleteSelectedJoints();
 	virtual SelectedEPJoint* GetSelectedJointList();
 	virtual SelectedEPJoint* GetLastSelectedJoint();
+	virtual void UpdatePlotValues(SelectedEPJoint*);
 	virtual void SyncSelectedJoints();
 	void StartTextHighLight();
 	void EndTextHighLight();

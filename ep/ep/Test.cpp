@@ -199,7 +199,7 @@ void Test::DeleteSelectedJoints()
 	while (rt != nullptr) {
 		SelectedEPJoint* rtn = rt->next;
 		if (rt->values != NULL) {
-			delete rtn->values;
+			delete rt->values;
 		}
 		delete rt;
 		rt = rtn;
@@ -810,6 +810,10 @@ void Test::Step()
 
 	if (timeStep > 0.f){
 		g_debugDraw.SetInvDt(1.f/timeStep);
+		for (SelectedEPJoint* j = GetSelectedJointList();
+			j != nullptr; j = j->next) {
+			UpdatePlotValues(j);
+		}
 	}
 	UpdateCamera();
 	m_world->DrawDebugData();
@@ -1041,6 +1045,27 @@ void Test::LogEpJointErrorsForSelectedJoints(float* locs)
 			LogEpJointErrors((b2ElasticPlasticJoint*)j, locs);
 		}
 	}
+}
+
+void Test::UpdatePlotValues(SelectedEPJoint * epj)
+{
+	b2Joint* j = epj->joint;
+	float* values = epj->values;
+	if (NULL == j || NULL==values) {
+		return;
+	}
+	// move old values [1-9] to [0-8]
+	for (int i = 0; i < 3; i++) {
+		int index = i*EP_MAX_VALUES+1;
+		memmove(&values[index-1], &values[index], (EP_MAX_VALUES - 1)*sizeof(float));
+	}
+	// store latest as last value
+	float32 idt = g_debugDraw.GetInvDt();
+	b2Vec2 f = j->GetReactionForce(idt);
+	float32 m = j->GetReactionTorque(idt);
+	values[EP_MAX_VALUES - 1] = f.x;
+	values[2*EP_MAX_VALUES - 1] = f.y;
+	values[3 * EP_MAX_VALUES - 1] = m;
 }
 
 void Test::LogJoint(b2Joint* j, float32 fScale, float32 mScale, float* locs,
