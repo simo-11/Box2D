@@ -143,7 +143,7 @@ public:
 					LogSelectedJoints(1e-6f, 1e-6f, locs);
 				}
 
-				if (addElasticPlastic && ImGui::CollapsingHeader("Capasity usage [%]"))
+				if (addElasticPlastic && ImGui::CollapsingHeader("Capacity usage [%]"))
 				{
 					ImGui::Text(" x"); ImGui::SameLine(locs[0]);
 					ImGui::Text(" y"); ImGui::SameLine(locs[1]);

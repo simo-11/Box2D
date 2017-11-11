@@ -28,7 +28,8 @@
 struct SelectedEPJoint
 {
 	int32 id; // allows survival during restarts
-	float *values=NULL; // store at most EP_MAX_VALUES values
+	float *forces=NULL; // store at most 3*EP_MAX_VALUES values
+	float *capacities = NULL; // store at most 5*EP_MAX_VALUES values
 	b2ElasticPlasticJoint * joint;
 	SelectedEPJoint* next;
 	SelectedEPJoint() {

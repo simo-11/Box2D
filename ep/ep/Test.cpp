@@ -139,8 +139,11 @@ void Test::DeleteSelectedJoint(b2Joint * j)
 	while (rt != nullptr) {
 		rtn = rt->next;
 		if (rt->joint == j) {
-			if (rt->values != NULL) {
-				delete rtn->values;
+			if (rt->forces != NULL) {
+				delete rtn->forces;
+			}
+			if (rt->capacities != NULL) {
+				delete rtn->capacities;
 			}
 			delete rt;
 			if (rtp != nullptr) { // second or later
@@ -198,8 +201,11 @@ void Test::DeleteSelectedJoints()
 	SelectedEPJoint* rt = currentJointList;
 	while (rt != nullptr) {
 		SelectedEPJoint* rtn = rt->next;
-		if (rt->values != NULL) {
-			delete rt->values;
+		if (rt->forces != NULL) {
+			delete rt->forces;
+		}
+		if (rt->capacities != NULL) {
+			delete rt->capacities;
 		}
 		delete rt;
 		rt = rtn;
@@ -1049,23 +1055,43 @@ void Test::LogEpJointErrorsForSelectedJoints(float* locs)
 
 void Test::UpdatePlotValues(SelectedEPJoint * epj)
 {
-	b2Joint* j = epj->joint;
-	float* values = epj->values;
-	if (NULL == j || NULL==values) {
+	b2ElasticPlasticJoint* j = epj->joint;
+	if (NULL == j || (epj->forces==NULL && epj->capacities==NULL)) {
 		return;
 	}
-	// move old values [1-9] to [0-8]
-	for (int i = 0; i < 3; i++) {
-		int index = i*EP_MAX_VALUES+1;
-		memmove(&values[index-1], &values[index], (EP_MAX_VALUES - 1)*sizeof(float));
-	}
-	// store latest as last value
 	float32 idt = g_debugDraw.GetInvDt();
 	b2Vec2 f = j->GetReactionForce(idt);
 	float32 m = j->GetReactionTorque(idt);
-	values[EP_MAX_VALUES - 1] = f.x;
-	values[2*EP_MAX_VALUES - 1] = f.y;
-	values[3 * EP_MAX_VALUES - 1] = m;
+	float* values = epj->forces;
+	if (NULL != values) {
+		// move old values [1-9] to [0-8]
+		for (int i = 0; i < 3; i++) {
+			int index = i*EP_MAX_VALUES + 1;
+			memmove(&values[index - 1], &values[index], (EP_MAX_VALUES - 1) * sizeof(float));
+		}
+		// store latest as last value
+		values[EP_MAX_VALUES - 1] = f.x;
+		values[2 * EP_MAX_VALUES - 1] = f.y;
+		values[3 * EP_MAX_VALUES - 1] = m;
+	}
+	values = epj->capacities;
+	if (NULL != values) {
+		// store latest as last value
+		for (int i = 0; i < 5; i++) {
+			int index = i*EP_MAX_VALUES + 1;
+			memmove(&values[index - 1], &values[index], (EP_MAX_VALUES - 1) * sizeof(float));
+		}
+		b2Vec2 mf = j->GetMaxForce();
+		float32 mm = j->GetMaxTorque();
+		if (mm == 0.f) {
+			mm = 1.f;
+		}
+		values[EP_MAX_VALUES - 1] = 100.f*f.x / mf.x;
+		values[2 * EP_MAX_VALUES - 1] = 100.f*f.y / mf.y;
+		values[3 * EP_MAX_VALUES - 1] = 100.f*m / mm;
+		values[4 * EP_MAX_VALUES - 1] = 100.f*j->getCurrentStrain() / j->getMaxStrain();
+		values[5 * EP_MAX_VALUES - 1] = 100.f*j->getCurrentRotation() / j->getMaxRotation();
+	}
 }
 
 void Test::LogJoint(b2Joint* j, float32 fScale, float32 mScale, float* locs,

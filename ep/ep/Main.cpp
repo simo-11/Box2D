@@ -479,23 +479,52 @@ static void sInterface()
 							test->HighLightJoint(j->joint);
 						}
 						ImGui::SameLine();
-						if (NULL == j->values) {
+						if (NULL == j->forces) {
 							if (ImGui::SmallButton("Plot forces")) {
-								j->values = new float[3 * EP_MAX_VALUES]();
+								j->forces = new float[3 * EP_MAX_VALUES]();
 								for (int i = 0; i < 3 * EP_MAX_VALUES; i++) {
-									j->values[i] = 0.f;
+									j->forces[i] = 0.f;
 								}
 							}
 						}
 						else {
 							if (ImGui::SmallButton("Don't plot forces")) {
-								delete j->values;
-								j->values = NULL;
+								delete j->forces;
+								j->forces = NULL;
 							}
 							else {
-								ImGui::PlotLines("x", &j->values[0], EP_MAX_VALUES);
-								ImGui::PlotLines("y", &j->values[EP_MAX_VALUES], EP_MAX_VALUES);
-								ImGui::PlotLines("rz",&j->values[2* EP_MAX_VALUES], EP_MAX_VALUES);
+								ImGui::PlotLines("x", &j->forces[0], EP_MAX_VALUES,
+									0,"x-f");
+								ImGui::PlotLines("y", &j->forces[EP_MAX_VALUES], EP_MAX_VALUES,
+									0, "y-f");
+								ImGui::PlotLines("rz",&j->forces[2* EP_MAX_VALUES], EP_MAX_VALUES,
+									0, "z-m");
+							}
+						}
+						if (NULL == j->capacities) {
+							if (ImGui::SmallButton("Plot capacities")) {
+								j->capacities = new float[5 * EP_MAX_VALUES]();
+								for (int i = 0; i < 5 * EP_MAX_VALUES; i++) {
+									j->capacities[i] = 0.f;
+								}
+							}
+						}
+						else {
+							if (ImGui::SmallButton("Don't plot capacities")) {
+								delete j->capacities;
+								j->capacities = NULL;
+							}
+							else {
+								ImGui::PlotLines("", &j->capacities[0], EP_MAX_VALUES,
+									0,"x");
+								ImGui::PlotLines("", &j->capacities[EP_MAX_VALUES], EP_MAX_VALUES,
+									0, "y");
+								ImGui::PlotLines("", &j->capacities[2 * EP_MAX_VALUES], EP_MAX_VALUES,
+									0, "z");
+								ImGui::PlotLines("", &j->capacities[3 * EP_MAX_VALUES], EP_MAX_VALUES,
+									0, "s");
+								ImGui::PlotLines("", &j->capacities[4 * EP_MAX_VALUES], EP_MAX_VALUES,
+									0, "r");
 							}
 						}
 					}
