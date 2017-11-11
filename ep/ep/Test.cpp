@@ -468,7 +468,7 @@ void Test::AddEPBeamBody(EPBeam* rt) {
 	jd.maxTorque = mf*epbHx/2;
 	jd.maxRotation = 1.f;
 	jd.maxStrain = 0.5f*epbHx;
-	jd.frequencyHz = 0.f;
+	jd.frequencyHz = settings->epbHz;
 	if (jd.frequencyHz > 0.f) {
 		jd.maxElasticRotation = 0.2f;
 	}
@@ -1062,6 +1062,9 @@ void Test::UpdatePlotValues(SelectedEPJoint * epj)
 	float32 idt = g_debugDraw.GetInvDt();
 	b2Vec2 f = j->GetReactionForce(idt);
 	float32 m = j->GetReactionTorque(idt);
+	b2Vec2 mf = j->GetRotatedMaxForce();
+	epj->maxForce.x = b2Max(mf.x,epj->maxForce.x);
+	epj->maxForce.y = b2Max(mf.y, epj->maxForce.y);
 	float* values = epj->forces;
 	if (NULL != values) {
 		// move old values [1-9] to [0-8]
@@ -1081,14 +1084,13 @@ void Test::UpdatePlotValues(SelectedEPJoint * epj)
 			int index = i*EP_MAX_VALUES + 1;
 			memmove(&values[index - 1], &values[index], (EP_MAX_VALUES - 1) * sizeof(float));
 		}
-		b2Vec2 mf = j->GetMaxForce();
 		float32 mm = j->GetMaxTorque();
 		if (mm == 0.f) {
 			mm = 1.f;
 		}
-		values[EP_MAX_VALUES - 1] = 100.f*f.x / mf.x;
-		values[2 * EP_MAX_VALUES - 1] = 100.f*f.y / mf.y;
-		values[3 * EP_MAX_VALUES - 1] = 100.f*m / mm;
+		values[EP_MAX_VALUES - 1] = b2Abs(100.f*f.x / mf.x);
+		values[2 * EP_MAX_VALUES - 1] = b2Abs(100.f*f.y / mf.y);
+		values[3 * EP_MAX_VALUES - 1] = b2Abs(100.f*m / mm);
 		values[4 * EP_MAX_VALUES - 1] = 100.f*j->getCurrentStrain() / j->getMaxStrain();
 		values[5 * EP_MAX_VALUES - 1] = 100.f*j->getCurrentRotation() / j->getMaxRotation();
 	}

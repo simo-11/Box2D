@@ -92,6 +92,7 @@ struct Settings
 		forceScale = 0.1f;
 		momentScale = 0.3f;
 		epbScale = 10.f;
+		epbHz = 0.f;
 		epbMassScale = 10.f;
 		addRigidTriangles = false;
 		addEPBeams = false;
@@ -122,7 +123,7 @@ struct Settings
 	bool addRigidTriangles, addMasses, addEPBeams,selectEPJoint; // using ALT-MB1 if active
 	float32 addMass = 1000000;
 	bool initImpulses;
-	float32 forceScale, momentScale, epbScale, epbMassScale;
+	float32 forceScale, momentScale, epbScale, epbMassScale, epbHz;
 };
 
 struct TestEntry

@@ -485,6 +485,8 @@ static void sInterface()
 								for (int i = 0; i < 3 * EP_MAX_VALUES; i++) {
 									j->forces[i] = 0.f;
 								}
+								j->maxForce = j->joint->GetRotatedMaxForce();
+								j->maxTorque = j->joint->GetMaxTorque();
 							}
 						}
 						else {
@@ -493,12 +495,14 @@ static void sInterface()
 								j->forces = NULL;
 							}
 							else {
-								ImGui::PlotLines("x", &j->forces[0], EP_MAX_VALUES,
-									0,"x-f");
-								ImGui::PlotLines("y", &j->forces[EP_MAX_VALUES], EP_MAX_VALUES,
-									0, "y-f");
-								ImGui::PlotLines("rz",&j->forces[2* EP_MAX_VALUES], EP_MAX_VALUES,
-									0, "z-m");
+								b2Vec2 mf = j->maxForce;
+								float mm = j->maxTorque;
+								ImGui::PlotLines("", &j->forces[0], EP_MAX_VALUES,
+									0,"x-f",-mf.x,mf.x);
+								ImGui::PlotLines("", &j->forces[EP_MAX_VALUES], EP_MAX_VALUES,
+									0, "y-f", -mf.y, mf.y);
+								ImGui::PlotLines("",&j->forces[2* EP_MAX_VALUES], EP_MAX_VALUES,
+									0, "z-m",-mm,mm);
 							}
 						}
 						if (NULL == j->capacities) {
@@ -516,15 +520,15 @@ static void sInterface()
 							}
 							else {
 								ImGui::PlotLines("", &j->capacities[0], EP_MAX_VALUES,
-									0,"x");
+									0, "x", 0, 100);
 								ImGui::PlotLines("", &j->capacities[EP_MAX_VALUES], EP_MAX_VALUES,
-									0, "y");
+									0, "y", 0, 100);
 								ImGui::PlotLines("", &j->capacities[2 * EP_MAX_VALUES], EP_MAX_VALUES,
-									0, "z");
+									0, "z", 0, 100);
 								ImGui::PlotLines("", &j->capacities[3 * EP_MAX_VALUES], EP_MAX_VALUES,
-									0, "s");
+									0, "s", 0, 100);
 								ImGui::PlotLines("", &j->capacities[4 * EP_MAX_VALUES], EP_MAX_VALUES,
-									0, "r");
+									0, "r", 0, 100);
 							}
 						}
 					}
@@ -614,20 +618,31 @@ static void sInterface()
 		else {
 			settings.addMasses = false;
 		}
-		if (test->WantEPBeams() && ImGui::CollapsingHeader("ElasticPlasticBeams")) {
+		if (test->WantEPBeams() && 
+			ImGui::CollapsingHeader("ElasticPlasticBeams")) {
 			ImGui::Text("Scale");
 			if (ImGui::IsItemHovered()) {
 				ImGui::SetTooltip("Scale maximum force for joint");
 			}
 			ImGui::SameLine();
-			ImGui::SliderFloat("##epbScale", &settings.epbScale, 0.1f, 100.f,"%.2f",3.f);
+			ImGui::SliderFloat("##epbScale", 
+				&settings.epbScale, 0.1f, 100.f,"%.2f",3.f);
+			ImGui::Text("Frequency");
+			if (ImGui::IsItemHovered()) {
+				ImGui::SetTooltip("Frequency for joints");
+			}
+			ImGui::SameLine();
+			ImGui::SliderFloat("##epbHz", 
+				&settings.epbHz, 0.f, settings.hz, "%.2f");
 			ImGui::Text("Mass scale");
 			if (ImGui::IsItemHovered()) {
 				ImGui::SetTooltip("Scale mass for beam");
 			}
 			ImGui::SameLine();
-			ImGui::SliderFloat("##epbMassScale", &settings.epbMassScale, 0.1f, 100.f, "%.2f", 3.f);
-			if (ImGui::Checkbox("Add Elastic Plastic Beams", &settings.addEPBeams)) {
+			ImGui::SliderFloat("##epbMassScale", 
+				&settings.epbMassScale, 0.1f, 100.f, "%.2f", 3.f);
+			if (ImGui::Checkbox("Add Elastic Plastic Beams", 
+				&settings.addEPBeams)) {
 				settings.selectEPJoint = false;
 				settings.addRigidTriangles = false;
 				settings.addMasses = false;
