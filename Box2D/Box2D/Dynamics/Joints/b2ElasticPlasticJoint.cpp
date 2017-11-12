@@ -321,9 +321,15 @@ b2Vec3 b2ElasticPlasticJoint::GetClampedDeltaImpulse(b2Vec3 Cdot,
 	if (impulse.x != clamped.x || impulse.y != clamped.y){
 		m_forceExceeded = true;
 	}
+	else {
+		m_forceExceeded = false;
+	}
 	clamped.z = b2Clamp(impulse.z, low.z, high.z);
 	if (impulse.z != clamped.z){
 		m_torqueExceeded = true;
+	}
+	else {
+		m_torqueExceeded = false;
 	}
 	return clamped;
 }
@@ -360,6 +366,9 @@ b2Vec2 b2ElasticPlasticJoint::GetClampedDeltaImpulse(b2Vec2 Cdot,
 	if (impulse.x != clamped.x || impulse.y != clamped.y){
 		m_forceExceeded = true;
 	}
+	else {
+		m_forceExceeded = false;
+	}
 	return clamped;
 }
 
@@ -393,6 +402,9 @@ float32 b2ElasticPlasticJoint::GetClampedDeltaImpulse(float32 Cdot,
 	clamped = b2Clamp(impulse, low, high);
 	if (impulse != clamped){
 		m_torqueExceeded = true;
+	}
+	else {
+		m_torqueExceeded = false;
 	}
 	return clamped;
 }

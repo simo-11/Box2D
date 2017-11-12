@@ -641,7 +641,7 @@ static void sInterface()
 			ImGui::SameLine();
 			ImGui::SliderFloat("##epbMassScale", 
 				&settings.epbMassScale, 0.1f, 100.f, "%.2f", 3.f);
-			if (ImGui::Checkbox("Add Elastic Plastic Beams", 
+			if (ImGui::Checkbox("Add ElasticPlastic Beams",
 				&settings.addEPBeams)) {
 				settings.selectEPJoint = false;
 				settings.addRigidTriangles = false;
@@ -651,7 +651,7 @@ static void sInterface()
 				ImGui::SetTooltip("Use ALT-MB1");
 			}
 			bool deleteEPBeams =
-				ImGui::SmallButton("Delete all ElasticPlasticBeams");
+				ImGui::SmallButton("Delete all ElasticPlastic Beams");
 			unsigned char labelForDelete = 0;
 			for (EPBeam* rt = test->GetEPBeamList();
 				rt != nullptr; rt = rt->next)

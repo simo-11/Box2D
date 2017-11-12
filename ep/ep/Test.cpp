@@ -1025,7 +1025,7 @@ void Test::LogSelectedJoints(float32 fScale, float32 mScale,
 	{
 		b2Joint* j = sj->joint;
 		if (j != nullptr) {
-			LogJoint(j, 1e-6f, 1e-6f, locs, fmt, maxValue, minMaxValue);
+			LogJoint(j, fScale, mScale, locs, fmt, maxValue, minMaxValue);
 		}
 	}
 
