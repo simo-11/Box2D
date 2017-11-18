@@ -691,8 +691,9 @@ void Test::MouseMove(const b2Vec2& p)
 	if (m_mouseJoint)
 	{
 		// Scale force so that 10 % of windows extents gives normalized force
+		// and longer distance make force larger
 		float32 d = (m_mouseJoint->GetAnchorB() - m_mouseJoint->GetAnchorA()).Length();
-		float32 scale = 10*d / g_camera.m_extent*g_camera.m_zoom;
+		float32 scale = b2Max(1.f,10*d / g_camera.m_extent*g_camera.m_zoom);
 		float32 force = scale*settings->mouseJointForceScale* m_mouseJoint->GetBodyB()->GetMass();
 		m_mouseJoint->SetMaxForce(force);
 		m_mouseJoint->SetTarget(p);
