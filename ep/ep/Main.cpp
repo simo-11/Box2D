@@ -457,6 +457,7 @@ static void sInterface()
 			if (ImGui::Checkbox("Select current EPJoint(s)", &settings.selectEPJoint)) {
 				settings.addRigidTriangles = false;
 				settings.addEPBeams = false;
+				settings.addMasses = false;
 			}
 			if (ImGui::IsItemHovered() && settings.selectEPJoint) {
 				ImGui::SetTooltip("Use ALT-MB1");
