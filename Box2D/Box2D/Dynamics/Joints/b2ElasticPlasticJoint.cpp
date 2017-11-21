@@ -492,8 +492,20 @@ bool b2ElasticPlasticJoint::SolvePositionConstraints(const b2SolverData& data)
 	}
 	else
 	{
-		b2Vec2 C1 = cB + rB - cA - rA;
-		float32 C2 = aB - aA - m_referenceAngle;
+		b2Vec2 C1;
+		if (!m_forceExceeded) {
+			C1 = cB + rB - cA - rA;
+		}
+		else {
+			C1.SetZero();
+		}
+		float32 C2;
+		if (!m_torqueExceeded) {
+			C2 = aB - aA - m_referenceAngle;
+		}
+		else {
+			C2 = 0.f;
+		}
 
 		positionError = C1.Length();
 		angularError = b2Abs(C2);
