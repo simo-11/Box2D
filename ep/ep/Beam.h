@@ -28,6 +28,7 @@
 // joint with a rotational spring.
 //
 // Simo searches way to 
+// * stable processing
 // * make iterations more efficient
 // * how to automatically decompose object into appropriate pieces
 //
@@ -49,7 +50,7 @@ namespace {
 	float E; // GPa
 	float fy; //MPa
 	float maxElasticRotation, maxRotation, maxStrain;
-	bool addSoft, addHard, addElasticPlastic, firstIsHinge;
+	bool addSoft, addHard, addElasticPlastic, firstIsHinge, horizontal;
 	float32 lastCx,lastCy;
 }
 class Beam : public Test
@@ -125,6 +126,11 @@ public:
 					ImGui::SameLine();
 					ImGui::Checkbox("ElasticPlastic", &addElasticPlastic);
 					ImGui::Checkbox("FirstIsHinge", &firstIsHinge);
+					ImGui::SameLine();
+					ImGui::Checkbox("Horizontal", &horizontal);
+					if (ImGui::IsItemHovered() && !horizontal) {
+						ImGui::SetTooltip("Vertical");
+					}
 				}
 				float locs[4] = { 40, 80, 120, 160 };
 				if (ImGui::CollapsingHeader("Joint forces MN/MNm"))
@@ -228,6 +234,7 @@ void Beam::reset(){
 	addHard = false;
 	addElasticPlastic = true;
 	firstIsHinge = false;
+	horizontal = false;
 	beamType = Cantilever;
 	settings->reset();
 }
@@ -330,7 +337,12 @@ void Beam::build(){
 		b2Body* sbody = getStaticBody(staticShape, sy);
 
 		b2PolygonShape shape;
-		shape.SetAsBox(hx, hy);
+		if (horizontal) {
+			shape.SetAsBox(hx, hy);
+		}
+		else {
+			shape.SetAsBox(hy, hx);
+		}
 
 		b2FixtureDef fd;
 		fd.shape = &shape;
@@ -353,10 +365,28 @@ void Beam::build(){
 		{
 			b2BodyDef bd;
 			bd.type = b2_dynamicBody;
-			bd.position.Set((2 * i + 1)*hx, sy);
+			float32 x, y;
+			if (horizontal) {
+				x = (2 * i + 1)*hx;
+				y = sy;
+			}
+			else {
+				x = -hy;
+				y = sy -hy- (2 * i + 1)*hx;
+			}
+			bd.position.Set(x, y);
 			b2Body* body = m_world->CreateBody(&bd);
 			body->CreateFixture(&fd);
-			b2Vec2 anchor((2 * i)*hx, sy);
+			float32 ax, ay;
+			if (horizontal) {
+				ax = 2 * i*hx;
+				ay = sy;
+			}
+			else {
+				ax = -hy;
+				ay = sy -hy- 2 * i*hx;
+			}
+			b2Vec2 anchor(ax, ay);
 			if (i == 0 && firstIsHinge){
 				hd.Initialize(prevBody, body, anchor);
 				m_world->CreateJoint(&hd);
