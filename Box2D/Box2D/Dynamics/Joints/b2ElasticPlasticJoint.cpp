@@ -89,32 +89,6 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	m_invMassB = m_bodyB->m_invMass;
 	m_invIA = m_bodyA->m_invI;
 	m_invIB = m_bodyB->m_invI;
-	// ep, update anchors if needed
-	if (m_forceExceeded || m_torqueExceeded){
-		float32 elasticPart = 0.f;
-		if (m_frequencyHz > 0.f){
-			elasticPart = 0.f; // TODO, define better
-		}
-		float32 newDistance = (1.f-elasticPart)*
-			(m_bodyA->GetTransform().p - m_bodyB->GetTransform().p)
-			.Length();
-		float32 origDistance = m_localAnchorA.Length() + m_localAnchorB.Length();
-		// this needs more analysis
-		// current implementation is based on idea
-		// that tearing joint up joint should be more meaningful
-		// than pushing
-		if (m_forceExceeded || origDistance < newDistance) {
-			float32 sf = newDistance / origDistance;
-			m_localAnchorA *= sf;
-			m_localAnchorB *= sf;
-			m_currentStrain += b2Abs(newDistance - origDistance);
-		}
-		m_forceExceeded = false;
-	}
-	if (m_torqueExceeded && m_frequencyHz==0.f){
-		updateRotationalPlasticity(0.f);
-	}
-	// end ep
 	float32 aA = data.positions[m_indexA].a;
 	b2Vec2 vA = data.velocities[m_indexA].v;
 	float32 wA = data.velocities[m_indexA].w;
@@ -166,17 +140,13 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 
 		// Spring stiffness
 		float32 k = m * omega * omega;
-
+		m_k=k; // save for possible reuse during UpdateAnchors
 		// magic formulas
 		float32 h = data.step.dt;
 		m_gamma = h * (d + h * k);
 		m_gamma = m_gamma != 0.0f ? 1.0f / m_gamma : 0.0f;
 		invM += m_gamma;
 		m_mass.ez.z = invM != 0.0f ? 1.0f / invM : 0.0f;
-		if (m_torqueExceeded) {
-			float32 elasticRotation = m_maxImpulse.z / h / k;
-			updateRotationalPlasticity(elasticRotation);
-		}
 		if(m_maxElasticRotation!=0.f){
 			m_maxTorque = k*m_maxElasticRotation;
 		}
@@ -226,6 +196,44 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	b2Vec2 rotatedForce = GetRotatedMaxForce();
 	m_maxImpulse.x = (rotatedForce.x)*data.step.dt;
 	m_maxImpulse.y = (rotatedForce.y)*data.step.dt;
+}
+
+void b2ElasticPlasticJoint::UpdateAnchors(const b2SolverData & data)
+{
+	if (!m_forceExceeded && !m_torqueExceeded) {
+		return;
+	}
+	float32 elasticPart = 0.f;
+	if (m_frequencyHz > 0.f) {
+		elasticPart = 0.f; // TODO, define better
+	}
+	float32 newDistance = (1.f - elasticPart)*
+		(m_bodyA->GetTransform().p - m_bodyB->GetTransform().p)
+		.Length();
+	float32 origDistance = m_localAnchorA.Length() + m_localAnchorB.Length();
+	// this needs more analysis
+	// current implementation is based on idea
+	// that tearing joint up joint should be more meaningful
+	// than pushing
+	if (m_forceExceeded || origDistance < newDistance) {
+		float32 sf = newDistance / origDistance;
+		m_localAnchorA *= sf;
+		m_localAnchorB *= sf;
+		m_currentStrain += b2Abs(newDistance - origDistance);
+	}
+	m_forceExceeded = false;
+	if (!m_torqueExceeded) {
+		return;
+	}
+	if (m_frequencyHz == 0.f) {
+		updateRotationalPlasticity(0.f);
+	}
+	else {
+		float32 h = data.step.dt;
+		float32 elasticRotation = m_maxImpulse.z / h / m_k;
+		updateRotationalPlasticity(elasticRotation);
+	}
+	m_torqueExceeded = false;
 }
 
 void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
@@ -492,20 +500,8 @@ bool b2ElasticPlasticJoint::SolvePositionConstraints(const b2SolverData& data)
 	}
 	else
 	{
-		b2Vec2 C1;
-		if (!m_forceExceeded) {
-			C1 = cB + rB - cA - rA;
-		}
-		else {
-			C1.SetZero();
-		}
-		float32 C2;
-		if (!m_torqueExceeded) {
-			C2 = aB - aA - m_referenceAngle;
-		}
-		else {
-			C2 = 0.f;
-		}
+		b2Vec2 C1= cB + rB - cA - rA;
+		float32 C2=aB - aA - m_referenceAngle;
 
 		positionError = C1.Length();
 		angularError = b2Abs(C2);

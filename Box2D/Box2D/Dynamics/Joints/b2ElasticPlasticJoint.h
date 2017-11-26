@@ -128,6 +128,7 @@ protected:
 	b2ElasticPlasticJoint(const b2ElasticPlasticJointDef* def);
 
 	void InitVelocityConstraints(const b2SolverData& data);
+	void UpdateAnchors(const b2SolverData& data);
 	void SolveVelocityConstraints(const b2SolverData& data);
 	bool SolvePositionConstraints(const b2SolverData& data);
 
@@ -142,6 +143,7 @@ protected:
 	float32 m_gamma;
 	b2Vec3 m_impulse;
 	// ep
+	float32 m_k;
 	b2Vec3 m_maxImpulse;
 	b2Vec3 GetClampedDeltaImpulse(b2Vec3 Cdot, const b2SolverData& data);
 	b2Vec2 GetClampedDeltaImpulse(b2Vec2 Cdot, const b2SolverData& data);

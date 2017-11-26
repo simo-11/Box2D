@@ -326,6 +326,16 @@ void b2Island::Solve(b2Profile* profile, const b2TimeStep& step, const b2Vec2& g
 		m_velocities[i].v = v;
 		m_velocities[i].w = w;
 	}
+	// ep start
+	for (int32 i = 0; i < m_jointCount; ++i)
+	{
+		switch (m_joints[i]->GetType()) {
+		case e_elasticPlasticJoint:
+			((b2ElasticPlasticJoint*)(m_joints[i]))->UpdateAnchors(solverData);
+			break;
+		}
+	}
+	// ep end
 
 	// Solve position constraints
 	timer.Reset();
