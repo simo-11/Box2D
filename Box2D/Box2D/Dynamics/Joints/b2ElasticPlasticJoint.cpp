@@ -207,9 +207,10 @@ void b2ElasticPlasticJoint::UpdateAnchors(const b2SolverData & data)
 	if (m_frequencyHz > 0.f) {
 		elasticPart = 0.f; // TODO, define better
 	}
-	float32 newDistance = (1.f - elasticPart)*
-		(m_bodyA->GetTransform().p - m_bodyB->GetTransform().p)
-		.Length();
+	b2Vec2 cA = data.positions[m_indexA].c;
+	b2Vec2 cB = data.positions[m_indexB].c;
+
+	float32 newDistance = (1.f - elasticPart)*(cA - cB).Length();
 	float32 origDistance = m_localAnchorA.Length() + m_localAnchorB.Length();
 	// this needs more analysis
 	// current implementation is based on idea
@@ -226,12 +227,12 @@ void b2ElasticPlasticJoint::UpdateAnchors(const b2SolverData & data)
 		return;
 	}
 	if (m_frequencyHz == 0.f) {
-		updateRotationalPlasticity(0.f);
+		updateRotationalPlasticity(data, 0.f);
 	}
 	else {
 		float32 h = data.step.dt;
 		float32 elasticRotation = m_maxImpulse.z / h / m_k;
-		updateRotationalPlasticity(elasticRotation);
+		updateRotationalPlasticity(data, elasticRotation);
 	}
 	m_torqueExceeded = false;
 }
@@ -435,9 +436,13 @@ float32 b2ElasticPlasticJoint::GetClampedMaxImpulse(float32 Cdot,
 	
 }
 
-void b2ElasticPlasticJoint::updateRotationalPlasticity(float32 elasticRotation)
+void b2ElasticPlasticJoint::updateRotationalPlasticity
+	(const b2SolverData& data, float32 elasticRotation)
 {
-	float32 currentAngleDiff = m_bodyB->GetAngle() - m_bodyA->GetAngle();
+	float32 aA = data.positions[m_indexA].a;
+	float32 aB = data.positions[m_indexB].a;
+
+	float32 currentAngleDiff = aB - aA;
 	if (m_impulse.z < 0) {
 		elasticRotation =-elasticRotation;
 	}

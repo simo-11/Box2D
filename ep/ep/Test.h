@@ -91,9 +91,9 @@ struct Settings
 		singleStep = false;
 		forceScale = 0.1f;
 		momentScale = 0.3f;
-		epbScale = 10.f;
+		epbScale = 100.f;
 		epbHz = 0.f;
-		epbMassScale = 10.f;
+		epbMassScale = 300.f;
 		addRigidTriangles = false;
 		addEPBeams = false;
 		initImpulses = false;
