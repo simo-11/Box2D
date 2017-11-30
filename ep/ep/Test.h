@@ -97,6 +97,7 @@ struct Settings
 		addRigidTriangles = false;
 		addEPBeams = false;
 		initImpulses = false;
+		gravityRampUpTime = 1.0f;
 	}
 	float32 hz;
 	float32 mouseJointForceScale; 
@@ -124,6 +125,7 @@ struct Settings
 	float32 addMass = 1000000;
 	bool initImpulses;
 	float32 forceScale, momentScale, epbScale, epbMassScale, epbHz;
+	float32 gravityRampUpTime;
 };
 
 struct TestEntry

@@ -421,6 +421,10 @@ static void sInterface()
 			ImGui::Text("Hertz");
 			ImGui::SameLine();
 			ImGui::SliderFloat("##Hertz", &settings.hz, 5.0f, 10000.0f, "%.0f hz", 2.0f);
+			ImGui::Text("GravityRampUpTime");
+			ImGui::SameLine();
+			ImGui::SliderFloat("##GravityRampUpTime",
+				&settings.gravityRampUpTime, 0.0f, 10.0f, "%.1f s");
 			ImGui::Text("Mouse joint force scale");
 			ImGui::SliderFloat("##mouseJointForceScale", &settings.mouseJointForceScale,
 				1.0f, 1000.0f, "%.0f * mass", 3.0f);
@@ -627,7 +631,7 @@ static void sInterface()
 			}
 			ImGui::SameLine();
 			ImGui::SliderFloat("##epbScale", 
-				&settings.epbScale, 0.1f, 100.f,"%.2f",3.f);
+				&settings.epbScale, 0.1f, 1000.f,"%.2f",3.f);
 			ImGui::Text("Frequency");
 			if (ImGui::IsItemHovered()) {
 				ImGui::SetTooltip("Frequency for joints");
@@ -641,7 +645,7 @@ static void sInterface()
 			}
 			ImGui::SameLine();
 			ImGui::SliderFloat("##epbMassScale", 
-				&settings.epbMassScale, 0.1f, 100.f, "%.2f", 3.f);
+				&settings.epbMassScale, 0.1f, 1000.f, "%.2f", 3.f);
 			if (ImGui::Checkbox("Add ElasticPlastic Beams",
 				&settings.addEPBeams)) {
 				settings.selectEPJoint = false;

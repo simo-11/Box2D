@@ -794,6 +794,13 @@ void Test::Step()
 	m_world->SetSubStepping(settings->enableSubStepping);
 
 	m_pointCount = 0;
+	b2Vec2 gravity;
+	gravity.Set(0.0f, -10.0f);
+	if (steppedTime < settings->gravityRampUpTime) {
+		float32 scale = steppedTime / settings->gravityRampUpTime;
+		gravity = scale*gravity;
+	}
+	m_world->SetGravity(gravity);
 	m_world->Step(timeStep, settings->velocityIterations, settings->positionIterations);
 	for (b2Joint* j = m_world->GetJointList(); j;)
 	{
