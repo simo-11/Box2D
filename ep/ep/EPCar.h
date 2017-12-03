@@ -280,11 +280,14 @@ public:
 	}
 	void Step()
 	{
+		/** Keep car in range -lowerLimit - upperLimit+2*lowerLimit
+		-10 - 250
+		*/
 		float32 upperLimit = 270, lowerLimit=-10;
 		float32 move=0.f;
 		float32 cx = m_Car->GetPosition().x;
-		if ( cx> upperLimit) {
-			move = -cx;
+		if ( cx> upperLimit+2*lowerLimit) {
+			move = lowerLimit-cx;
 		}else if (cx <lowerLimit) {
 			move = upperLimit + cx;
 		}

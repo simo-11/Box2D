@@ -470,8 +470,8 @@ void Test::AddEPBeamBody(EPBeam* rt) {
 	* 
 	*/
 	jd.maxTorque = mf*epbHx/2;
-	jd.maxRotation = 1.f;
-	jd.maxStrain = 0.5f*epbHx;
+	jd.maxRotation = 3.f;
+	jd.maxStrain = 3.f*epbHx;
 	jd.frequencyHz = settings->epbHz;
 	if (jd.frequencyHz > 0.f) {
 		jd.maxElasticRotation = 0.2f;

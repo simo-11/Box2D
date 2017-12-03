@@ -431,7 +431,7 @@ static void sInterface()
 			ImGui::Text("visual joint reaction force");
 			ImGui::SliderFloat("##forceScale", &settings.forceScale, 0.001f, 10000.0f, "%.3f", 3.f);
 			ImGui::Text("visual joint reaction moment");
-			ImGui::SliderFloat("##momentScale", &settings.momentScale, 0.001f, 1000.0f, "%.3f", 2.f);
+			ImGui::SliderFloat("##momentScale", &settings.momentScale, 0.001f, 10000.0f, "%.3f", 3.f);
 			ImGui::PopItemWidth();
 
 			ImGui::Checkbox("Sleep", &settings.enableSleep);
