@@ -277,6 +277,7 @@ protected:
 	b2Vec2 m_localPointForMovingBody;
 	b2Body* loggedBody;
 	b2Vec3 max, min;
+	void ResetMinAndMax();
 	// ep
 	b2Vec2 m_bombSpawnPoint;
 	bool m_bombSpawning;

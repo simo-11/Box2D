@@ -49,6 +49,11 @@ void DestructionListener::SayGoodbye(b2Joint* joint)
 	test->SelectedJointDeleted(joint);
 }
 
+void Test::ResetMinAndMax() {
+	max.Set(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+	min.Set(FLT_MAX, FLT_MAX, FLT_MAX);
+}
+
 Test::Test(Settings *sp)
 {
 	b2ElasticPlasticJoint::resetEpId();
@@ -63,8 +68,7 @@ Test::Test(Settings *sp)
 	loggedBody = NULL;
 	steppedTime = 0;
 	m_pointCount = 0;
-	max.Set(-FLT_MAX, -FLT_MAX, -FLT_MAX);
-	min.Set(FLT_MAX, FLT_MAX, FLT_MAX);
+	ResetMinAndMax();
 	m_destructionListener.test = this;
 	m_world->SetDestructionListener(&m_destructionListener);
 	m_world->SetContactListener(this);
@@ -577,6 +581,7 @@ void Test::MouseDown(const b2Vec2& p, int32 mods)
 	{
 		b2Body* body = callback.m_fixture->GetBody();
 		loggedBody = body;
+		ResetMinAndMax();
 		if (!(mods&GLFW_MOD_CONTROL)){
 			if (body->GetType() == b2_dynamicBody)
 			{
@@ -597,6 +602,7 @@ void Test::MouseDown(const b2Vec2& p, int32 mods)
 	}
 	else{
 		loggedBody = NULL;
+		ResetMinAndMax();
 	}
 }
 
