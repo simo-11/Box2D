@@ -490,8 +490,10 @@ static void sInterface()
 								for (int i = 0; i < 3 * EP_MAX_VALUES; i++) {
 									j->forces[i] = 0.f;
 								}
-								j->maxForce = j->joint->GetRotatedMaxForce();
-								j->maxTorque = j->joint->GetMaxTorque();
+								if (j->joint!=NULL) {
+									j->maxForce = j->joint->GetRotatedMaxForce();
+									j->maxTorque = j->joint->GetMaxTorque();
+								}
 							}
 						}
 						else {
