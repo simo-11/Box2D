@@ -122,7 +122,7 @@ struct Settings
 	bool pause;
 	bool singleStep;
 	bool addRigidTriangles, addMasses, addEPBeams,selectEPJoint; // using ALT-MB1 if active
-	float32 addMass = 1000000;
+	float32 addMass = 1000000, addMassSize=2;
 	bool initImpulses;
 	float32 forceScale, momentScale, epbScale, epbMassScale, epbHz;
 	float32 gravityRampUpTime;

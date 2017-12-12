@@ -619,6 +619,10 @@ static void sInterface()
 			if (ImGui::IsItemHovered() && settings.addMasses) {
 				ImGui::SetTooltip("Use ALT-MB1");
 			}
+			ImGui::Text("size [m]");
+			ImGui::SameLine();
+			ImGui::SliderFloat
+			("size [m]", &settings.addMassSize, 0.1f, 100);
 			bool valueChanged = ImGui::InputFloat
 				("Mass [kg]", &settings.addMass, 1000,1000000,0);
 		}

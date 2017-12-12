@@ -330,10 +330,10 @@ void Test::AddRigidTriangle(const b2Vec2& p){
 void Test::AddMass(const b2Vec2& p) {
 	b2FixtureDef fd;
 	b2PolygonShape shape;
-	float32 zoom = g_camera.m_zoom;
-	shape.SetAsBox(zoom, zoom);
+	float32 halfSize = settings->addMassSize / 2;
+	shape.SetAsBox(halfSize, halfSize);
 	fd.shape = &shape;
-	fd.density = settings->addMass/4.f/zoom/zoom;
+	fd.density = settings->addMass/4.f/ halfSize / halfSize;
 	b2BodyDef bd;
 	bd.type = b2_dynamicBody;
 	bd.position.Set(p.x,p.y);
