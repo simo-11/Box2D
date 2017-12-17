@@ -151,6 +151,8 @@ protected:
 	b2Vec3 GetClampedMaxImpulse(b2Vec3 Cdot, const b2SolverData& data);
 	b2Vec3 GetClampedMaxImpulse(b2Vec2 Cdot, const b2SolverData& data);
 	float32 GetClampedMaxImpulse(float32 Cdot, const b2SolverData& data);
+	b2Vec2 Clamp(b2Vec2 P, const b2SolverData& data);
+	float32 Clamp(float32 M, const b2SolverData& data);
 	void updateRotationalPlasticity(const b2SolverData& data, float32 elasticRotation);
 	b2Vec2 m_maxForce;
 	float32 m_maxTorque;

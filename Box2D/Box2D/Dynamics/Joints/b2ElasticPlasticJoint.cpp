@@ -418,6 +418,43 @@ float32 b2ElasticPlasticJoint::GetClampedDeltaImpulse(float32 Cdot,
 	return clamped;
 }
 
+#define CLAMP_POS_CORRECTION_IMPULSE
+/**
+* Clamp impulse in position correction
+*/
+float32 b2ElasticPlasticJoint::Clamp(float32 M,
+	const b2SolverData& data /* unused */) {
+#ifdef CLAMP_POS_CORRECTION_IMPULSE
+	float32 low = -m_maxImpulse.z - m_impulse.z;
+	float32 high = m_maxImpulse.z - m_impulse.z;
+	float32 clamped = b2Clamp(M,low, high);
+	if (clamped != M) {
+		bool placeHolder = true;
+	}
+	return clamped;
+#else
+	return M;
+#endif
+}
+
+/**
+* Clamp impulse in position correction
+*/
+b2Vec2 b2ElasticPlasticJoint::Clamp(b2Vec2 P,
+	const b2SolverData& data /* unused */) {
+#ifdef CLAMP_POS_CORRECTION_IMPULSE
+	b2Vec2 low = b2Vec2(-m_maxImpulse.x - m_impulse.x ,-m_maxImpulse.y - m_impulse.y);
+	b2Vec2 high = b2Vec2(m_maxImpulse.x - m_impulse.x, m_maxImpulse.y - m_impulse.y);
+	b2Vec2 clamped = b2Clamp(P, low, high);
+	if (clamped.x != P.x || clamped.y!=P.y) {
+		bool placeHolder = true;
+	}
+	return clamped;
+#else
+	return P;
+#endif
+}
+
 /**
 * scale maxImpulse if joint is about to break
 */
@@ -495,13 +532,14 @@ bool b2ElasticPlasticJoint::SolvePositionConstraints(const b2SolverData& data)
 		positionError = C1.Length();
 		angularError = 0.0f;
 
-		b2Vec2 P = -K.Solve22(C1);
-
+		b2Vec2 P = Clamp(-K.Solve22(C1),data);
+		float32 M = Clamp(b2Cross(rA, P),data);
 		cA -= mA * P;
-		aA -= iA * b2Cross(rA, P);
+		aA -= iA * M;
 
+		M = Clamp(b2Cross(rB, P),data);
 		cB += mB * P;
-		aB += iB * b2Cross(rB, P);
+		aB += iB * M;
 	}
 	else
 	{
@@ -524,13 +562,15 @@ bool b2ElasticPlasticJoint::SolvePositionConstraints(const b2SolverData& data)
 			impulse.Set(impulse2.x, impulse2.y, 0.0f);
 		}
 
-		b2Vec2 P(impulse.x, impulse.y);
+		b2Vec2 P=Clamp(b2Vec2(impulse.x, impulse.y),data);
 
 		cA -= mA * P;
-		aA -= iA * (b2Cross(rA, P) + impulse.z);
+		float32 M = Clamp((b2Cross(rA, P) + impulse.z), data);
+		aA -= iA * M;
 
 		cB += mB * P;
-		aB += iB * (b2Cross(rB, P) + impulse.z);
+		M = Clamp((b2Cross(rB, P) + impulse.z), data);
+		aB += iB * M;
 	}
 
 	data.positions[m_indexA].c = cA;
