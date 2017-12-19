@@ -98,6 +98,10 @@ struct Settings
 		addEPBeams = false;
 		initImpulses = false;
 		gravityRampUpTime = 1.0f;
+		bombMass = 1000;
+		bombRadius = 0.2f;
+		bombMultiplier = 30.f;
+		bombVelocity = b2Vec2(20, 0);
 	}
 	float32 hz;
 	float32 mouseJointForceScale; 
@@ -126,6 +130,8 @@ struct Settings
 	bool initImpulses;
 	float32 forceScale, momentScale, epbScale, epbMassScale, epbHz;
 	float32 gravityRampUpTime;
+	float32 bombMass, bombRadius, bombMultiplier;
+	b2Vec2 bombVelocity;
 };
 
 struct TestEntry
@@ -183,6 +189,7 @@ public:
 	
 	void SpawnBomb(const b2Vec2& worldPt);
 	void CompleteBombSpawn(const b2Vec2& p);
+	void UpdateBombVelocity(const b2Vec2& p);
 
 	// Let derived tests know that a joint was destroyed.
 	virtual void JointDestroyed(b2Joint* joint) { B2_NOT_USED(joint); }
@@ -253,8 +260,10 @@ public:
 	virtual float  getEpBeamMaxForce() { return 1; }
 	/** reset configurable settings */
 	virtual void reset(){};
-	virtual float getBombDensity(){ return 1000; }
-	virtual float getBombRadius(){ return 0.3f; }
+	virtual float getBombMass();
+	virtual float getBombRadius();
+	virtual float getBombVelocity();
+	virtual b2Vec2 getBombSpawnPoint();
 	virtual void wakeConnectedBodies(b2Body*);
 	float32 steppedTime;
 	b2Body* m_movingBody;
@@ -284,6 +293,7 @@ protected:
 	// ep
 	b2Vec2 m_bombSpawnPoint;
 	bool m_bombSpawning;
+	b2Vec2 m_bombVelocity;
 	b2Vec2 m_mouseWorld;
 	int32 m_stepCount;
 

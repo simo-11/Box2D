@@ -65,6 +65,7 @@ Test::Test(Settings *sp)
 	m_textLine = 30;
 	m_mouseJoint = NULL;
 	m_movingBody = NULL;
+	m_bombSpawnPoint = b2Vec2(-10, 10);
 	loggedBody = NULL;
 	steppedTime = 0;
 	m_pointCount = 0;
@@ -611,19 +612,38 @@ void Test::SpawnBomb(const b2Vec2& worldPt)
 	m_bombSpawnPoint = worldPt;
 	m_bombSpawning = true;
 }
-    
+  
+b2Vec2 Test::getBombSpawnPoint()
+{
+	return m_bombSpawnPoint;
+}
 void Test::CompleteBombSpawn(const b2Vec2& p)
 {
 	if (m_bombSpawning == false)
 	{
 		return;
 	}
-
-	const float multiplier = 30.0f;
-	b2Vec2 vel = m_bombSpawnPoint - p;
-	vel *= multiplier;
-	LaunchBomb(m_bombSpawnPoint,vel);
+	UpdateBombVelocity(p);
+	LaunchBomb(m_bombSpawnPoint, m_bombVelocity);
 	m_bombSpawning = false;
+}
+
+void Test::UpdateBombVelocity(const b2Vec2& p)
+{
+	if (m_bombSpawning == false)
+	{
+		return;
+	}
+	b2Vec2 vel = m_bombSpawnPoint - p;
+	m_bombVelocity = settings->bombMultiplier*vel;
+}
+
+float Test::getBombVelocity() {
+	if (m_bombSpawning == false)
+	{
+		return 0.f;
+	}
+	return m_bombVelocity.Length();
 }
 
 void Test::ShiftMouseDown(const b2Vec2& p)
@@ -709,6 +729,11 @@ void Test::MouseMove(const b2Vec2& p)
 		m_movingBody->SetTransform(np,0);
 		wakeConnectedBodies(m_movingBody);
 	}
+	if (m_bombSpawning)
+	{
+		UpdateBombVelocity(p);
+	}
+
 }
 
 void Test::wakeConnectedBodies(b2Body* body){
@@ -726,9 +751,7 @@ void Test::wakeConnectedBodies(b2Body* body){
 
 void Test::LaunchBomb()
 {
-	b2Vec2 p(RandomFloat(-15.0f, 15.0f), 30.0f);
-	b2Vec2 v = -5.0f * p;
-	LaunchBomb(p, v);
+	LaunchBomb(m_bombSpawnPoint, settings->bombVelocity);
 }
 
 void Test::LaunchBomb(const b2Vec2& position, const b2Vec2& velocity)
@@ -748,20 +771,23 @@ void Test::LaunchBomb(const b2Vec2& position, const b2Vec2& velocity)
 	
 	b2CircleShape circle;
 	circle.m_radius = getBombRadius();
-
+	float32 r = circle.m_radius;
+	float32 area = b2_pi*r*r;
 	b2FixtureDef fd;
 	fd.shape = &circle;
-	fd.density = getBombDensity();
+	fd.density = getBombMass()/area;
 	fd.restitution = 0.0f;
 	
-	b2Vec2 minV = position - b2Vec2(0.3f,0.3f);
-	b2Vec2 maxV = position + b2Vec2(0.3f,0.3f);
-	
-	b2AABB aabb;
-	aabb.lowerBound = minV;
-	aabb.upperBound = maxV;
-
 	m_bomb->CreateFixture(&fd);
+}
+
+float Test::getBombMass()
+{
+	return settings->bombMass;
+}
+float Test::getBombRadius()
+{
+	return settings->bombRadius;
 }
 
 void Test::Step()
@@ -1002,6 +1028,11 @@ void Test::Step()
 
 		c.Set(0.8f, 0.8f, 0.8f);
 		g_debugDraw.DrawSegment(m_mouseWorld, m_bombSpawnPoint, c);
+		b2Vec2 p = 0.5*(m_mouseWorld + m_bombSpawnPoint) + b2Vec2(0, 5);
+		char buff[20];
+		const char* label = buff;
+		sprintf(buff, "(%6.2f,%6.2f)",m_bombVelocity.x,m_bombVelocity.y);
+		g_debugDraw.DrawString(p,buff);
 	}
 
 	if (settings->drawContactPoints)

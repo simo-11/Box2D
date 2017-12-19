@@ -38,7 +38,6 @@ namespace b2Frame {
 	float E; // GPa
 	float fy; //MPa
 	float maxRotation, maxStrain;
-	float bombRadius, bombDensity;
 	float32 lastCx, lastCy;
 }
 class Frame : public Test
@@ -47,12 +46,6 @@ public:
 	int bodyCount;
 	b2Body **bodies;
 	virtual bool isMyType();
-	virtual float getBombRadius() {
-		return b2Frame::bombRadius;
-	}
-	virtual float getBombDensity() {
-		return b2Frame::bombDensity;
-	}
 	virtual void reset();
 	virtual void build();
 	Frame(Settings* sp) :Test(sp)
@@ -86,10 +79,6 @@ public:
 					}
 					ImGui::Text("frame density");
 					ImGui::SliderFloat("kg/m^3##frameDensity", &b2Frame::density, 1000.f, 20000.f, "%.0f");
-					ImGui::Text("bomb density");
-					ImGui::SliderFloat("kg/m^3##bombDensity", &b2Frame::bombDensity, 1000.f, 20000.f, "%.0f");
-					ImGui::Text("bomb radius");
-					ImGui::SliderFloat("m##bombRadius", &b2Frame::bombRadius, 0.05f, 0.2f, "%.2f");
 					// E is not currently used as elastic behaviour is based on frequency
 					// ImGui::Text("Elastic modulus");
 					// ImGui::SliderFloat("GPa##E", &b2Frame::E, 10.f, 1000.f, "%.0f");
@@ -191,8 +180,6 @@ void Frame::reset() {
 	b2Frame::E = 200; // not used
 	b2Frame::maxRotation = 3.f;
 	b2Frame::maxStrain = 0.2f;
-	b2Frame::bombRadius = 0.1f;
-	b2Frame::bombDensity = 7800;
 	b2Frame::frameType = SimpleFrame;
 	settings->reset();
 }

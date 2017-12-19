@@ -411,7 +411,7 @@ static void sInterface()
 			testSelection = testIndex;
 		}
 		ImGui::Separator();
-		if (ImGui::CollapsingHeader("Settings","MainSettings")){
+		if (ImGui::CollapsingHeader("General Settings")){
 			ImGui::Text("Vel Iters");
 			ImGui::SameLine();
 			ImGui::SliderInt("##Vel Iters", &settings.velocityIterations, 0, 50);
@@ -432,6 +432,7 @@ static void sInterface()
 			ImGui::SliderFloat("##forceScale", &settings.forceScale, 0.001f, 10000.0f, "%.3f", 3.f);
 			ImGui::Text("visual joint reaction moment");
 			ImGui::SliderFloat("##momentScale", &settings.momentScale, 0.001f, 10000.0f, "%.3f", 3.f);
+
 			ImGui::PopItemWidth();
 
 			ImGui::Checkbox("Sleep", &settings.enableSleep);
@@ -456,6 +457,40 @@ static void sInterface()
 			ImGui::Checkbox("Profile", &settings.drawProfile);
 			ImGui::Checkbox("Notes", &settings.drawNotes);
 			ImGui::Checkbox("Init Impulses", &settings.initImpulses);
+
+		}
+		if (ImGui::CollapsingHeader("Bomb settings")) {
+			ImGui::Text("Mass");
+			ImGui::SliderFloat("kg##bombMass", &settings.bombMass, 100.f, 100000.f, "%.0f",3);
+			ImGui::Text("Radius");
+			ImGui::SliderFloat("m##bombRadius", &settings.bombRadius, 0.05f, 1.f, "%.2f");
+			ImGui::Text("VelocityScale");
+			ImGui::SliderFloat("m##bombMultiplier",
+				&settings.bombMultiplier, 0.1f, 100.f, "%.2f");
+			if (ImGui::IsItemHovered()) {
+				ImGui::SetTooltip("Drag with Shift-MB1");
+			}
+			float v[2];
+			v[0] = settings.bombVelocity.x;
+			v[1] = settings.bombVelocity.y;
+			ImGui::Text("Velocity");
+			ImGui::SameLine();
+			if (ImGui::InputFloat2("Velocity", v,3)) {
+				settings.bombVelocity.x = v[0];
+				settings.bombVelocity.y = v[1];
+			}
+			b2Vec2 sp = test->getBombSpawnPoint();
+			v[0] = sp.x;
+			v[1] = sp.y;
+			ImGui::Text("Spawn@");
+			ImGui::SameLine();
+			if (ImGui::InputFloat2("Start", v,3)) {
+				sp.x = v[0];
+				sp.y = v[1];
+			}
+			if (ImGui::IsItemHovered()) {
+				ImGui::SetTooltip("Launch with <space>");
+			}
 		}
 		if (ImGui::CollapsingHeader("ElasticPlastic Joints")) {
 			if (ImGui::Checkbox("Select current EPJoint(s)", &settings.selectEPJoint)) {
