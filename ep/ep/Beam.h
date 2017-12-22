@@ -66,12 +66,6 @@ public:
 		sbody->CreateFixture(&sfd);
 		return sbody;
 	}
-	virtual float getBombRadius(){
-		return hy;
-	}
-	virtual float getBombDensity(){
-		return density;
-	}
 	virtual bool isMyType();
 	virtual void reset();
 	virtual void build();

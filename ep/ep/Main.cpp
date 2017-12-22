@@ -461,12 +461,12 @@ static void sInterface()
 		}
 		if (ImGui::CollapsingHeader("Bomb settings")) {
 			ImGui::Text("Mass");
-			ImGui::SliderFloat("kg##bombMass", &settings.bombMass, 100.f, 100000.f, "%.0f",3);
+			ImGui::SliderFloat("kg##bombMass", &settings.bombMass, 100.f, 1000000.f, "%.0f",3);
 			ImGui::Text("Radius");
-			ImGui::SliderFloat("m##bombRadius", &settings.bombRadius, 0.05f, 1.f, "%.2f");
+			ImGui::SliderFloat("m##bombRadius", &settings.bombRadius, 0.05f, 10.f, "%.2f");
 			ImGui::Text("VelocityScale");
 			ImGui::SliderFloat("m##bombMultiplier",
-				&settings.bombMultiplier, 0.1f, 100.f, "%.2f");
+				&settings.bombMultiplier, 0.1f, 120.f, "%.2f");
 			if (ImGui::IsItemHovered()) {
 				ImGui::SetTooltip("Drag with Shift-MB1");
 			}
@@ -487,6 +487,8 @@ static void sInterface()
 			if (ImGui::InputFloat2("Start", v,3)) {
 				sp.x = v[0];
 				sp.y = v[1];
+				test->setBombSpawnPoint(sp);
+				settings.bombSpawnPoint = sp;
 			}
 			if (ImGui::IsItemHovered()) {
 				ImGui::SetTooltip("Launch with <space>");

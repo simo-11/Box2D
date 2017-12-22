@@ -65,7 +65,8 @@ Test::Test(Settings *sp)
 	m_textLine = 30;
 	m_mouseJoint = NULL;
 	m_movingBody = NULL;
-	m_bombSpawnPoint = b2Vec2(-10, 10);
+	m_bombSpawnPoint = sp->bombSpawnPoint;
+	m_bombVelocity = b2Vec2(10, 0);
 	loggedBody = NULL;
 	steppedTime = 0;
 	m_pointCount = 0;
@@ -616,6 +617,10 @@ void Test::SpawnBomb(const b2Vec2& worldPt)
 b2Vec2 Test::getBombSpawnPoint()
 {
 	return m_bombSpawnPoint;
+}
+void Test::setBombSpawnPoint(const b2Vec2 p)
+{
+	m_bombSpawnPoint=p;
 }
 void Test::CompleteBombSpawn(const b2Vec2& p)
 {

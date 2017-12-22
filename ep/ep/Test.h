@@ -99,9 +99,10 @@ struct Settings
 		initImpulses = false;
 		gravityRampUpTime = 1.0f;
 		bombMass = 1000;
-		bombRadius = 0.2f;
-		bombMultiplier = 30.f;
+		bombRadius = 1;
+		bombMultiplier = 30;
 		bombVelocity = b2Vec2(20, 0);
+		bombSpawnPoint = b2Vec2(-bombRadius, bombRadius);
 	}
 	float32 hz;
 	float32 mouseJointForceScale; 
@@ -131,7 +132,7 @@ struct Settings
 	float32 forceScale, momentScale, epbScale, epbMassScale, epbHz;
 	float32 gravityRampUpTime;
 	float32 bombMass, bombRadius, bombMultiplier;
-	b2Vec2 bombVelocity;
+	b2Vec2 bombVelocity,bombSpawnPoint;
 };
 
 struct TestEntry
@@ -263,7 +264,8 @@ public:
 	virtual float getBombMass();
 	virtual float getBombRadius();
 	virtual float getBombVelocity();
-	virtual b2Vec2 getBombSpawnPoint();
+	b2Vec2 getBombSpawnPoint();
+	void setBombSpawnPoint(b2Vec2);
 	virtual void wakeConnectedBodies(b2Body*);
 	float32 steppedTime;
 	b2Body* m_movingBody;
