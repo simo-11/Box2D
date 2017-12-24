@@ -462,21 +462,20 @@ void Test::AddEPBeamBody(EPBeam* rt) {
 	b2Body* body = m_world->CreateBody(&bd);
 	body->CreateFixture(&fd);
 	b2ElasticPlasticJointDef jd;
-	float32 mf = getEpBeamMaxForce()*settings->epbScale;
-	jd.maxForce.x = mf;
-	jd.maxForce.y = mf;
+	jd.maxForce.x = settings->epbMaxForce;
+	jd.maxForce.y = settings->epbMaxForce;
 	/**
-	* h/4 - h
+	* maxTorque should be maxForce* (h/4 ... h)
 	* h/4 for solid rectangle
 	* h is theoretical maximum for infinite thin web(s)
 	* 
 	*/
-	jd.maxTorque = mf*epbHx/2;
-	jd.maxRotation = 3.f;
-	jd.maxStrain = 3.f*epbHx;
+	jd.maxTorque = settings->epbMaxMoment;
+	jd.maxRotation = settings->epbMaxRotation;
+	jd.maxStrain = settings->epbMaxStrain;
 	jd.frequencyHz = settings->epbHz;
 	if (jd.frequencyHz > 0.f) {
-		jd.maxElasticRotation = 0.2f;
+		jd.maxElasticRotation = settings->epbMaxElasticRotation;
 	}
 	jd.dampingRatio = 0.1f;
 	rt->body = body;

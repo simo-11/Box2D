@@ -91,7 +91,11 @@ struct Settings
 		singleStep = false;
 		forceScale = 0.1f;
 		momentScale = 0.3f;
-		epbScale = 100.f;
+		epbMaxForce = 100.f;
+		epbMaxMoment = 100.f;
+		epbMaxStrain = 0.3f;
+		epbMaxRotation = 0.3f;
+		epbMaxElasticRotation = 1;
 		epbHz = 0.f;
 		epbMassScale = 300.f;
 		addRigidTriangles = false;
@@ -129,7 +133,8 @@ struct Settings
 	bool addRigidTriangles, addMasses, addEPBeams,selectEPJoint; // using ALT-MB1 if active
 	float32 addMass = 1000000, addMassSize=2;
 	bool initImpulses;
-	float32 forceScale, momentScale, epbScale, epbMassScale, epbHz;
+	float32 forceScale, momentScale, epbMaxForce, epbMaxMoment,
+		epbMassScale, epbHz, epbMaxRotation, epbMaxStrain, epbMaxElasticRotation;
 	float32 gravityRampUpTime;
 	float32 bombMass, bombRadius, bombMultiplier;
 	b2Vec2 bombVelocity,bombSpawnPoint;
@@ -258,7 +263,6 @@ public:
 	virtual EPBeam* GetLastEPBeam();
 	virtual float getEpBeamDensity() { return 100; } /* rectangular, hollow 4% wall 10% in depth*/
 	virtual float getEpBeamXSizeFactor() { return 0.05f; }
-	virtual float  getEpBeamMaxForce() { return 1; }
 	/** reset configurable settings */
 	virtual void reset(){};
 	virtual float getBombMass();
