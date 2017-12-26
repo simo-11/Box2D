@@ -29,9 +29,6 @@ namespace {
 	b2PolygonShape rigidTriangle;
 	RigidTriangle* rigidTriangleList = nullptr;
 	bool allowEPBeam = false;
-	bool epBeamInitialized = false;
-	float32 iZoom,epbHx;
-	b2PolygonShape epBeam, epBeamHolder;
 	EPBeam* epBeamList = nullptr;
 	SelectedEPJoint* currentJointList=nullptr;
 }
@@ -389,7 +386,6 @@ void Test::DeleteEPBeams() {
 		rt = rtn;
 	}
 	epBeamList = nullptr;
-	epBeamInitialized = false;
 }
 
 void Test::DeleteEPBeam(unsigned char label) {
@@ -432,14 +428,6 @@ EPBeam* Test::GetLastEPBeam() {
 	return rt;
 }
 void Test::AddEPBeam(const b2Vec2& p) {
-	if (!epBeamInitialized) {
-		b2Vec2 vertices[3];
-		iZoom = g_camera.m_zoom;
-		epbHx = getEpBeamXSizeFactor();
-		epBeam.SetAsBox(epbHx, 3 * iZoom);
-		epBeamHolder.SetAsBox(epbHx, epbHx);
-		epBeamInitialized = true;
-	}
 	EPBeam* rt = GetLastEPBeam();
 	if (rt->body != nullptr) {
 		rt->next = new EPBeam();
@@ -453,11 +441,17 @@ void Test::AddEPBeam(const b2Vec2& p) {
 
 void Test::AddEPBeamBody(EPBeam* rt) {
 	b2FixtureDef fd;
-	fd.density = getEpBeamDensity()*settings->epbMassScale;
+	b2Vec2 vertices[3];
+	b2PolygonShape epBeam, epBeamHolder;
+	float32 hx = settings->epbX / 2;
+	float32 hy = settings->epbY;
+	epBeam.SetAsBox(hx, hy);
+	epBeamHolder.SetAsBox(hx, hx);
+	fd.density = settings->epbMass/4/hx/hy;
 	fd.shape = &epBeam;
 	b2BodyDef bd;
 	bd.type = b2_dynamicBody;
-	bd.position.Set(rt->position[0], rt->position[1]+3*iZoom+2*epbHx);
+	bd.position.Set(rt->position[0], rt->position[1]+hy+2*hx);
 	bd.angle = 0.0f;
 	b2Body* body = m_world->CreateBody(&bd);
 	body->CreateFixture(&fd);
@@ -479,7 +473,7 @@ void Test::AddEPBeamBody(EPBeam* rt) {
 	}
 	jd.dampingRatio = 0.1f;
 	rt->body = body;
-	const b2Vec2 anchor(rt->position[0],rt->position[1]+epbHx);
+	const b2Vec2 anchor(rt->position[0],rt->position[1]+hx);
 	bd.type = b2_staticBody;
 	bd.position.Set(rt->position[0], rt->position[1]);
 	b2Body* sBody = m_world->CreateBody(&bd);
@@ -1032,7 +1026,7 @@ void Test::Step()
 
 		c.Set(0.8f, 0.8f, 0.8f);
 		g_debugDraw.DrawSegment(m_mouseWorld, m_bombSpawnPoint, c);
-		b2Vec2 p = 0.5*(m_mouseWorld + m_bombSpawnPoint) + b2Vec2(0, 5);
+		b2Vec2 p = 0.5*(m_mouseWorld + m_bombSpawnPoint) + b2Vec2(0, g_camera.m_zoom);
 		char buff[20];
 		const char* label = buff;
 		sprintf(buff, "(%6.2f,%6.2f)",m_bombVelocity.x,m_bombVelocity.y);

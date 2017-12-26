@@ -37,7 +37,8 @@ enum BeamType {
 	None=0,
 	Cantilever,
 	Axial,
-	Elastic
+	Elastic,
+	Empty,
 };
 namespace {
 	BeamType beamType = None;
@@ -49,7 +50,7 @@ namespace {
 	float32 hy;
 	float fy; //MPa
 	float maxElasticRotation, maxRotation, maxStrain;
-	bool addSoft, addHard, addElasticPlastic, firstIsHinge, horizontal;
+	bool addSoft, addHard, addElasticPlastic, showElasticPlastic, firstIsHinge, horizontal;
 	float32 lastCx,lastCy;
 }
 class Beam : public Test
@@ -66,6 +67,13 @@ public:
 		sbody->CreateFixture(&sfd);
 		return sbody;
 	}
+	bool showControls() {
+		switch (beamType) {
+		case Empty:
+			return false;
+		}
+		return true;
+	}
 	virtual bool isMyType();
 	virtual void reset();
 	virtual void build();
@@ -81,7 +89,7 @@ public:
 			ImGui::SetNextWindowSize(ImVec2((float)menuWidth, (float)g_camera.m_height - 20));
 			if (ImGui::Begin("Beam Controls##Bean", &showMenu,
 				ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize)){
-				if (ImGui::CollapsingHeader("Settings", "BeamSettings"))
+				if (showControls() && ImGui::CollapsingHeader("Settings", "BeamSettings"))
 				{
 					ImGui::Text("sub body count");
 					ImGui::SliderInt("##sub body count", &so_count, 1, 50);
@@ -142,7 +150,7 @@ public:
 					LogSelectedJoints(1e-6f, 1e-6f, locs);
 				}
 
-				if (addElasticPlastic && ImGui::CollapsingHeader("Capacity usage [%]"))
+				if (showElasticPlastic && ImGui::CollapsingHeader("Capacity usage [%]"))
 				{
 					ImGui::Text(" x"); ImGui::SameLine(locs[0]);
 					ImGui::Text(" y"); ImGui::SameLine(locs[1]);
@@ -325,6 +333,7 @@ void Beam::build(){
 	}
 	if (addElasticPlastic)
 	{
+		showElasticPlastic = true;
 		sy += 5 + totalLength;
 		b2Body* sbody = getStaticBody(staticShape, sy);
 
@@ -469,15 +478,47 @@ public:
 	}
 };
 
-bool ElasticBeam::isMyType(){
+bool ElasticBeam::isMyType() {
 	return beamType == Elastic;
 }
 
-void ElasticBeam::reset(){
+void ElasticBeam::reset() {
 	Beam::reset();
 	hx = 30.f;
 	baseHz = 1.f;
 	beamType = Elastic;
+}
+
+class EmptyBeam : public Beam
+{
+public:
+	EmptyBeam(Settings *settings) :Beam(settings) {
+	}
+	~EmptyBeam() {
+	}
+	virtual void reset();
+	virtual bool isMyType();
+	static Test* Create(Settings *settings)
+	{
+		Beam* t = new EmptyBeam(settings);
+		t->build();
+		t->CreateRigidTriangles();
+		return t;
+	}
+};
+
+void EmptyBeam::reset()
+{
+	addElasticPlastic = false;
+	addHard = false;
+	addSoft = false;
+	showElasticPlastic = true;
+	beamType = Empty;
+}
+
+inline bool EmptyBeam::isMyType()
+{
+	return beamType == Empty;
 }
 
 #endif

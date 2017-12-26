@@ -702,14 +702,22 @@ static void sInterface()
 			}
 			ImGui::SameLine();
 			ImGui::SliderFloat("##epbHz", 
-				&settings.epbHz, 0.f, settings.hz, "%.2f");
-			ImGui::Text("Mass scale");
+				&settings.epbHz, 0.f, settings.hz, "%.2f Hz");
+			ImGui::Text("Mass");
 			if (ImGui::IsItemHovered()) {
-				ImGui::SetTooltip("Scale mass for beam");
+				ImGui::SetTooltip("mass for beam");
 			}
 			ImGui::SameLine();
-			ImGui::SliderFloat("##epbMassScale", 
-				&settings.epbMassScale, 0.1f, 1000.f, "%.2f", 3.f);
+			ImGui::SliderFloat("##epbMass", 
+				&settings.epbMass, 0.1f, 100000.f, "%.2f kg", 3.f);
+			ImGui::Text("X");
+			ImGui::SameLine();
+			ImGui::SliderFloat("##epbX",
+				&settings.epbX, 0.1f, 10.f, "%.2f m");
+			ImGui::Text("Y");
+			ImGui::SameLine();
+			ImGui::SliderFloat("##epbY",
+				&settings.epbY, 0.1f, 10.f, "%.2f m");
 			if (ImGui::Checkbox("Add ElasticPlastic Beams",
 				&settings.addEPBeams)) {
 				settings.selectEPJoint = false;
