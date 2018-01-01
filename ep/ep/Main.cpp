@@ -661,41 +661,41 @@ static void sInterface()
 			ImGui::SliderFloat
 			("size [m]", &settings.addMassSize, 0.1f, 100);
 			bool valueChanged = ImGui::InputFloat
-				("Mass [kg]", &settings.addMass, 1000,1000000,0);
+				("Mass [kg]", &settings.addMass, 1000,100000,0);
 		}
 		else {
 			settings.addMasses = false;
 		}
 		if (test->WantEPBeams() && 
 			ImGui::CollapsingHeader("ElasticPlasticBeams")) {
-			ImGui::Text("MaxForce");
+			ImGui::Text("MaxF");
 			if (ImGui::IsItemHovered()) {
 				ImGui::SetTooltip("Maximum force for joint");
 			}
 			ImGui::SameLine();
 			ImGui::SliderFloat("##epbMaxForce",
-				&settings.epbMaxForce, 0.1f, 1000000.f,"%.2f",3.f);
-			ImGui::Text("MaxMoment");
+				&settings.epbMaxForce, 0.1f, 1000000.f,"%.0f",3.f);
+			ImGui::Text("MaxM");
 			if (ImGui::IsItemHovered()) {
 				ImGui::SetTooltip("Maximum moment for joint");
 			}
 			ImGui::SameLine();
 			ImGui::SliderFloat("##epbMaxMoment",
-				&settings.epbMaxMoment, 0.1f, 1000000.f, "%.2f", 3.f);
-			ImGui::Text("MaxStrain");
+				&settings.epbMaxMoment, 0.1f, 1000000.f, "%.0f", 3.f);
+			ImGui::Text("MaxS");
 			if (ImGui::IsItemHovered()) {
 				ImGui::SetTooltip("Maximum strain for joint");
 			}
 			ImGui::SameLine();
 			ImGui::SliderFloat("##epbMaxStrain",
-				&settings.epbMaxStrain, 0.1f, 10.f, "%.2f", 3.f);
-			ImGui::Text("MaxRotation");
+				&settings.epbMaxStrain, 0.1f, 10.f, "%.2f", 2.f);
+			ImGui::Text("MaxR");
 			if (ImGui::IsItemHovered()) {
 				ImGui::SetTooltip("Maximum rotation for joint");
 			}
 			ImGui::SameLine();
 			ImGui::SliderFloat("##epbMaxRotation",
-				&settings.epbMaxRotation, 0.f, 10.f, "%.2f", 3.f);
+				&settings.epbMaxRotation, 0.f, 10.f, "%.2f", 2.f);
 			ImGui::Text("Frequency");
 			if (ImGui::IsItemHovered()) {
 				ImGui::SetTooltip("Frequency for joints");

@@ -77,6 +77,7 @@ public:
 	virtual bool isMyType();
 	virtual void reset();
 	virtual void build();
+	virtual void BeamExtraUi();
 	Beam(Settings* sp) :Test(sp)
 	{
 	}
@@ -187,6 +188,7 @@ public:
 					LogEpJointErrorsForSelectedJoints(jelocs);
 				}
 			}
+			BeamExtraUi();
 			ImGui::End();
 		}
 		if (settings->drawNotes){
@@ -331,103 +333,104 @@ void Beam::build(){
 			prevBody = body;
 		}
 	}
-	if (addElasticPlastic)
-	{
-		showElasticPlastic = true;
-		sy += 5 + totalLength;
-		b2Body* sbody = getStaticBody(staticShape, sy);
+if (addElasticPlastic)
+{
+	showElasticPlastic = true;
+	sy += 5 + totalLength;
+	b2Body* sbody = getStaticBody(staticShape, sy);
 
-		b2PolygonShape shape;
-		if (horizontal) {
-			shape.SetAsBox(hx, hy);
-		}
-		else {
-			shape.SetAsBox(hy, hx);
-		}
-
-		b2FixtureDef fd;
-		fd.shape = &shape;
-		fd.density = density;
-
-		b2ElasticPlasticJointDef jd;
-		// select smaller, either axial or cutting
-		if(horizontal){
-			jd.maxForce.x = b2Min(2 * hy,hx)*fy*1e6f;
-			jd.maxForce.y = b2Min(2 * hx,hy)*fy*1e6f;
-		}
-		else {
-			jd.maxForce.x = b2Min(2 * hx, hy)*fy*1e6f;
-			jd.maxForce.y = b2Min(2 * hy, hx)*fy*1e6f;
-		}
-		jd.maxTorque = hy*hy* fy*1e6f;
-		jd.maxElasticRotation = maxElasticRotation;
-		jd.maxRotation = maxRotation;
-		jd.maxStrain = maxStrain*b2Min(hx, hy);
-		jd.frequencyHz = baseHz;
-		jd.dampingRatio = baseDampingRatio;
-
-		b2Body* prevBody = sbody;
-		noteElasticPlastic1.Set(-hy, sy + 2 + hy);
-		for (int32 i = 0; i < so_count; ++i)
-		{
-			b2BodyDef bd;
-			bd.type = b2_dynamicBody;
-			float32 x, y;
-			if (horizontal) {
-				x = (2 * i + 1)*hx;
-				y = sy;
-			}
-			else {
-				x = -hy;
-				y = sy -hy- (2 * i + 1)*hx;
-			}
-			bd.position.Set(x, y);
-			b2Body* body = m_world->CreateBody(&bd);
-			body->CreateFixture(&fd);
-			float32 ax, ay;
-			if (horizontal) {
-				ax = 2 * i*hx;
-				ay = sy;
-			}
-			else {
-				ax = -hy;
-				ay = sy -hy- 2 * i*hx;
-			}
-			b2Vec2 anchor(ax, ay);
-			if (i == 0 && firstIsHinge){
-				hd.Initialize(prevBody, body, anchor);
-				m_world->CreateJoint(&hd);
-			}
-			else{
-				jd.Initialize(prevBody, body, anchor);
-				m_world->CreateJoint(&jd);
-			}
-			prevBody = body;
-		}
+	b2PolygonShape shape;
+	if (horizontal) {
+		shape.SetAsBox(hx, hy);
 	}
-	{ // rescale using m_zoom and m_center if dimensions change
-		float32 cx = 2 * so_count*hx;
-		float32 cy = sy / 2 + hy + 1;
-		if (lastCy != cy || lastCx != cx){
-			float32 margin = 2 * hy + 2;
-			g_camera.m_center.Set(cx, cy);
-			g_camera.m_zoom = 1.1f*(b2Max(cx, cy) + margin) / 25.f;
-			lastCx = cx;
-			lastCy = cy;
+	else {
+		shape.SetAsBox(hy, hx);
+	}
+
+	b2FixtureDef fd;
+	fd.shape = &shape;
+	fd.density = density;
+
+	b2ElasticPlasticJointDef jd;
+	// select smaller, either axial or cutting
+	if (horizontal) {
+		jd.maxForce.x = b2Min(2 * hy, hx)*fy*1e6f;
+		jd.maxForce.y = b2Min(2 * hx, hy)*fy*1e6f;
+	}
+	else {
+		jd.maxForce.x = b2Min(2 * hx, hy)*fy*1e6f;
+		jd.maxForce.y = b2Min(2 * hy, hx)*fy*1e6f;
+	}
+	jd.maxTorque = hy*hy* fy*1e6f;
+	jd.maxElasticRotation = maxElasticRotation;
+	jd.maxRotation = maxRotation;
+	jd.maxStrain = maxStrain*b2Min(hx, hy);
+	jd.frequencyHz = baseHz;
+	jd.dampingRatio = baseDampingRatio;
+
+	b2Body* prevBody = sbody;
+	noteElasticPlastic1.Set(-hy, sy + 2 + hy);
+	for (int32 i = 0; i < so_count; ++i)
+	{
+		b2BodyDef bd;
+		bd.type = b2_dynamicBody;
+		float32 x, y;
+		if (horizontal) {
+			x = (2 * i + 1)*hx;
+			y = sy;
 		}
-		// keep notes above beams
-		float32 noteMove = g_camera.m_zoom;
-		if (addHard){
-			noteWeld1.y += noteMove;
+		else {
+			x = -hy;
+			y = sy - hy - (2 * i + 1)*hx;
 		}
-		if (addSoft){
-			noteSoftWeld1.y += noteMove;
+		bd.position.Set(x, y);
+		b2Body* body = m_world->CreateBody(&bd);
+		body->CreateFixture(&fd);
+		float32 ax, ay;
+		if (horizontal) {
+			ax = 2 * i*hx;
+			ay = sy;
 		}
-		if (addElasticPlastic){
-			noteElasticPlastic1.y += noteMove;
+		else {
+			ax = -hy;
+			ay = sy - hy - 2 * i*hx;
 		}
+		b2Vec2 anchor(ax, ay);
+		if (i == 0 && firstIsHinge) {
+			hd.Initialize(prevBody, body, anchor);
+			m_world->CreateJoint(&hd);
+		}
+		else {
+			jd.Initialize(prevBody, body, anchor);
+			m_world->CreateJoint(&jd);
+		}
+		prevBody = body;
 	}
 }
+{ // rescale using m_zoom and m_center if dimensions change
+	float32 cx = 2 * so_count*hx;
+	float32 cy = sy / 2 + hy + 1;
+	if (lastCy != cy || lastCx != cx) {
+		float32 margin = 2 * hy + 2;
+		g_camera.m_center.Set(cx, cy);
+		g_camera.m_zoom = 1.1f*(b2Max(cx, cy) + margin) / 25.f;
+		lastCx = cx;
+		lastCy = cy;
+	}
+	// keep notes above beams
+	float32 noteMove = g_camera.m_zoom;
+	if (addHard) {
+		noteWeld1.y += noteMove;
+	}
+	if (addSoft) {
+		noteSoftWeld1.y += noteMove;
+	}
+	if (addElasticPlastic) {
+		noteElasticPlastic1.y += noteMove;
+	}
+}
+}
+
 
 class AxialBeam : public Beam
 {
@@ -498,6 +501,7 @@ public:
 	}
 	virtual void reset();
 	virtual bool isMyType();
+	virtual void BeamExtraUi();
 	static Test* Create(Settings *settings)
 	{
 		Beam* t = new EmptyBeam(settings);
@@ -505,6 +509,7 @@ public:
 		t->CreateRigidTriangles();
 		return t;
 	}
+protected:
 };
 
 void EmptyBeam::reset()
@@ -519,6 +524,40 @@ void EmptyBeam::reset()
 inline bool EmptyBeam::isMyType()
 {
 	return beamType == Empty;
+}
+
+void Beam::BeamExtraUi()
+{
+}
+
+namespace ebo {
+	bool cs1, cs2, cs3; // for ui checkboxes
+}
+void EmptyBeam::BeamExtraUi()
+{
+	if (ImGui::CollapsingHeader("EmptyBeamOptions", "EmptyBeam")) {
+		if (ImGui::Checkbox("CS1",
+			&ebo::cs1)) {
+			if (ebo::cs1) {
+				EPBeam *epb = GetLastEPBeam();
+				if (NULL == epb->body) {
+					b2Vec2 p = b2Vec2(0, 0);
+					AddEPBeam(p);
+				}
+				settings->mouseJointForceScale = 300.f;
+				g_camera.m_zoom = 0.25f;
+			}
+			else {
+				DeleteEPBeams();
+			}
+		}
+		if (ImGui::IsItemHovered()) {
+			ImGui::SetTooltip("AddEPBeams\n\
+mjForceScale=300\n\
+zoom=0.25");
+		}
+
+	}
 }
 
 #endif
