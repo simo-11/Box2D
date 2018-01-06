@@ -52,6 +52,7 @@ namespace {
 	float maxElasticRotation, maxRotation, maxStrain;
 	bool addSoft, addHard, addElasticPlastic, showElasticPlastic, firstIsHinge, horizontal;
 	float32 lastCx,lastCy;
+	bool openLists;
 }
 class Beam : public Test
 {
@@ -135,7 +136,7 @@ public:
 					}
 				}
 				float locs[4] = { 40, 80, 120, 160 };
-				if (ImGui::CollapsingHeader("Joint forces MN/MNm"))
+				if (ImGui::CollapsingHeader("Joint forces MN/MNm"), 0, true, openLists)
 				{
 					ImGui::Text(" x-f"); ImGui::SameLine(locs[0]);
 					ImGui::Text(" y-f"); ImGui::SameLine(locs[1]);
@@ -151,7 +152,8 @@ public:
 					LogSelectedJoints(1e-6f, 1e-6f, locs);
 				}
 
-				if (showElasticPlastic && ImGui::CollapsingHeader("Capacity usage [%]"))
+				if (showElasticPlastic && ImGui::CollapsingHeader
+					("Capacity usage [%]", 0, true, openLists))
 				{
 					ImGui::Text(" x"); ImGui::SameLine(locs[0]);
 					ImGui::Text(" y"); ImGui::SameLine(locs[1]);
@@ -171,7 +173,7 @@ public:
 					LogEpCapasityForSelectedJoints(locs);
 				}
 				float jelocs[] = { 100 };
-				if (ImGui::CollapsingHeader("Joint errors"))
+				if (ImGui::CollapsingHeader("Joint errors", 0, true, openLists))
 				{
 					ImGui::Text(" p"); ImGui::SameLine(jelocs[0]);
 					ImGui::Text(" a");
@@ -237,6 +239,7 @@ void Beam::reset(){
 	addElasticPlastic = true;
 	firstIsHinge = false;
 	horizontal = false;
+	openLists = false;
 	beamType = Cantilever;
 	settings->reset();
 }
@@ -492,10 +495,15 @@ void ElasticBeam::reset() {
 	beamType = Elastic;
 }
 
+namespace ebo {
+	bool cs1, cs2, cs3; // for ui checkboxes
+}
+
 class EmptyBeam : public Beam
 {
 public:
 	EmptyBeam(Settings *settings) :Beam(settings) {
+		createDynamicItems();
 	}
 	~EmptyBeam() {
 	}
@@ -509,7 +517,13 @@ public:
 		t->CreateRigidTriangles();
 		return t;
 	}
-protected:
+	void createDynamicItems() {
+		if (ebo::cs1) {
+			b2Vec2 p = b2Vec2(-(3 * settings->bombRadius + settings->addMassSize),
+				settings->addMassSize / 2);
+			AddMass(p);
+		}
+	}
 };
 
 void EmptyBeam::reset()
@@ -518,6 +532,8 @@ void EmptyBeam::reset()
 	addHard = false;
 	addSoft = false;
 	showElasticPlastic = true;
+	openLists = true;
+	g_camera.m_center = b2Vec2(0,settings->epbY/2);
 	beamType = Empty;
 }
 
@@ -530,21 +546,21 @@ void Beam::BeamExtraUi()
 {
 }
 
-namespace ebo {
-	bool cs1, cs2, cs3; // for ui checkboxes
-}
 void EmptyBeam::BeamExtraUi()
 {
-	if (ImGui::CollapsingHeader("EmptyBeamOptions", "EmptyBeam")) {
+	if (ImGui::CollapsingHeader("EmptyBeamOptions",0,true,openLists)) {
 		if (ImGui::Checkbox("CS1",
 			&ebo::cs1)) {
 			if (ebo::cs1) {
 				EPBeam *epb = GetLastEPBeam();
 				if (NULL == epb->body) {
-					b2Vec2 p = b2Vec2(0, 0);
+					b2Vec2 p = b2Vec2(settings->epbX, 0);
 					AddEPBeam(p);
+					createDynamicItems();
 				}
 				settings->mouseJointForceScale = 300.f;
+				settings->bombMass = 200;
+				settings->bombVelocity = b2Vec2(4, 0);
 				g_camera.m_zoom = 0.25f;
 			}
 			else {
@@ -554,6 +570,8 @@ void EmptyBeam::BeamExtraUi()
 		if (ImGui::IsItemHovered()) {
 			ImGui::SetTooltip("AddEPBeams\n\
 mjForceScale=300\n\
+bombMass=200\n\
+bombVelocity=(4,0)\n\
 zoom=0.25");
 		}
 
