@@ -275,7 +275,7 @@ public:
 	virtual void wakeConnectedBodies(b2Body*);
 	float32 steppedTime;
 	b2Body* m_movingBody;
-
+	bool restartPending = false;
 	// ep-end
 protected:
 	friend class DestructionListener;
@@ -296,6 +296,7 @@ protected:
 	b2Body* loggedBody;
 	b2Vec2 pv,av;
 	float32 pva, aa;
+	bool validAcc=false;
 	b2Body* pb;
 	b2Vec3 max, min;
 	void ResetMinAndMax();

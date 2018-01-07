@@ -522,6 +522,7 @@ public:
 			b2Vec2 p = b2Vec2(-(3 * settings->bombRadius + settings->addMassSize),
 				settings->addMassSize / 2);
 			AddMass(p);
+			LaunchBomb();
 		}
 	}
 };
@@ -556,23 +557,28 @@ void EmptyBeam::BeamExtraUi()
 				if (NULL == epb->body) {
 					b2Vec2 p = b2Vec2(settings->epbX, 0);
 					AddEPBeam(p);
-					createDynamicItems();
 				}
 				settings->mouseJointForceScale = 300.f;
 				settings->bombMass = 200;
 				settings->bombVelocity = b2Vec2(4, 0);
+				settings->bombSpawnPoint = b2Vec2(-1, 1);
+				settings->pause = true;
 				g_camera.m_zoom = 0.25f;
 			}
 			else {
 				DeleteEPBeams();
+				settings->pause = false;
 			}
+			restartPending = true;
 		}
 		if (ImGui::IsItemHovered()) {
 			ImGui::SetTooltip("AddEPBeams\n\
 mjForceScale=300\n\
 bombMass=200\n\
 bombVelocity=(4,0)\n\
-zoom=0.25");
+bombSpawn=(-1,1)\n\
+zoom=0.25\n\
+pause=true");
 		}
 
 	}

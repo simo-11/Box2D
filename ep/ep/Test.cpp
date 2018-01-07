@@ -993,17 +993,22 @@ void Test::Step()
 				float32 f = 1.f / timeStep;
 				av = f*(v - pv);
 				aa = f*(va - pva);
+				validAcc = true;
 			}
-			g_debugDraw.DrawString(5, m_textLine,
+			if (validAcc) {
+				g_debugDraw.DrawString(5, m_textLine,
 					"(ax,ay,aa) = %6.2f %6.2f %6.2f",
-					av.x, av.y,aa);
+					av.x, av.y, aa);
+			}
+			else {
+				g_debugDraw.DrawString(5, m_textLine,
+					"no validAcc");
+			}
 			m_textLine += DRAW_STRING_NEW_LINE;
 		}
-		if (timeStep > 0.f) {
-			pv = v;
-			pva = va;
-			pb = lb;
-		}
+		pv = v;
+		pva = va;
+		pb = lb;
 		min.x = b2Min(min.x, p.x);
 		min.y = b2Min(min.y, p.y);
 		min.z = b2Min(min.z, lb->GetAngle());

@@ -783,8 +783,9 @@ static void sInterface()
 		if (ImGui::SmallButton("Single Step (O)"))
 			settings.singleStep = !settings.singleStep;
 
-		if (ImGui::SmallButton("Restart (R)"))
+		if (ImGui::SmallButton("Restart (R)") || test->restartPending) {
 			sRestart();
+		}
 		ImGui::SameLine();
 		if (ImGui::SmallButton("Quit"))
 			glfwSetWindowShouldClose(mainWindow, GL_TRUE);
