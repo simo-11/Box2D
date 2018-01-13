@@ -560,10 +560,13 @@ void EmptyBeam::BeamExtraUi()
 				}
 				settings->mouseJointForceScale = 300.f;
 				settings->bombMass = 200;
-				settings->bombVelocity = b2Vec2(4, 0);
+				settings->epbMaxForce = 275/2*15300; // N/mm^2, mm^2 RHS 100x100x4 
+				settings->epbMaxMoment = 275*54900/1000; // N/mm^2, mm^3, /1000 to get Nm
+				settings->bombRadius = 1;
 				settings->bombSpawnPoint = b2Vec2(-1, 1);
+				settings->bombVelocity = b2Vec2(4, 0);
 				settings->pause = true;
-				g_camera.m_zoom = 0.25f;
+				g_camera.m_zoom = 0.25f*settings->bombRadius;
 			}
 			else {
 				DeleteEPBeams();
@@ -575,13 +578,19 @@ void EmptyBeam::BeamExtraUi()
 			ImGui::SetTooltip("AddEPBeams\n\
 mjForceScale=300\n\
 bombMass=200\n\
-bombVelocity=(4,0)\n\
-bombSpawn=(-1,1)\n\
 zoom=0.25\n\
 pause=true");
 		}
-
+		ImGui::SameLine();
+		if (ebo::cs1) {
+			float32 br = settings->bombRadius;
+			g_camera.m_zoom = 0.25f*br;
+			settings->bombSpawnPoint = b2Vec2(-br, br);
+			settings->epbMass = 12*settings->epbY;
+		}
 	}
 }
+
+
 
 #endif

@@ -92,8 +92,8 @@ struct Settings
 		forceScale = 0.1f;
 		momentScale = 0.3f;
 		// 100*100*4 mm RHS@350MPa
-		epbMaxForce = 15.f*100*350; // 15 cm^2 350 MPa
-		epbMaxMoment = 230.f/5*350; // 230 cm^4 5 cm  350 MPa [Nm]
+		epbMaxForce = 15.3f*100*275/2; // 15 cm^2 275 MPa
+		epbMaxMoment = 54.9*275; // 54.9cm^3  275 MPa [Nm]
 		epbMaxStrain = 0.1f;
 		epbMaxRotation = 3;
 		epbX = 0.1f;
