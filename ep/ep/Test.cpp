@@ -444,14 +444,15 @@ void Test::AddEPBeamBody(EPBeam* rt) {
 	b2Vec2 vertices[3];
 	b2PolygonShape epBeam, epBeamHolder;
 	float32 hx = settings->epbX / 2;
-	float32 hy = settings->epbY;
+	float32 hy = settings->epbY/2;
 	epBeam.SetAsBox(hx, hy);
-	epBeamHolder.SetAsBox(hx, hx);
+	float32 bhs = b2Min(hx, hy);
+	epBeamHolder.SetAsBox(bhs, bhs);
 	fd.density = settings->epbMass/4/hx/hy;
 	fd.shape = &epBeam;
 	b2BodyDef bd;
 	bd.type = b2_dynamicBody;
-	bd.position.Set(rt->position[0], rt->position[1]+hy+2*hx);
+	bd.position.Set(rt->position[0], rt->position[1]+hy+hx);
 	bd.angle = 0.0f;
 	b2Body* body = m_world->CreateBody(&bd);
 	body->CreateFixture(&fd);
@@ -473,7 +474,7 @@ void Test::AddEPBeamBody(EPBeam* rt) {
 	}
 	jd.dampingRatio = 0.1f;
 	rt->body = body;
-	const b2Vec2 anchor(rt->position[0],rt->position[1]+hx);
+	const b2Vec2 anchor(rt->position[0],rt->position[1]+2*hx);
 	bd.type = b2_staticBody;
 	bd.position.Set(rt->position[0], rt->position[1]);
 	b2Body* sBody = m_world->CreateBody(&bd);

@@ -79,6 +79,7 @@ public:
 	virtual void reset();
 	virtual void build();
 	virtual void BeamExtraUi();
+	virtual float32 getFloorMinX(), getFloorMaxX();
 	Beam(Settings* sp) :Test(sp)
 	{
 	}
@@ -244,6 +245,14 @@ void Beam::reset(){
 	settings->reset();
 }
 
+float32 Beam::getFloorMinX() {
+	return -5 * hy - so_count*hx - 10;
+}
+
+float32 Beam::getFloorMaxX() {
+	return so_count*hx * 4 + 5 * hy + 10;
+}
+
 void Beam::build(){
 	if (!isMyType()){
 		reset();
@@ -256,8 +265,8 @@ void Beam::build(){
 
 		b2EdgeShape shape;
 		float32 floorLevel = 0;
-		shape.Set(b2Vec2(-5 * hy - so_count*hx - 10, floorLevel),
-			b2Vec2(so_count*hx * 4 + 5 * hy + 10, floorLevel));
+		shape.Set(b2Vec2(getFloorMinX(), floorLevel),
+			b2Vec2(getFloorMaxX(), floorLevel));
 		ground->CreateFixture(&shape, 0.0f);
 	}
 	b2PolygonShape staticShape;
@@ -510,6 +519,7 @@ public:
 	virtual void reset();
 	virtual bool isMyType();
 	virtual void BeamExtraUi();
+	virtual float32 getFloorMinX(), getFloorMaxX();
 	static Test* Create(Settings *settings)
 	{
 		Beam* t = new EmptyBeam(settings);
@@ -522,10 +532,26 @@ public:
 			b2Vec2 p = b2Vec2(-(3 * settings->bombRadius + settings->addMassSize),
 				settings->addMassSize / 2);
 			AddMass(p);
+			float32 br = settings->bombRadius;
+			g_camera.m_zoom = 0.25f*br;
+			g_camera.m_center = b2Vec2(0, br);
+			settings->bombSpawnPoint = b2Vec2(-br, br);
+			m_bombSpawnPoint = settings->bombSpawnPoint;
+			settings->epbMass = 12 * settings->epbY; // 12 kg/m
+			EPBeam *epb = GetLastEPBeam();
+			epb->position[0] = settings->epbX / 2 + 0.01f;
 			LaunchBomb();
 		}
 	}
 };
+
+float32 EmptyBeam::getFloorMinX() {
+	return -(3 * settings->bombRadius + 2*settings->addMassSize);
+}
+
+float32 EmptyBeam::getFloorMaxX() {
+	return 2*(settings->epbX+settings->epbY);
+}
 
 void EmptyBeam::reset()
 {
@@ -555,18 +581,15 @@ void EmptyBeam::BeamExtraUi()
 			if (ebo::cs1) {
 				EPBeam *epb = GetLastEPBeam();
 				if (NULL == epb->body) {
-					b2Vec2 p = b2Vec2(settings->epbX, 0);
+					b2Vec2 p = b2Vec2(settings->epbX/2+0.01f, 0);
 					AddEPBeam(p);
 				}
 				settings->mouseJointForceScale = 300.f;
 				settings->bombMass = 200;
 				settings->epbMaxForce = 275/2*15300; // N/mm^2, mm^2 RHS 100x100x4 
 				settings->epbMaxMoment = 275*54900/1000; // N/mm^2, mm^3, /1000 to get Nm
-				settings->bombRadius = 1;
-				settings->bombSpawnPoint = b2Vec2(-1, 1);
-				settings->bombVelocity = b2Vec2(4, 0);
 				settings->pause = true;
-				g_camera.m_zoom = 0.25f*settings->bombRadius;
+				settings->gravityRampUpTime = 0.f;
 			}
 			else {
 				DeleteEPBeams();
@@ -582,12 +605,6 @@ zoom=0.25\n\
 pause=true");
 		}
 		ImGui::SameLine();
-		if (ebo::cs1) {
-			float32 br = settings->bombRadius;
-			g_camera.m_zoom = 0.25f*br;
-			settings->bombSpawnPoint = b2Vec2(-br, br);
-			settings->epbMass = 12*settings->epbY;
-		}
 	}
 }
 
