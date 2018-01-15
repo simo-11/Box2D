@@ -529,10 +529,13 @@ public:
 	}
 	void createDynamicItems() {
 		if (ebo::cs1) {
+			float32 br = settings->bombRadius;
+			settings->addMassSize = 5 * br;
 			b2Vec2 p = b2Vec2(-(3 * settings->bombRadius + settings->addMassSize),
 				settings->addMassSize / 2);
 			AddMass(p);
-			float32 br = settings->bombRadius;
+			p.x = settings->epbX + settings->epbY + settings->addMassSize;
+			AddMass(p);
 			g_camera.m_zoom = 0.25f*br;
 			g_camera.m_center = b2Vec2(0, br);
 			settings->bombSpawnPoint = b2Vec2(-br, br);
@@ -550,7 +553,7 @@ float32 EmptyBeam::getFloorMinX() {
 }
 
 float32 EmptyBeam::getFloorMaxX() {
-	return 2*(settings->epbX+settings->epbY);
+	return 2*(settings->epbX+settings->epbY+ settings->addMassSize);
 }
 
 void EmptyBeam::reset()
@@ -586,7 +589,8 @@ void EmptyBeam::BeamExtraUi()
 				}
 				settings->mouseJointForceScale = 300.f;
 				settings->bombMass = 200;
-				settings->epbMaxForce = 275/2*15300; // N/mm^2, mm^2 RHS 100x100x4 
+				settings->addMass = 10 * settings->bombMass;
+				settings->epbMaxForce = 275/2*1530; // N/mm^2, mm^2 RHS 100x100x4 
 				settings->epbMaxMoment = 275*54900/1000; // N/mm^2, mm^3, /1000 to get Nm
 				settings->pause = true;
 				settings->gravityRampUpTime = 0.f;
