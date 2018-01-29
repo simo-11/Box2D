@@ -198,6 +198,9 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	m_maxImpulse.y = (rotatedForce.y)*data.step.dt;
 }
 
+/**
+during velocity iterations
+*/
 void b2ElasticPlasticJoint::UpdateAnchors(const b2SolverData & data)
 {
 	if (!m_forceExceeded && !m_torqueExceeded) {
@@ -237,6 +240,49 @@ void b2ElasticPlasticJoint::UpdateAnchors(const b2SolverData & data)
 	m_torqueExceeded = false;
 }
 
+/**
+* After velocity iterations
+*/
+void b2ElasticPlasticJoint::UpdatePlasticity(const b2SolverData & data)
+{
+	if (!m_forceExceeded && !m_torqueExceeded) {
+		return;
+	}
+	float32 elasticPart = 0.f;
+	if (m_frequencyHz > 0.f) {
+		elasticPart = 0.f; // TODO, define better
+	}
+	b2Vec2 cA = data.positions[m_indexA].c;
+	b2Vec2 cB = data.positions[m_indexB].c;
+
+	float32 newDistance = (1.f - elasticPart)*(cA - cB).Length();
+	float32 origDistance = m_localAnchorA.Length() + m_localAnchorB.Length();
+	// this needs more analysis
+	// current implementation is based on idea
+	// that tearing joint up joint should be more meaningful
+	// than pushing
+	if (m_forceExceeded || origDistance < newDistance) {
+		float32 sf = newDistance / origDistance;
+		m_localAnchorA *= sf;
+		m_localAnchorB *= sf;
+		m_currentStrain += b2Abs(newDistance - origDistance);
+	}
+	m_forceExceeded = false;
+	if (!m_torqueExceeded) {
+		return;
+	}
+	if (m_frequencyHz == 0.f) {
+		updateRotationalPlasticity(data, 0.f);
+	}
+	else {
+		float32 h = data.step.dt;
+		float32 elasticRotation = m_maxImpulse.z / h / m_k;
+		updateRotationalPlasticity(data, elasticRotation);
+	}
+	m_torqueExceeded = false;
+}
+
+
 void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 {
 	b2Vec2 vA = data.velocities[m_indexA].v;
@@ -273,7 +319,9 @@ void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 	}
 	else
 	{
-		b2Vec2 Cdot1 = vB + b2Cross(wB, m_rB) - vA - b2Cross(wA, m_rA);
+		b2Vec2 vAa = vA + b2Cross(wA, m_rA);
+		b2Vec2 vBa = vB + b2Cross(wB, m_rB);
+		b2Vec2 Cdot1 =  vBa- vAa;
 		float32 Cdot2 = wB - wA;
 		b2Vec3 Cdot(Cdot1.x, Cdot1.y, Cdot2);
 
@@ -289,12 +337,27 @@ void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 
 		vB += mB * P;
 		wB += iB * (b2Cross(m_rB, P) + impulse.z);
+#ifdef SN_LOG
+		b2Log("J:VC m_impulse=%e %e %e\n",
+			m_impulse.x,m_impulse.y,m_impulse.z);
+		b2Log("J:VC impulse=%e %e %e\n", 
+			impulse.x, impulse.y, impulse.z);
+		if (mA != 0) {
+			b2Log("J:VC vA=%e %e %e\n",
+				vA.x, vA.y, wA);
+		}
+		if (mB != 0) {
+			b2Log("J:VC vB=%e %e %e\n",
+				vB.x, vB.y, wB);
+		}
+#endif
 	}
 
 	data.velocities[m_indexA].v = vA;
 	data.velocities[m_indexA].w = wA;
 	data.velocities[m_indexB].v = vB;
 	data.velocities[m_indexB].w = wB;
+	UpdateAnchors(data);
 }
 
 bool b2ElasticPlasticJoint::WantsToBreak(){
@@ -566,10 +629,17 @@ bool b2ElasticPlasticJoint::SolvePositionConstraints(const b2SolverData& data)
 
 		cA -= mA * P;
 		float32 M = Clamp((b2Cross(rA, P) + impulse.z), data);
+#ifdef SN_LOG
+		b2Log("J:PC P=%e %e, M1=%e",
+			P.x, P.y, M);
+#endif
 		aA -= iA * M;
 
 		cB += mB * P;
 		M = Clamp((b2Cross(rB, P) + impulse.z), data);
+#ifdef SN_LOG
+		b2Log(", M2=%e\n", M);
+#endif
 		aB += iB * M;
 	}
 

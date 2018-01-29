@@ -129,6 +129,7 @@ protected:
 
 	void InitVelocityConstraints(const b2SolverData& data);
 	void UpdateAnchors(const b2SolverData& data);
+	void UpdatePlasticity(const b2SolverData& data);
 	void SolveVelocityConstraints(const b2SolverData& data);
 	bool SolvePositionConstraints(const b2SolverData& data);
 

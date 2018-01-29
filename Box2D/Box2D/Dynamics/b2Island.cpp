@@ -277,11 +277,20 @@ void b2Island::Solve(b2Profile* profile, const b2TimeStep& step, const b2Vec2& g
 	else{
 		profile->initImpulse = 0;
 	}
+	if (m_jointCount > 0) {
+		snLogActive = true;
+	}
+	else {
+		snLogActive = false;
+	}
 	// ep end
 	// Solve velocity constraints
 	timer.Reset();
 	for (int32 i = 0; i < step.velocityIterations; ++i)
 	{
+#ifdef SN_LOG
+			b2Log("velocityIteration: %d\n", i);
+#endif
 		for (int32 j = 0; j < m_jointCount; ++j)
 		{
 			m_joints[j]->SolveVelocityConstraints(solverData);
@@ -331,7 +340,7 @@ void b2Island::Solve(b2Profile* profile, const b2TimeStep& step, const b2Vec2& g
 	{
 		switch (m_joints[i]->GetType()) {
 		case e_elasticPlasticJoint:
-			((b2ElasticPlasticJoint*)(m_joints[i]))->UpdateAnchors(solverData);
+			((b2ElasticPlasticJoint*)(m_joints[i]))->UpdatePlasticity(solverData);
 			break;
 		}
 	}
@@ -342,6 +351,11 @@ void b2Island::Solve(b2Profile* profile, const b2TimeStep& step, const b2Vec2& g
 	bool positionSolved = false;
 	for (int32 i = 0; i < step.positionIterations; ++i)
 	{
+#ifdef SN_LOG
+		if (m_jointCount > 0) {
+			b2Log("positionIteration: %d\n", i);
+		}
+#endif
 		bool contactsOkay = contactSolver.SolvePositionConstraints();
 
 		bool jointsOkay = true;
@@ -412,6 +426,7 @@ void b2Island::Solve(b2Profile* profile, const b2TimeStep& step, const b2Vec2& g
 			}
 		}
 	}
+	snLogActive = true;
 }
 
 void b2Island::SolveTOI(const b2TimeStep& subStep, int32 toiIndexA, int32 toiIndexB)
