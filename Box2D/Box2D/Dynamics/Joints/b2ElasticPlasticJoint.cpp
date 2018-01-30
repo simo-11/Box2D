@@ -337,17 +337,19 @@ void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 
 		vB += mB * P;
 		wB += iB * (b2Cross(m_rB, P) + impulse.z);
-#ifdef SN_LOG
-		b2Log("J:VC m_impulse=%e %e %e\n",
+#ifdef EP_LOG
+		epLog("J:VC Cdot=%g %g %g\n",
+			Cdot.x, Cdot.y, Cdot.z);
+		epLog("J:VC m_impulse=%g %g %g\n",
 			m_impulse.x,m_impulse.y,m_impulse.z);
-		b2Log("J:VC impulse=%e %e %e\n", 
+		epLog("J:VC impulse=%g %g %g\n", 
 			impulse.x, impulse.y, impulse.z);
 		if (mA != 0) {
-			b2Log("J:VC vA=%e %e %e\n",
+			epLog("J:VC vA=%g %g %g\n",
 				vA.x, vA.y, wA);
 		}
 		if (mB != 0) {
-			b2Log("J:VC vB=%e %e %e\n",
+			epLog("J:VC vB=%g %g %g\n",
 				vB.x, vB.y, wB);
 		}
 #endif
@@ -357,7 +359,6 @@ void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 	data.velocities[m_indexA].w = wA;
 	data.velocities[m_indexB].v = vB;
 	data.velocities[m_indexB].w = wB;
-	UpdateAnchors(data);
 }
 
 bool b2ElasticPlasticJoint::WantsToBreak(){
@@ -611,6 +612,10 @@ bool b2ElasticPlasticJoint::SolvePositionConstraints(const b2SolverData& data)
 
 		positionError = C1.Length();
 		angularError = b2Abs(C2);
+#ifdef EP_LOG
+		epLog("J:PC positionError=%g, angularError=%g\n",
+			positionError,angularError);
+#endif
 
 		b2Vec3 C(C1.x, C1.y, C2);
 
@@ -629,16 +634,16 @@ bool b2ElasticPlasticJoint::SolvePositionConstraints(const b2SolverData& data)
 
 		cA -= mA * P;
 		float32 M = Clamp((b2Cross(rA, P) + impulse.z), data);
-#ifdef SN_LOG
-		b2Log("J:PC P=%e %e, M1=%e",
+#ifdef EP_LOG
+		epLog("J:PC P=%e %e, M1=%e",
 			P.x, P.y, M);
 #endif
 		aA -= iA * M;
 
 		cB += mB * P;
 		M = Clamp((b2Cross(rB, P) + impulse.z), data);
-#ifdef SN_LOG
-		b2Log(", M2=%e\n", M);
+#ifdef EP_LOG
+		epLog(", M2=%e\n", M);
 #endif
 		aB += iB * M;
 	}

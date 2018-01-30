@@ -37,13 +37,42 @@ void b2Free(void* mem)
 // You can modify this to use your logging facility.
 void b2Log(const char* string, ...)
 {
-	if (!snLogActive) {
-		return;
-	}
 	va_list args;
 	va_start(args, string);
 	vprintf(string, args);
 	va_end(args);
 }
 
-bool snLogActive = true;
+FILE* fout = NULL;
+void epLogClose() {
+	if (fout != stdout) {
+		fclose(fout);
+		fout = NULL;
+	}
+}
+void epLog(const char* string, ...) {
+	if (!epLogActive || !epLogEnabled) {
+		return;
+	}
+	if (!fout) {
+		const char * fn = "ep-log.txt";
+		fout = fopen(fn, "w");
+		if (fout) {
+			b2Log("ep-logging to %s\n",fn);
+		}else{
+			b2Log("Could not open %s, ep-logging to stdout", fn);
+			fout = stdout;
+		}
+	}
+	va_list args;
+	va_start(args, string);
+	if (vfprintf(fout, string, args) < 0) {
+		b2Log("epLog failed\n");
+		perror(string);
+	}
+	va_end(args);
+	fflush(fout);
+}
+
+bool epLogActive = true;
+bool epLogEnabled = true;

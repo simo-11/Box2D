@@ -832,6 +832,18 @@ void Test::Step()
 		gravity = scale*gravity;
 	}
 	m_world->SetGravity(gravity);
+#ifdef EP_LOG
+	if (!settings->pause) {
+		epLogActive = false;
+	}
+	else {
+		epLogActive = true;
+	}
+	if (epLogActive && timeStep > 0.f) {
+		epLog("Step from %g, timeStep=%g, gravity=%g\n",
+			steppedTime, timeStep, gravity.y);
+	}
+#endif
 	m_world->Step(timeStep, settings->velocityIterations, settings->positionIterations);
 	for (b2Joint* j = m_world->GetJointList(); j;)
 	{

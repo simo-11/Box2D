@@ -407,6 +407,11 @@ static void sInterface()
 		{
 			delete test;
 			entry = g_testEntries + testIndex;
+#ifdef EP_LOG
+			epLogClose();
+			epLogActive = true;
+			epLog("starting %s",entry->name);
+#endif
 			test = entry->createFcn(&settings);
 			testSelection = testIndex;
 		}
@@ -457,7 +462,7 @@ static void sInterface()
 			ImGui::Checkbox("Profile", &settings.drawProfile);
 			ImGui::Checkbox("Notes", &settings.drawNotes);
 			ImGui::Checkbox("Init Impulses", &settings.initImpulses);
-
+			ImGui::Checkbox("Ep-logging", &epLogEnabled);
 		}
 		if (ImGui::CollapsingHeader("Bomb settings")) {
 			ImGui::Text("Mass");

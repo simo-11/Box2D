@@ -152,6 +152,12 @@ struct b2Version
 /// Current version.
 extern b2Version b2_version;
 // ep
-#define SN_LOG 1
-extern bool snLogActive;
+#define EP_LOG 1
+/// code modfies epLogActive
+/// epLogEnabled is controlled by UI
+extern bool epLogActive, epLogEnabled;
+/// Logging function.
+void epLog(const char* string, ...);
+void epLogClose();
+
 #endif
