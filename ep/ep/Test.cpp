@@ -452,7 +452,7 @@ void Test::AddEPBeamBody(EPBeam* rt) {
 	fd.shape = &epBeam;
 	b2BodyDef bd;
 	bd.type = b2_dynamicBody;
-	bd.position.Set(rt->position[0], rt->position[1]+hy+hx);
+	bd.position.Set(rt->position[0], rt->position[1]+hy+2*hx);
 	bd.angle = 0.0f;
 	b2Body* body = m_world->CreateBody(&bd);
 	body->CreateFixture(&fd);
@@ -776,7 +776,7 @@ void Test::LaunchBomb(const b2Vec2& position, const b2Vec2& velocity)
 	fd.shape = &circle;
 	fd.density = getBombMass()/area;
 	fd.restitution = 0.0f;
-	
+	fd.friction = 0.f;
 	m_bomb->CreateFixture(&fd);
 }
 

@@ -292,6 +292,18 @@ void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 
 	float32 mA = m_invMassA, mB = m_invMassB;
 	float32 iA = m_invIA, iB = m_invIB;
+#ifdef EP_LOG
+	if (epLogActive && epLogEnabled) {
+		if (mA != 0) {
+			epLog("J:VC vA1=%g %g %g\n",
+				vA.x, vA.y, wA);
+		}
+		if (mB != 0) {
+			epLog("J:VC vB1=%g %g %g\n",
+				vB.x, vB.y, wB);
+		}
+	}
+#endif
 
 	if (m_frequencyHz > 0.0f)
 	{
@@ -338,19 +350,27 @@ void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 		vB += mB * P;
 		wB += iB * (b2Cross(m_rB, P) + impulse.z);
 #ifdef EP_LOG
-		epLog("J:VC Cdot=%g %g %g\n",
-			Cdot.x, Cdot.y, Cdot.z);
-		epLog("J:VC m_impulse=%g %g %g\n",
-			m_impulse.x,m_impulse.y,m_impulse.z);
-		epLog("J:VC impulse=%g %g %g\n", 
-			impulse.x, impulse.y, impulse.z);
-		if (mA != 0) {
-			epLog("J:VC vA=%g %g %g\n",
-				vA.x, vA.y, wA);
-		}
-		if (mB != 0) {
-			epLog("J:VC vB=%g %g %g\n",
-				vB.x, vB.y, wB);
+		if (epLogActive && epLogEnabled) {
+			epLog("J:VC Cdot=%g %g %g\n",
+				Cdot.x, Cdot.y, Cdot.z);
+			epLog("J:VC m_impulse=%g %g %g\n",
+				m_impulse.x, m_impulse.y, m_impulse.z);
+			epLog("J:VC impulse=%g %g %g\n",
+				impulse.x, impulse.y, impulse.z);
+			if (mA != 0) {
+				epLog("J:VC vA2=%g %g %g\n",
+					vA.x, vA.y, wA);
+			}
+			if (mB != 0) {
+				epLog("J:VC vB2=%g %g %g\n",
+					vB.x, vB.y, wB);
+			}
+			vAa = vA + b2Cross(wA, m_rA);
+			vBa = vB + b2Cross(wB, m_rB);
+			Cdot1 = vBa - vAa;
+			Cdot2 = wB - wA;
+			epLog("J:VC Cdot2=%g %g %g\n",
+				Cdot1.x, Cdot1.y, Cdot2);
 		}
 #endif
 	}
@@ -635,7 +655,7 @@ bool b2ElasticPlasticJoint::SolvePositionConstraints(const b2SolverData& data)
 		cA -= mA * P;
 		float32 M = Clamp((b2Cross(rA, P) + impulse.z), data);
 #ifdef EP_LOG
-		epLog("J:PC P=%e %e, M1=%e",
+		epLog("J:PC P=%g %g, M1=%g",
 			P.x, P.y, M);
 #endif
 		aA -= iA * M;
@@ -643,7 +663,7 @@ bool b2ElasticPlasticJoint::SolvePositionConstraints(const b2SolverData& data)
 		cB += mB * P;
 		M = Clamp((b2Cross(rB, P) + impulse.z), data);
 #ifdef EP_LOG
-		epLog(", M2=%e\n", M);
+		epLog(", M2=%g\n", M);
 #endif
 		aB += iB * M;
 	}

@@ -370,13 +370,13 @@ void b2ContactSolver::SolveVelocityConstraints()
 				vB += mB * P;
 				wB += iB * b2Cross(vcp->rB, P);
 #ifdef EP_LOG
-				epLog("C:VC n=%e, P=%e %e\n",newImpulse,P.x, P.y);
+				epLog("C:VC n=%g, P=%g %g\n",newImpulse,P.x, P.y);
 				if (mA != 0) {
-					epLog("C:VC vA=%e %e %e\n",
+					epLog("C:VC vA=%g %g %g\n",
 						vA.x, vA.y, wA);
 				}
 				if (mB != 0) {
-					epLog("C:VC vB=%e %e %e\n",
+					epLog("C:VC vB=%g %g %g\n",
 						vB.x, vB.y, wB);
 				}
 
@@ -745,7 +745,7 @@ bool b2ContactSolver::SolvePositionConstraints()
 			cB += mB * P;
 			aB += iB * b2Cross(rB, P);
 #ifdef EP_LOG
-			epLog("C:PC P=%e %e\n",
+			epLog("C:PC P=%g %g\n",
 				P.x, P.y);
 #endif
 
