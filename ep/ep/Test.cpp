@@ -776,7 +776,7 @@ void Test::LaunchBomb(const b2Vec2& position, const b2Vec2& velocity)
 	fd.shape = &circle;
 	fd.density = getBombMass()/area;
 	fd.restitution = 0.0f;
-	fd.friction = 0.f;
+	fd.friction = 0.05f; // ice or oil
 	m_bomb->CreateFixture(&fd);
 }
 

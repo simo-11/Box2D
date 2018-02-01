@@ -45,7 +45,7 @@ void b2Log(const char* string, ...)
 
 FILE* fout = NULL;
 void epLogClose() {
-	if (fout != stdout) {
+	if (fout!=NULL && fout != stdout) {
 		fclose(fout);
 		fout = NULL;
 	}

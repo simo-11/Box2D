@@ -152,7 +152,17 @@ public:
 				else {
 					LogSelectedJoints(1e-6f, 1e-6f, locs);
 				}
-
+				if (ImGui::CollapsingHeader("Contact forces N"))
+				{
+					float locs[] = { 50, 100, 150 };
+					ImGui::Text(" x-f"); ImGui::SameLine(locs[0]);
+					ImGui::Text(" y-f"); ImGui::SameLine(locs[1]);
+					ImGui::Text(" c-x"); ImGui::SameLine(locs[2]);
+					ImGui::Text(" c-y");
+					for (int i = 0; i < m_pointCount; i++) {
+						LogContact(m_points + i, 1.0f, locs, "%5.0f");
+					}
+				}
 				if (showElasticPlastic && ImGui::CollapsingHeader
 					("Capacity usage [%]", 0, true, openLists))
 				{
