@@ -17,7 +17,7 @@
 */
 #define DEFINE_EPTEST_NS
 #include "Test.h"
-#include "RigidTriangle.h"
+#include "EpJoint.h"
 #include <stdio.h>
 #include <imgui/imgui.h>
 #include "Box2D/Dynamics/b2Island.h"
@@ -55,6 +55,7 @@ Test::Test(Settings *sp)
 {
 	b2ElasticPlasticJoint::resetEpId();
 	settings = sp;
+	EpDebug::settings = sp;
 	b2Vec2 gravity;
 	gravity.Set(0.0f, -10.0f);
 	m_world = new b2World(gravity);
@@ -483,7 +484,11 @@ void Test::AddEPBeamBody(EPBeam* rt) {
 	sBody->CreateFixture(&fd);
 	rt->sBody = sBody;
 	jd.Initialize(sBody, body, anchor);
-	m_world->CreateJoint(&jd);
+	b2ElasticPlasticJoint* joint=
+		(b2ElasticPlasticJoint*)m_world->CreateJoint(&jd);
+	if (settings->epbDebugListener) {
+		joint->SetDebugListener(rt->getEpDebug());
+	}
 }
 
 void Test::PreSolve(b2Contact* contact, const b2Manifold* oldManifold)

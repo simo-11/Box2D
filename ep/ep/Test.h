@@ -21,7 +21,6 @@
 
 #include <Box2D/Box2D.h>
 #include "DebugDraw.h"
-#include "RigidTriangle.h"
 
 #if defined(__APPLE__)
 #include <OpenGL/gl3.h>
@@ -31,10 +30,13 @@
 #include <glfw/glfw3.h>
 
 #include <stdlib.h>
-#include "SelectedEPJoint.h"
+#include "EpJoint.h"
 
 class Test;
 struct Settings;
+struct SelectedEPJoint;
+struct RigidTriangle;
+struct EPBeam;
 
 typedef Test* TestCreateFcn(Settings*);
 
@@ -99,6 +101,7 @@ struct Settings
 		epbX = 0.1f;
 		epbY = 3;
 		epbMaxElasticRotation = 1;
+		epbDebugListener = true;
 		epbHz = 0.f;
 		epbMass = 36.f;
 		addRigidTriangles = false;
@@ -139,6 +142,7 @@ struct Settings
 	float32 forceScale, momentScale;
 	float32 epbMaxForce, epbMaxMoment, epbX, epbY,
 		epbMass, epbHz, epbMaxRotation, epbMaxStrain, epbMaxElasticRotation;
+	bool epbDebugListener;
 	float32 gravityRampUpTime;
 	float32 bombMass, bombRadius, bombMultiplier;
 	b2Vec2 bombVelocity,bombSpawnPoint;

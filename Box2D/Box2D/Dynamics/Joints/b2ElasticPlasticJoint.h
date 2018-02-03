@@ -23,9 +23,8 @@
 
 #include "Box2D/Dynamics/Joints/b2Joint.h"
 
-/// Weld joint definition. You need to specify local anchor points
-/// where they are attached and the relative body angle. The position
-/// of the anchor points is important for computing the reaction torque.
+class epDebugListener;
+/// Base on Weld joint definition. 
 struct b2ElasticPlasticJointDef : public b2JointDef
 {
 	b2ElasticPlasticJointDef()
@@ -107,7 +106,8 @@ public:
 	float32 getMaxStrain(){ return m_maxStrain; }
 	float32 getMaxRotation(){ return m_maxRotation; }
 	b2Vec2 GetRotatedMaxForce();
-
+	int32 GetIslandIndexForA() { return m_indexA; }
+	int32 GetIslandIndexForB() { return m_indexB; }
 	/// Get the maximum friction torque in N*m.
 	float32 GetMaxTorque() const;
 	bool WantsToBreak();
@@ -119,8 +119,11 @@ public:
 	static float32 GetAngularSlop();
 	static void resetEpId();
 	int32 GetId() { return id; }
+	epDebugListener* GetDebugListener() { return debugListener; }
+	void SetDebugListener(epDebugListener* listener) { debugListener = listener; }
+	unsigned char velocityIteration,positionIteration;
 protected:
-
+	epDebugListener* debugListener;
 	friend class b2Joint;
 	friend class b2ImpulseInitializer;
 	friend class b2Island;
@@ -178,6 +181,43 @@ protected:
 	float32 m_invIB;
 	b2Mat33 m_mass;
 	bool jointOk;
+};
+
+class epDebugListener
+{
+public:
+	virtual ~epDebugListener() {}
+
+	virtual void EndInitVelocityConstraints
+	(b2ElasticPlasticJoint* joint, const b2SolverData& data)
+	{
+		B2_NOT_USED(joint);
+		B2_NOT_USED(data);
+	}
+	virtual void BeginVelocityIteration
+		(b2ElasticPlasticJoint* joint, const b2SolverData& data) 
+		{ 
+			B2_NOT_USED(joint); 
+			B2_NOT_USED(data);
+		}
+	virtual void EndVelocityIteration
+	(b2ElasticPlasticJoint* joint, const b2SolverData& data)
+	{
+		B2_NOT_USED(joint);
+		B2_NOT_USED(data);
+	}
+	virtual void BeginPositionIteration
+	(b2ElasticPlasticJoint* joint, const b2SolverData& data)
+	{
+		B2_NOT_USED(joint);
+		B2_NOT_USED(data);
+	}
+	virtual void EndPositionIteration
+	(b2ElasticPlasticJoint* joint, const b2SolverData& data)
+	{
+		B2_NOT_USED(joint);
+		B2_NOT_USED(data);
+	}
 };
 
 #endif

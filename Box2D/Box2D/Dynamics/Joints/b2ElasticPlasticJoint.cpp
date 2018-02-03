@@ -77,6 +77,7 @@ b2ElasticPlasticJoint::b2ElasticPlasticJoint(const b2ElasticPlasticJointDef* def
 	m_forceExceeded = false;
 	m_torqueExceeded = false;
 	id = epId++;
+	debugListener = nullptr;
 }
 
 void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
@@ -196,6 +197,11 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	b2Vec2 rotatedForce = GetRotatedMaxForce();
 	m_maxImpulse.x = (rotatedForce.x)*data.step.dt;
 	m_maxImpulse.y = (rotatedForce.y)*data.step.dt;
+	velocityIteration = 0;
+	positionIteration = 0;
+	if (nullptr != debugListener) {
+		debugListener->EndInitVelocityConstraints(this, data);
+	}
 }
 
 /**
@@ -304,6 +310,9 @@ void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 		}
 	}
 #endif
+	if (nullptr != debugListener) {
+		debugListener->BeginVelocityIteration(this, data);
+	}
 
 	if (m_frequencyHz > 0.0f)
 	{
@@ -379,6 +388,10 @@ void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 	data.velocities[m_indexA].w = wA;
 	data.velocities[m_indexB].v = vB;
 	data.velocities[m_indexB].w = wB;
+	if (nullptr != debugListener) {
+		debugListener->EndVelocityIteration(this, data);
+	}
+	velocityIteration++;
 }
 
 bool b2ElasticPlasticJoint::WantsToBreak(){
@@ -608,6 +621,9 @@ bool b2ElasticPlasticJoint::SolvePositionConstraints(const b2SolverData& data)
 	K.ex.z = K.ez.x;
 	K.ey.z = K.ez.y;
 	K.ez.z = iA + iB;
+	if (nullptr != debugListener) {
+		debugListener->BeginPositionIteration(this, data);
+	}
 
 	if (m_frequencyHz > 0.0f)
 	{
@@ -674,6 +690,10 @@ bool b2ElasticPlasticJoint::SolvePositionConstraints(const b2SolverData& data)
 	data.positions[m_indexB].a = aB;
 
 	jointOk=positionError <= b2ep_linearSlop && angularError <= b2ep_angularSlop;
+	if (nullptr != debugListener) {
+		debugListener->EndPositionIteration(this, data);
+	}
+	positionIteration++;
 	return jointOk;
 }
 

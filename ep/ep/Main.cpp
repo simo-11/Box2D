@@ -28,7 +28,7 @@
 #include <imgui/imgui_impl_glfw_gl3.h>
 #include "DebugDraw.h"
 #include "Test.h"
-#include "RigidTriangle.h"
+#include "EpJoint.h"
 
 #include <glfw/glfw3.h>
 #include <stdio.h>
@@ -723,6 +723,8 @@ static void sInterface()
 			ImGui::SameLine();
 			ImGui::SliderFloat("##epbY",
 				&settings.epbY, 0.1f, 10.f, "%.2f m");
+			ImGui::Checkbox("DebugListener",
+				&settings.epbDebugListener);
 			if (ImGui::Checkbox("Add ElasticPlastic Beams",
 				&settings.addEPBeams)) {
 				settings.selectEPJoint = false;
