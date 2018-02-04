@@ -499,8 +499,10 @@ static void sInterface()
 				ImGui::SetTooltip("Launch with <space>");
 			}
 		}
-		if (ImGui::CollapsingHeader("ElasticPlastic Joints")) {
-			if (ImGui::Checkbox("Select current EPJoint(s)", &settings.selectEPJoint)) {
+		if (ImGui::CollapsingHeader("ElasticPlastic Joints",
+				NULL,true,test->OpenEPJoints())) {
+			if (ImGui::Checkbox("Select current EPJoint(s)", 
+					&settings.selectEPJoint)) {
 				settings.addRigidTriangles = false;
 				settings.addEPBeams = false;
 				settings.addMasses = false;
@@ -513,17 +515,34 @@ static void sInterface()
 					test->DeleteSelectedJoints();
 				}
 				else {
-					b2ElasticPlasticJoint* ep = NULL;
+					b2ElasticPlasticJoint *ep = NULL;
 					for (SelectedEPJoint* j = test->GetSelectedJointList();
 						j != nullptr; j = j->next) {
 						char buff[20];
 						const char* label = buff;
-						sprintf(buff, "X##depj-%d", j->id);
+						sprintf(buff, "X##xepj-%d", j->id);
 						if (ImGui::SmallButton(label)) {
 							ep = j->joint;
 						}
 						if (ImGui::IsItemHovered()) {
 							test->HighLightJoint(j->joint);
+							ImGui::SetTooltip("Remove from current EPJoint list");
+						}
+						ImGui::SameLine();
+						if (ImGui::Checkbox("EpDebug", &(j->dep))) {
+							if (j->dep) {
+								j->StartDebug();
+							}
+							else {
+								j->StopDebug();
+							}
+						}
+						if (ImGui::IsItemHovered()) {
+							test->HighLightJoint(j->joint);
+							ImGui::SetTooltip("EpDebug listener and UI");
+						}
+						if (j->dep) {
+							EpDebug::Ui(test,j);
 						}
 						ImGui::SameLine();
 						if (NULL == j->forces) {

@@ -1,10 +1,51 @@
 #include "EpJoint.h"
+#include <stdio.h>
+#include <imgui/imgui.h>
 
 Settings *EpDebug::settings=nullptr;
+
+SelectedEPJoint::SelectedEPJoint(){
+	id = 0;
+	dep = false;
+	next = nullptr;
+	joint = nullptr;
+	epd = nullptr;
+}
+SelectedEPJoint::~SelectedEPJoint() {
+	if (nullptr != epd) {
+		delete epd;
+		epd = nullptr;
+	}
+}
+EpDebug* SelectedEPJoint::getEpDebug(){
+	if (nullptr == epd) {
+		epd = new EpDebug();
+	}
+	return epd;
+}
+
+void SelectedEPJoint::StartDebug()
+{
+	getEpDebug();
+	joint->SetDebugListener(epd);
+	dep = true;
+}
+
+void SelectedEPJoint::StopDebug()
+{
+	joint->SetDebugListener(nullptr);
+	delete epd;
+	epd = nullptr;
+	dep = false;
+}
+
+
 EpDebug::EpDebug()
 {
 	vxA = nullptr;
 	velocityIterations=positionIterations = 0;
+	vo = po = 0;
+	showA = showB= false;
 }
 EpDebug::~EpDebug()
 {
@@ -13,10 +54,20 @@ EpDebug::~EpDebug()
 	}
 }
 
+bool EpDebug::IsWanted(b2Body *b) {
+	return b->IsActive() && (b->GetType() == b2_dynamicBody);
+}
 void EpDebug::EndInitVelocityConstraints
 	(b2ElasticPlasticJoint * joint, const b2SolverData & data)
 {
 	if (settings == nullptr) {
+		vo = 0;
+		po = 0;
+		return;
+	}
+	showA = IsWanted(joint->GetBodyA());
+	showB = IsWanted(joint->GetBodyB()); 
+	if (!showA && !showB) {
 		vo = 0;
 		po = 0;
 		return;
@@ -142,4 +193,54 @@ void EpDebug::EndPositionIteration
 	pyB[i] = va[iB].c.y;
 	paA[i] = va[iA].a;
 	paB[i] = va[iB].a;
+}
+
+#define BS 100
+void EpDebug::Ui(Test *t, SelectedEPJoint* j) {
+	ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiSetCond_FirstUseEver);
+	char buff[BS];
+	snprintf(buff, BS, "EpDebug for joint %d",j->id);
+	if (!ImGui::Begin(buff))
+	{
+		ImGui::End();
+		return;
+	}
+	EpDebug *epd = j->epd;
+	ImGui::BeginGroup();
+	ImGui::Text("Details for last iteration");
+	int vc = epd->vo;
+	ImVec2 graphSize(120,30);
+	if (vc > 0) {
+		if (epd->showA) {
+			ImGui::PlotLines("vxA", epd->vxA, vc, 0, NULL, FLT_MAX, FLT_MAX, graphSize);
+			ImGui::PlotLines("vyA", epd->vyA, vc, 0, NULL, FLT_MAX, FLT_MAX, graphSize);
+			ImGui::PlotLines("vaA", epd->vaA, vc, 0, NULL, FLT_MAX, FLT_MAX, graphSize);
+		}
+		if (epd->showB) {
+			ImGui::PlotLines("vxB", epd->vxB, vc, 0, NULL, FLT_MAX, FLT_MAX, graphSize);
+			ImGui::PlotLines("vyB", epd->vyB, vc, 0, NULL, FLT_MAX, FLT_MAX, graphSize);
+			ImGui::PlotLines("vaB", epd->vaB, vc, 0, NULL, FLT_MAX, FLT_MAX, graphSize);
+		}
+		ImGui::PlotLines("ix", epd->ix, vc, 0, NULL, FLT_MAX, FLT_MAX, graphSize);
+		ImGui::PlotLines("iy", epd->iy, vc, 0, NULL, FLT_MAX, FLT_MAX, graphSize);
+		ImGui::PlotLines("ia", epd->ia, vc, 0, NULL, FLT_MAX, FLT_MAX, graphSize);
+	}
+	vc = 2*j->joint->positionIteration;
+	if (vc > 0) {
+		if (epd->showA) {
+			ImGui::PlotLines("pxA", epd->pxA, vc, 0, NULL, FLT_MAX, FLT_MAX, graphSize);
+			ImGui::PlotLines("pyA", epd->pyA, vc, 0, NULL, FLT_MAX, FLT_MAX, graphSize);
+			ImGui::PlotLines("paA", epd->paA, vc, 0, NULL, FLT_MAX, FLT_MAX, graphSize);
+		}
+		if (epd->showB) {
+			ImGui::PlotLines("pxB", epd->pxB, vc, 0, NULL, FLT_MAX, FLT_MAX, graphSize);
+			ImGui::PlotLines("pyB", epd->pyB, vc, 0, NULL, FLT_MAX, FLT_MAX, graphSize);
+			ImGui::PlotLines("paB", epd->paB, vc, 0, NULL, FLT_MAX, FLT_MAX, graphSize);
+		}
+	}
+	ImGui::EndGroup();
+	if (ImGui::IsItemHovered()) {
+		t->HighLightJoint(j->joint);
+	}
+	ImGui::End();
 }

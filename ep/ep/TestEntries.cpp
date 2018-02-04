@@ -27,7 +27,7 @@
 
 TestEntry g_testEntries[] =
 {
-	{ "Empty", EmptyBeam::Create },
+	{ "EmptyBeam", EmptyBeam::Create },
 	{ "Beam", Beam::Create },
 	{ "Car", EPCar::Create },
 	{ "Frame", Frame::Create },

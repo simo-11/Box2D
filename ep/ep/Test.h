@@ -235,12 +235,14 @@ public:
 	virtual void HighLightJoint(b2Joint* j);
 	virtual bool IsSelectedJoint(b2Joint* j);
 	virtual void SelectJoint(const b2Vec2& p);
-	virtual void AddSelectedJoint(b2ElasticPlasticJoint* j);
+	virtual SelectedEPJoint* AddSelectedJoint(b2ElasticPlasticJoint* j);
 	void DeleteSelectedJoint(b2Joint* j);
+	virtual bool OpenEPJoints() { return false; }
 	void SelectedJointDeleted(b2Joint* j);
 	void DeleteSelectedJoints();
 	virtual SelectedEPJoint* GetSelectedJointList();
 	virtual SelectedEPJoint* GetLastSelectedJoint();
+	virtual SelectedEPJoint* GetSelectedEPJoint(b2Joint *j);
 	virtual void UpdatePlotValues(SelectedEPJoint*);
 	virtual void SyncSelectedJoints();
 	void StartTextHighLight();
@@ -254,13 +256,14 @@ public:
 	// static Allows RigidTriangles to survive during restarts
 	static void DeleteRigidTriangle(unsigned char label);
 	static void DeleteRigidTriangles();
-	virtual void CreateRigidTriangles();
+	/** handles recreation of RigidTriangle:s, EPBeam:s and SelectedEPJoint:s */
+	virtual void CommonEpInit();
 	virtual void AddRigidTriangleBody(RigidTriangle*);
 	virtual RigidTriangle* GetRigidTriangleList();
 	virtual RigidTriangle* GetLastRigidTriangle();
 	/* Elastic plastic beams */
 	virtual bool WantEPBeams();
-	virtual void AddEPBeam(const b2Vec2& p);
+	virtual EPBeam* AddEPBeam(const b2Vec2& p);
 	// static Allows EPBeam to survive during restarts
 	static void DeleteEPBeam(unsigned char label);
 	static void DeleteEPBeams();
@@ -279,7 +282,7 @@ public:
 	virtual void wakeConnectedBodies(b2Body*);
 	float32 steppedTime;
 	b2Body* m_movingBody;
-	bool restartPending = false;
+	static bool restartPending,isRestart;
 	// ep-end
 protected:
 	friend class DestructionListener;

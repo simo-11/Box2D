@@ -28,6 +28,8 @@
 #include "Test.h"
 #include <stdlib.h>
 struct Settings;
+struct SelectedEPJoint;
+class Test;
 /**
 Collects data from iterations
 */
@@ -36,6 +38,7 @@ public:
 	float *vxA, *vxB, *vyA, *vyB, *vaA, *vaB;
 	float *pxA, *pxB, *pyA, *pyB, *paA, *paB;
 	float *ix, *iy,*ia;
+	bool showA, showB;
 	unsigned char velocityIterations, positionIterations,vo,po;
 	EpDebug();
 	virtual ~EpDebug();
@@ -50,6 +53,8 @@ public:
 	virtual void EndPositionIteration
 	(b2ElasticPlasticJoint* joint, const b2SolverData& data);
 	static Settings* settings;
+	static void Ui(Test *t, SelectedEPJoint* j);
+	static bool IsWanted(b2Body *b);
 };
 
 struct EPBeam
@@ -58,25 +63,12 @@ struct EPBeam
 	bool deleteSbody = false;
 	float position[2]; // for static body
 	b2Body * body, *sBody;
+	b2ElasticPlasticJoint* joint;
 	EPBeam* next;
-	EpDebug* epDebug;
 	EPBeam() {
 		label = 1;
 		next = nullptr;
 		body = nullptr;
-		epDebug = nullptr;
-	}
-	~EPBeam() {
-		if (nullptr != epDebug) {
-			delete epDebug;
-			epDebug = nullptr;
-		}
-	}
-	EpDebug* getEpDebug() {
-		if (nullptr == epDebug) {
-			epDebug = new EpDebug();
-		}
-		return epDebug;
 	}
 };
 
@@ -89,12 +81,14 @@ struct SelectedEPJoint
 	b2Vec2 maxForce; // max (rotated) force
 	float32 maxTorque;
 	b2ElasticPlasticJoint * joint;
+	bool dep; // show EpDebug window
+	EpDebug* epd;
 	SelectedEPJoint* next;
-	SelectedEPJoint() {
-		id = 0;
-		next = nullptr;
-		joint = nullptr;
-	}
+	SelectedEPJoint();
+	~SelectedEPJoint();
+	EpDebug* getEpDebug();
+	void StartDebug();
+	void StopDebug();
 };
 
 struct RigidTriangle

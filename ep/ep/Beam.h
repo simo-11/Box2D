@@ -223,7 +223,7 @@ public:
 	{
 		Beam* t = new Beam(settings);
 		t->build();
-		t->CreateRigidTriangles();
+		t->CommonEpInit();
 		return t;
 	}
 
@@ -467,7 +467,7 @@ public:
 	{
 		Beam* t = new AxialBeam(settings);
 		t->build();
-		t->CreateRigidTriangles();
+		t->CommonEpInit();
 		return t;
 	}
 };
@@ -498,7 +498,7 @@ public:
 	{
 		Beam* t = new ElasticBeam(settings);
 		t->build();
-		t->CreateRigidTriangles();
+		t->CommonEpInit();
 		return t;
 	}
 };
@@ -525,20 +525,34 @@ public:
 		createDynamicItems();
 	}
 	~EmptyBeam() {
+		DeleteEPBeams();
+		settings->pause = false;
 	}
 	virtual void reset();
 	virtual bool isMyType();
 	virtual void BeamExtraUi();
+	virtual bool OpenEPJoints() { return true; }
 	virtual float32 getFloorMinX(), getFloorMaxX();
 	static Test* Create(Settings *settings)
 	{
 		Beam* t = new EmptyBeam(settings);
 		t->build();
-		t->CreateRigidTriangles();
 		return t;
 	}
 	void createDynamicItems() {
 		if (ebo::cs1) {
+			EPBeam *epb = GetLastEPBeam();
+			if (NULL == epb->body) {
+				b2Vec2 p = b2Vec2(settings->epbX / 2 + 0.01f, 0);
+				epb=AddEPBeam(p);
+			}
+			settings->mouseJointForceScale = 300.f;
+			settings->bombMass = 200;
+			settings->addMass = 10 * settings->bombMass;
+			settings->epbMaxForce = 275 / 2 * 1530; // N/mm^2, mm^2 RHS 100x100x4 
+			settings->epbMaxMoment = 275 * 54900 / 1000; // N/mm^2, mm^3, /1000 to get Nm
+			settings->pause = true;
+			settings->gravityRampUpTime = 0.f;
 			float32 br = settings->bombRadius;
 			settings->addMassSize = 5 * br;
 			b2Vec2 p = b2Vec2(-(3 * settings->bombRadius + settings->addMassSize),
@@ -551,7 +565,8 @@ public:
 			settings->bombSpawnPoint = b2Vec2(-br, br);
 			m_bombSpawnPoint = settings->bombSpawnPoint;
 			settings->epbMass = 12 * settings->epbY; // 12 kg/m
-			EPBeam *epb = GetLastEPBeam();
+			SelectedEPJoint *sp=AddSelectedJoint(epb->joint);
+			sp->StartDebug();
 			epb->position[0] = settings->epbX / 2 + 0.01f;
 			LaunchBomb();
 		}
@@ -589,26 +604,7 @@ void Beam::BeamExtraUi()
 void EmptyBeam::BeamExtraUi()
 {
 	if (ImGui::CollapsingHeader("EmptyBeamOptions",0,true,openLists)) {
-		if (ImGui::Checkbox("CS1",
-			&ebo::cs1)) {
-			if (ebo::cs1) {
-				EPBeam *epb = GetLastEPBeam();
-				if (NULL == epb->body) {
-					b2Vec2 p = b2Vec2(settings->epbX/2+0.01f, 0);
-					AddEPBeam(p);
-				}
-				settings->mouseJointForceScale = 300.f;
-				settings->bombMass = 200;
-				settings->addMass = 10 * settings->bombMass;
-				settings->epbMaxForce = 275/2*1530; // N/mm^2, mm^2 RHS 100x100x4 
-				settings->epbMaxMoment = 275*54900/1000; // N/mm^2, mm^3, /1000 to get Nm
-				settings->pause = true;
-				settings->gravityRampUpTime = 0.f;
-			}
-			else {
-				DeleteEPBeams();
-				settings->pause = false;
-			}
+		if (ImGui::Checkbox("CS1", &ebo::cs1)) {
 			restartPending = true;
 		}
 		if (ImGui::IsItemHovered()) {

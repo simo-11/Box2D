@@ -51,8 +51,15 @@ void Test::ResetMinAndMax() {
 	min.Set(FLT_MAX, FLT_MAX, FLT_MAX);
 }
 
+bool Test::isRestart = false;
+bool Test::restartPending = false;
+
 Test::Test(Settings *sp)
 {
+	if (restartPending) {
+		isRestart = true;
+	}
+	restartPending = false;
 	b2ElasticPlasticJoint::resetEpId();
 	settings = sp;
 	EpDebug::settings = sp;
@@ -99,29 +106,37 @@ Test::~Test()
 	}
 }
 
-void Test::AddSelectedJoint(b2ElasticPlasticJoint * j)
+SelectedEPJoint* Test::AddSelectedJoint(b2ElasticPlasticJoint * j)
 {
-	if (IsSelectedJoint(j)) {
-		return; // already selected
+	SelectedEPJoint* rt = GetSelectedEPJoint(j);
+	if (rt!=nullptr) {
+		return rt; // already selected
 	}
-	SelectedEPJoint* rt = GetLastSelectedJoint();
+	rt = GetLastSelectedJoint();
 	if (rt->joint != nullptr) {
 		rt->next = new SelectedEPJoint();
 		rt = rt->next;
 	}
 	rt->id = j->GetId();
 	rt->joint = j;
+	return rt;
 }
 
-bool Test::IsSelectedJoint(b2Joint * jc)
+SelectedEPJoint * Test::GetSelectedEPJoint(b2Joint * jc)
 {
 	for (SelectedEPJoint* j = GetSelectedJointList();
 		j != nullptr; j = j->next) {
-		if(j->joint==jc){
-			return true;
+		if (j->joint == jc) {
+			return j;
 		}
 	}
-	return false;
+	return nullptr;
+}
+
+
+bool Test::IsSelectedJoint(b2Joint * jc)
+{
+	return (GetSelectedEPJoint(jc) != nullptr);
 }
 
 void Test::SelectedJointDeleted(b2Joint * j)
@@ -235,13 +250,14 @@ SelectedEPJoint * Test::GetLastSelectedJoint()
 	return rt;
 }
 
+
 bool Test::WantRigidTriangles(){
 	return true;
 }
 bool Test::WantMasses() {
 	return true;
 }
-void Test::CreateRigidTriangles(){
+void Test::CommonEpInit(){
 	RigidTriangle* rt = rigidTriangleList;
 	while (rt != nullptr){
 		AddRigidTriangleBody(rt);
@@ -428,7 +444,7 @@ EPBeam* Test::GetLastEPBeam() {
 	}
 	return rt;
 }
-void Test::AddEPBeam(const b2Vec2& p) {
+EPBeam* Test::AddEPBeam(const b2Vec2& p) {
 	EPBeam* rt = GetLastEPBeam();
 	if (rt->body != nullptr) {
 		rt->next = new EPBeam();
@@ -438,6 +454,7 @@ void Test::AddEPBeam(const b2Vec2& p) {
 	rt->position[0] = p.x;
 	rt->position[1] = p.y;
 	AddEPBeamBody(rt);
+	return rt;
 }
 
 void Test::AddEPBeamBody(EPBeam* rt) {
@@ -486,9 +503,7 @@ void Test::AddEPBeamBody(EPBeam* rt) {
 	jd.Initialize(sBody, body, anchor);
 	b2ElasticPlasticJoint* joint=
 		(b2ElasticPlasticJoint*)m_world->CreateJoint(&jd);
-	if (settings->epbDebugListener) {
-		joint->SetDebugListener(rt->getEpDebug());
-	}
+	rt->joint = joint;
 }
 
 void Test::PreSolve(b2Contact* contact, const b2Manifold* oldManifold)
@@ -1239,7 +1254,9 @@ void Test::HighLightJoint(b2Joint* j) {
 	g_debugDraw.DrawCircle(p, radius, color);
 	radius *= 0.3f;
 	g_debugDraw.DrawCircle(bac, radius, color);
+	g_debugDraw.DrawString(bac, "A");
 	g_debugDraw.DrawCircle(bbc, radius, color);
+	g_debugDraw.DrawString(bbc, "B");
 }
 
 void Test::LogContact(ContactPoint * cp, float32 scale, float* locs,

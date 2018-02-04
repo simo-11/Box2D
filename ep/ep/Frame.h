@@ -156,7 +156,7 @@ public:
 	{
 		Frame* t = new Frame(settings);
 		t->build();
-		t->CreateRigidTriangles();
+		t->CommonEpInit();
 		return t;
 	}
 

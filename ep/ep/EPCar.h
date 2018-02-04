@@ -305,7 +305,7 @@ public:
 	{
 		EPCar* t = new EPCar(settings);
 		t->build();
-		t->CreateRigidTriangles();
+		t->CommonEpInit();
 		return t;
 	}
 
