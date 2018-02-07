@@ -196,6 +196,8 @@ void EpDebug::EndPositionIteration
 }
 
 #define BS 100
+#define LX1 380
+#define LX2 450
 void EpDebug::Ui(Test *t, SelectedEPJoint* j) {
 	ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiSetCond_FirstUseEver);
 	char buff[BS];
@@ -207,35 +209,36 @@ void EpDebug::Ui(Test *t, SelectedEPJoint* j) {
 	}
 	EpDebug *epd = j->epd;
 	ImGui::BeginGroup();
-	ImGui::Text("Details for last iteration");
 	int vc = epd->vo;
-	ImVec2 graphSize(120,30);
 	if (vc > 0) {
+		ImGui::Text("%d velocity iterations",epd->velocityIterations);
+		ImGui::SameLine(LX1); ImGui::Text("min");
+		ImGui::SameLine(LX2); ImGui::Text("max");
 		if (epd->showA) {
-			ImGui::PlotLines("vxA", epd->vxA, vc, 0, NULL, FLT_MAX, FLT_MAX, graphSize);
-			ImGui::PlotLines("vyA", epd->vyA, vc, 0, NULL, FLT_MAX, FLT_MAX, graphSize);
-			ImGui::PlotLines("vaA", epd->vaA, vc, 0, NULL, FLT_MAX, FLT_MAX, graphSize);
+			xyPlot("vxA", epd->vxA, vc);
+			xyPlot("vyA", epd->vyA, vc);
+			xyPlot("vaA", epd->vaA, vc);
 		}
 		if (epd->showB) {
-			ImGui::PlotLines("vxB", epd->vxB, vc, 0, NULL, FLT_MAX, FLT_MAX, graphSize);
-			ImGui::PlotLines("vyB", epd->vyB, vc, 0, NULL, FLT_MAX, FLT_MAX, graphSize);
-			ImGui::PlotLines("vaB", epd->vaB, vc, 0, NULL, FLT_MAX, FLT_MAX, graphSize);
+			xyPlot("vxB", epd->vxB, vc);
+			xyPlot("vyB", epd->vyB, vc);
+			xyPlot("vaB", epd->vaB, vc);
 		}
-		ImGui::PlotLines("ix", epd->ix, vc, 0, NULL, FLT_MAX, FLT_MAX, graphSize);
-		ImGui::PlotLines("iy", epd->iy, vc, 0, NULL, FLT_MAX, FLT_MAX, graphSize);
-		ImGui::PlotLines("ia", epd->ia, vc, 0, NULL, FLT_MAX, FLT_MAX, graphSize);
-	}
-	vc = 2*j->joint->positionIteration;
-	if (vc > 0) {
+		xyPlot("ix", epd->ix, vc);
+		xyPlot("iy", epd->iy, vc);
+		xyPlot("ia", epd->ia, vc);
+		vc = 2 * j->joint->positionIteration;
+		ImGui::Text("%d position iterations", 
+			j->joint->positionIteration);
 		if (epd->showA) {
-			ImGui::PlotLines("pxA", epd->pxA, vc, 0, NULL, FLT_MAX, FLT_MAX, graphSize);
-			ImGui::PlotLines("pyA", epd->pyA, vc, 0, NULL, FLT_MAX, FLT_MAX, graphSize);
-			ImGui::PlotLines("paA", epd->paA, vc, 0, NULL, FLT_MAX, FLT_MAX, graphSize);
+			xyPlot("pxA", epd->pxA, vc);
+			xyPlot("pyA", epd->pyA, vc);
+			xyPlot("paA", epd->paA, vc);
 		}
 		if (epd->showB) {
-			ImGui::PlotLines("pxB", epd->pxB, vc, 0, NULL, FLT_MAX, FLT_MAX, graphSize);
-			ImGui::PlotLines("pyB", epd->pyB, vc, 0, NULL, FLT_MAX, FLT_MAX, graphSize);
-			ImGui::PlotLines("paB", epd->paB, vc, 0, NULL, FLT_MAX, FLT_MAX, graphSize);
+			xyPlot("pxB", epd->pxB, vc);
+			xyPlot("pyB", epd->pyB, vc);
+			xyPlot("paB", epd->paB, vc);
 		}
 	}
 	ImGui::EndGroup();
@@ -243,4 +246,22 @@ void EpDebug::Ui(Test *t, SelectedEPJoint* j) {
 		t->HighLightJoint(j->joint);
 	}
 	ImGui::End();
+}
+
+void EpDebug::xyPlot(const char * label, float * v, int count)
+{
+	if (count == 0) {
+		return;
+	}
+	ImVec2 graphSize(300, 50);
+	float min=FLT_MAX, max=-FLT_MAX;
+	for (int i = 0; i < count; i++) {
+		float f = v[i];
+		min = b2Min(min, f);
+		max = b2Max(max, f);
+	}
+	ImGui::PlotLines(label, v, count, 0, NULL, min, max, graphSize);
+	ImGui::SameLine();
+	ImGui::SameLine(LX1); ImGui::Text("% 6.3f",min);
+	ImGui::SameLine(LX2); ImGui::Text("% 6.3f",max);
 }

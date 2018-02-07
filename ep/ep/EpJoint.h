@@ -54,6 +54,7 @@ public:
 	(b2ElasticPlasticJoint* joint, const b2SolverData& data);
 	static Settings* settings;
 	static void Ui(Test *t, SelectedEPJoint* j);
+	static void xyPlot(const char *label, float*v, int count);
 	static bool IsWanted(b2Body *b);
 };
 

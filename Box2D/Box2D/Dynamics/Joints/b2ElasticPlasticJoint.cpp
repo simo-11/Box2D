@@ -78,6 +78,8 @@ b2ElasticPlasticJoint::b2ElasticPlasticJoint(const b2ElasticPlasticJointDef* def
 	m_torqueExceeded = false;
 	id = epId++;
 	debugListener = nullptr;
+	positionIteration = 0;
+	velocityIteration = 0;
 }
 
 void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
