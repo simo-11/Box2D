@@ -111,6 +111,8 @@ public:
 	/// Get the maximum friction torque in N*m.
 	float32 GetMaxTorque() const;
 	bool WantsToBreak();
+	void TuneMassData(),ResetMassData();
+	static void TuneBody(b2Body* b, float32 origI, b2Body* ob, float32 d2,b2Vec2 anchor);
 	/// Dump to b2Log
 	void Dump();
 	static void SetLinearSlop(float32 value);
@@ -122,6 +124,8 @@ public:
 	epDebugListener* GetDebugListener() { return debugListener; }
 	void SetDebugListener(epDebugListener* listener) { debugListener = listener; }
 	unsigned char velocityIteration,positionIteration;
+	b2Vec3 Cdot;
+	float32 m_bodyAOrigI, m_bodyBOrigI;
 protected:
 	epDebugListener* debugListener;
 	friend class b2Joint;
@@ -149,7 +153,6 @@ protected:
 	// ep
 	float32 m_k;
 	b2Vec3 m_maxImpulse;
-	b2Vec3 GetClampedDeltaImpulse(b2Vec3 Cdot, const b2SolverData& data);
 	b2Vec2 GetClampedDeltaImpulse(b2Vec2 Cdot, const b2SolverData& data);
 	float32 GetClampedDeltaImpulse(float32 Cdot, const b2SolverData& data);
 	b2Vec3 GetClampedMaxImpulse(b2Vec3 Cdot, const b2SolverData& data);

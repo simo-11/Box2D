@@ -80,6 +80,8 @@ b2ElasticPlasticJoint::b2ElasticPlasticJoint(const b2ElasticPlasticJointDef* def
 	debugListener = nullptr;
 	positionIteration = 0;
 	velocityIteration = 0;
+	m_bodyAOrigI = m_bodyA->m_I;
+	m_bodyBOrigI = m_bodyB->m_I;
 }
 
 void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
@@ -88,6 +90,9 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	m_indexB = m_bodyB->m_islandIndex;
 	m_localCenterA = m_bodyA->m_sweep.localCenter;
 	m_localCenterB = m_bodyB->m_sweep.localCenter;
+	// ep start
+	TuneMassData();
+	// ep end
 	m_invMassA = m_bodyA->m_invMass;
 	m_invMassB = m_bodyB->m_invMass;
 	m_invIA = m_bodyA->m_invI;
@@ -315,82 +320,51 @@ void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 	if (nullptr != debugListener) {
 		debugListener->BeginVelocityIteration(this, data);
 	}
+	float32 Cdot2 = wB - wA;
 
-	if (m_frequencyHz > 0.0f)
-	{
-		float32 Cdot2 = wB - wA;
+	float32 impulse2 = GetClampedDeltaImpulse(Cdot2, data);
+	m_impulse.z += impulse2;
 
-		float32 impulse2 = GetClampedDeltaImpulse(Cdot2, data);
-		m_impulse.z += impulse2;
+	wA -= iA * impulse2;
+	wB += iB * impulse2;
 
-		wA -= iA * impulse2;
-		wB += iB * impulse2;
+	b2Vec2 Cdot1 = vB + b2Cross(wB, m_rB) - vA - b2Cross(wA, m_rA);
 
-		b2Vec2 Cdot1 = vB + b2Cross(wB, m_rB) - vA - b2Cross(wA, m_rA);
+	b2Vec2 impulse1 = GetClampedDeltaImpulse(Cdot1, data);
+	m_impulse.x += impulse1.x;
+	m_impulse.y += impulse1.y;
 
-		b2Vec2 impulse1 = GetClampedDeltaImpulse(Cdot1, data);
-		m_impulse.x += impulse1.x;
-		m_impulse.y += impulse1.y;
+	b2Vec2 P = impulse1;
 
-		b2Vec2 P = impulse1;
+	vA -= mA * P;
+	wA -= iA * b2Cross(m_rA, P);
 
-		vA -= mA * P;
-		wA -= iA * b2Cross(m_rA, P);
-
-		vB += mB * P;
-		wB += iB * b2Cross(m_rB, P);
-	}
-	else
-	{
-		b2Vec2 vAa = vA + b2Cross(wA, m_rA);
-		b2Vec2 vBa = vB + b2Cross(wB, m_rB);
-		b2Vec2 Cdot1 =  vBa- vAa;
-		float32 Cdot2 = wB - wA;
-		b2Vec3 Cdot(Cdot1.x, Cdot1.y, Cdot2);
-
-		// ep, limit impulse so that m_impulse does not exceed
-		// m_maxImpulse
-		b2Vec3 impulse = GetClampedDeltaImpulse(Cdot, data);
-		m_impulse += impulse;
-
-		b2Vec2 P(impulse.x, impulse.y);
-
-		vA -= mA * P;
-		wA -= iA * (b2Cross(m_rA, P) + impulse.z);
-
-		vB += mB * P;
-		wB += iB * (b2Cross(m_rB, P) + impulse.z);
+	vB += mB * P;
+	wB += iB * b2Cross(m_rB, P);
 #ifdef EP_LOG
-		if (epLogActive && epLogEnabled) {
-			epLog("J:VC Cdot=%g %g %g\n",
-				Cdot.x, Cdot.y, Cdot.z);
-			epLog("J:VC m_impulse=%g %g %g\n",
-				m_impulse.x, m_impulse.y, m_impulse.z);
-			epLog("J:VC impulse=%g %g %g\n",
-				impulse.x, impulse.y, impulse.z);
-			if (mA != 0) {
-				epLog("J:VC vA2=%g %g %g\n",
-					vA.x, vA.y, wA);
-			}
-			if (mB != 0) {
-				epLog("J:VC vB2=%g %g %g\n",
-					vB.x, vB.y, wB);
-			}
-			vAa = vA + b2Cross(wA, m_rA);
-			vBa = vB + b2Cross(wB, m_rB);
-			Cdot1 = vBa - vAa;
-			Cdot2 = wB - wA;
-			epLog("J:VC Cdot2=%g %g %g\n",
-				Cdot1.x, Cdot1.y, Cdot2);
+	if (epLogActive && epLogEnabled) {
+		epLog("J:VC Cdot=%g %g %g\n",
+			Cdot1.x, Cdot1.y, Cdot2);
+		epLog("J:VC m_impulse=%g %g %g\n",
+			m_impulse.x, m_impulse.y, m_impulse.z);
+		epLog("J:VC impulse=%g %g %g\n",
+			impulse1.x, impulse1.y, impulse2);
+		if (mA != 0) {
+			epLog("J:VC vA2=%g %g %g\n",
+				vA.x, vA.y, wA);
 		}
-#endif
+		if (mB != 0) {
+			epLog("J:VC vB2=%g %g %g\n",
+				vB.x, vB.y, wB);
+		}
 	}
-
+#endif
 	data.velocities[m_indexA].v = vA;
 	data.velocities[m_indexA].w = wA;
 	data.velocities[m_indexB].v = vB;
 	data.velocities[m_indexB].w = wB;
 	if (nullptr != debugListener) {
+		Cdot = b2Vec3(Cdot1.x, Cdot1.y, Cdot2);
 		debugListener->EndVelocityIteration(this, data);
 	}
 	velocityIteration++;
@@ -398,9 +372,11 @@ void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 
 bool b2ElasticPlasticJoint::WantsToBreak(){
 	if (m_currentRotation > m_maxRotation){
+		ResetMassData();
 		return true;
 	}
 	if (m_currentStrain > m_maxStrain){
+		ResetMassData();
 		return true;
 		// TODO,
 		// avoid breaking due to pure compression
@@ -410,37 +386,52 @@ bool b2ElasticPlasticJoint::WantsToBreak(){
 		iv.y = m_impulse.y;
 		float32 dotv=b2Dot(m_localAnchorA,iv);
 		if (dotv<0){
+			ResetMassData();
 			return true;
 		}
 	}
 	return false;
 }
+void b2ElasticPlasticJoint::ResetMassData() {
+	m_bodyA->ResetMassData();
+	m_bodyB->ResetMassData();
+}
 /**
 */
-b2Vec3 b2ElasticPlasticJoint::GetClampedDeltaImpulse(b2Vec3 Cdot, 
-	const b2SolverData& data){
-	b2Vec3 impulse = -b2Mul(m_mass, Cdot);
-	b2Vec3 clamped;
-	b2Vec3 maxImpulse = GetClampedMaxImpulse(Cdot, data);
-	b2Vec3 high = maxImpulse - m_impulse;
-	b2Vec3 low = -maxImpulse - m_impulse;
-	clamped.x = b2Clamp(impulse.x, low.x, high.x);
-	clamped.y = b2Clamp(impulse.y, low.y, high.y);
-	if (impulse.x != clamped.x || impulse.y != clamped.y){
-		m_forceExceeded = true;
+void b2ElasticPlasticJoint::TuneMassData() {
+	if (m_frequencyHz > 0.0f) {
+		return; // only for rigid plastic joints at this phase
 	}
-	else {
-		m_forceExceeded = false;
-	}
-	clamped.z = b2Clamp(impulse.z, low.z, high.z);
-	if (impulse.z != clamped.z){
-		m_torqueExceeded = true;
-	}
-	else {
-		m_torqueExceeded = false;
-	}
-	return clamped;
+	b2Vec2 dv = (m_bodyA->GetPosition() - m_bodyB->GetPosition());
+	float32 d2= dv.LengthSquared();
+	TuneBody(m_bodyA, m_bodyAOrigI, m_bodyB, d2, m_localAnchorA);
+	TuneBody(m_bodyB, m_bodyBOrigI, m_bodyA, d2, m_localAnchorB);
 }
+/**
+*/
+void b2ElasticPlasticJoint::TuneBody(b2Body* b, 
+	float32 origI,
+	b2Body* ob,
+	float32 d2, b2Vec2 anchor) {
+	float32 extra;
+	float32 mass;
+	float32 inertia;
+	if (b->GetType() == b2_dynamicBody) {
+		if (ob->GetType() == b2_dynamicBody) {
+			mass = ob->m_mass;
+			inertia = ob->m_I;
+			extra = inertia + mass*d2;
+		}
+		else {
+			mass = b->m_mass;
+			extra = mass*anchor.LengthSquared();
+		}
+		b->m_I = origI + extra;
+		b->m_invI = 1.f / b->m_I;
+	}
+}
+	/**
+*/
 /**
 * scale maxImpulse if joint is about to break
 */

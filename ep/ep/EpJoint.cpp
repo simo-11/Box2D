@@ -84,7 +84,7 @@ void EpDebug::EndInitVelocityConstraints
 	}
 	vo = 2 * velocityIterations;
 	po = 2 * positionIterations;
-	int size = (9 * vo + 6 * po) * sizeof(float);
+	int size = (9 * vo + 6 * po+3*velocityIterations) * sizeof(float);
 	vxA=(float*)b2Alloc(size);
 	int i = vo;
 	vxB = &vxA[i]; i += vo;
@@ -101,6 +101,9 @@ void EpDebug::EndInitVelocityConstraints
 	pyB = &vxA[i]; i += po;
 	paA = &vxA[i]; i += po;
 	paB = &vxA[i]; i += po;
+	cdotx = &vxA[i]; i += velocityIterations;
+	cdoty = &vxA[i]; i += velocityIterations;
+	cdotz = &vxA[i]; i += velocityIterations;
 }
 
 void EpDebug::BeginVelocityIteration
@@ -151,6 +154,10 @@ void EpDebug::EndVelocityIteration
 	ix[i] = rf.x;
 	iy[i] = rf.y;
 	ia[i] = joint->GetReactionTorque(1.f);
+	int vi = joint->velocityIteration;
+	cdotx[vi] = joint->Cdot.x;
+	cdoty[vi] = joint->Cdot.y;
+	cdotz[vi] = joint->Cdot.z;
 }
 
 void EpDebug::BeginPositionIteration
@@ -199,7 +206,7 @@ void EpDebug::EndPositionIteration
 #define LX1 380
 #define LX2 450
 void EpDebug::Ui(Test *t, SelectedEPJoint* j) {
-	ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiSetCond_FirstUseEver);
+	ImGui::SetNextWindowSize(ImVec2(550, 760), ImGuiSetCond_FirstUseEver);
 	char buff[BS];
 	snprintf(buff, BS, "EpDebug for joint %d",j->id);
 	if (!ImGui::Begin(buff))
@@ -214,6 +221,9 @@ void EpDebug::Ui(Test *t, SelectedEPJoint* j) {
 		ImGui::Text("%d velocity iterations",epd->velocityIterations);
 		ImGui::SameLine(LX1); ImGui::Text("min");
 		ImGui::SameLine(LX2); ImGui::Text("max");
+		xyPlot("cdotx", epd->cdotx, epd->velocityIterations);
+		xyPlot("cdoty", epd->cdoty, epd->velocityIterations);
+		xyPlot("cdotz", epd->cdotz, epd->velocityIterations);
 		if (epd->showA) {
 			xyPlot("vxA", epd->vxA, vc);
 			xyPlot("vyA", epd->vyA, vc);
@@ -253,7 +263,7 @@ void EpDebug::xyPlot(const char * label, float * v, int count)
 	if (count == 0) {
 		return;
 	}
-	ImVec2 graphSize(300, 50);
+	ImVec2 graphSize(300, 40);
 	float min=FLT_MAX, max=-FLT_MAX;
 	for (int i = 0; i < count; i++) {
 		float f = v[i];

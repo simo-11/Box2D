@@ -37,6 +37,7 @@ class EpDebug : public epDebugListener {
 public:
 	float *vxA, *vxB, *vyA, *vyB, *vaA, *vaB;
 	float *pxA, *pxB, *pyA, *pyB, *paA, *paB;
+	float *cdotx, *cdoty, *cdotz;
 	float *ix, *iy,*ia;
 	bool showA, showB;
 	unsigned char velocityIterations, positionIterations,vo,po;
