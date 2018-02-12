@@ -187,6 +187,7 @@ void EpDebug::EndPositionIteration
 	if (po == 0) {
 		return;
 	}
+	pi = joint->positionIteration;
 	int iA = joint->GetIslandIndexForA();
 	int iB = joint->GetIslandIndexForB();
 	b2Position* va = data.positions;
@@ -214,6 +215,9 @@ void EpDebug::Ui(Test *t, SelectedEPJoint* j) {
 		ImGui::End();
 		return;
 	}
+	if (j->joint == NULL) {
+		ImGui::Text("Joint is no longer active");
+	}
 	EpDebug *epd = j->epd;
 	ImGui::BeginGroup();
 	int vc = epd->vo;
@@ -237,9 +241,9 @@ void EpDebug::Ui(Test *t, SelectedEPJoint* j) {
 		xyPlot("ix", epd->ix, vc);
 		xyPlot("iy", epd->iy, vc);
 		xyPlot("ia", epd->ia, vc);
-		vc = 2 * j->joint->positionIteration;
-		ImGui::Text("%d position iterations", 
-			j->joint->positionIteration);
+		vc = 2 * epd->pi;
+		ImGui::Text("%d position iterations",
+			epd->pi);
 		if (epd->showA) {
 			xyPlot("pxA", epd->pxA, vc);
 			xyPlot("pyA", epd->pyA, vc);
