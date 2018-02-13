@@ -12,10 +12,7 @@ SelectedEPJoint::SelectedEPJoint(){
 	epd = nullptr;
 }
 SelectedEPJoint::~SelectedEPJoint() {
-	if (nullptr != epd) {
-		delete epd;
-		epd = nullptr;
-	}
+	StopDebug();
 }
 EpDebug* SelectedEPJoint::getEpDebug(){
 	if (nullptr == epd) {
@@ -33,9 +30,13 @@ void SelectedEPJoint::StartDebug()
 
 void SelectedEPJoint::StopDebug()
 {
-	joint->SetDebugListener(nullptr);
-	delete epd;
-	epd = nullptr;
+	if (nullptr != epd) {
+		delete epd;
+		epd = nullptr;
+	}
+	if (joint != nullptr) {
+		joint->SetDebugListener(nullptr);
+	}
 	dep = false;
 }
 
