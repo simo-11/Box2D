@@ -155,7 +155,6 @@ protected:
 	b2Vec3 m_maxImpulse;
 	b2Vec2 GetClampedDeltaImpulse(b2Vec2 Cdot, const b2SolverData& data);
 	float32 GetClampedDeltaImpulse(float32 Cdot, const b2SolverData& data);
-	b2Vec3 GetClampedMaxImpulse(b2Vec3 Cdot, const b2SolverData& data);
 	b2Vec3 GetClampedMaxImpulse(b2Vec2 Cdot, const b2SolverData& data);
 	float32 GetClampedMaxImpulse(float32 Cdot, const b2SolverData& data);
 	b2Vec2 Clamp(b2Vec2 P, const b2SolverData& data);

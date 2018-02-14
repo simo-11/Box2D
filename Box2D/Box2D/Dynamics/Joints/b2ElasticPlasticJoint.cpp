@@ -97,6 +97,7 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	m_invMassB = m_bodyB->m_invMass;
 	m_invIA = m_bodyA->m_invI;
 	m_invIB = m_bodyB->m_invI;
+
 	float32 aA = data.positions[m_indexA].a;
 	b2Vec2 vA = data.velocities[m_indexA].v;
 	float32 wA = data.velocities[m_indexA].w;
@@ -432,26 +433,6 @@ void b2ElasticPlasticJoint::TuneBody(b2Body* b,
 }
 	/**
 */
-/**
-* scale maxImpulse if joint is about to break
-*/
-b2Vec3 b2ElasticPlasticJoint::GetClampedMaxImpulse(b2Vec3 Cdot, 
-	const b2SolverData& data) {
-	float32 dt = data.step.dt;
-	b2Vec3 d = dt*Cdot;
-	float32 maxStrain = m_maxStrain - m_currentStrain;
-	float32 maxRotation = m_maxRotation - m_currentRotation;
-	float32 ssx = (d.x !=0 ? maxStrain / b2Abs(d.x) :b2_maxFloat);
-	float32 ssy = (d.y != 0 ? maxStrain / b2Abs(d.y) :b2_maxFloat);
-	float32 sr = (d.z != 0 ? maxRotation / b2Abs(d.z) :b2_maxFloat);
-	float32 s = b2Min(b2Min(ssx, ssy),sr);
-	if (s > 1) {
-		return m_maxImpulse;
-	}
-	else {
-		return s*m_maxImpulse;
-	}
-}
 
 b2Vec2 b2ElasticPlasticJoint::GetClampedDeltaImpulse(b2Vec2 Cdot, 
 	const b2SolverData& data){
@@ -476,6 +457,9 @@ b2Vec2 b2ElasticPlasticJoint::GetClampedDeltaImpulse(b2Vec2 Cdot,
 */
 b2Vec3 b2ElasticPlasticJoint::GetClampedMaxImpulse(b2Vec2 Cdot, 
 	const b2SolverData& data) {
+	if (Cdot.LengthSquared() < b2ep_linearSlop) {
+		return m_maxImpulse;
+	}
 	float32 dt = data.step.dt;
 	b2Vec2 d = dt*Cdot;
 	float32 maxStrain = m_maxStrain - m_currentStrain;
@@ -547,14 +531,17 @@ b2Vec2 b2ElasticPlasticJoint::Clamp(b2Vec2 P,
 
 /**
 * scale maxImpulse if joint is about to break
+* avoid processing of small velocities
+* as dividing by denormal numbers may trigger numerical issues
 */
 float32 b2ElasticPlasticJoint::GetClampedMaxImpulse(float32 Cdot, 
 	const b2SolverData& data) {
-	if (Cdot != 0) {
+	float32 aCdot = b2Abs(Cdot);
+	if (aCdot>b2ep_angularSlop) {
 		float32 dt = data.step.dt;
-		float32 d = dt*Cdot;
+		float32 d = dt*aCdot;
 		float32 maxRotation = m_maxRotation - m_currentRotation;
-		float32 s = maxRotation / b2Abs(d);
+		float32 s = maxRotation/d;
 		if (s < 1) {
 			return s*m_maxImpulse.z;
 		}
