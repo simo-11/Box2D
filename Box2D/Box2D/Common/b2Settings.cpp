@@ -49,6 +49,7 @@ void epLogClose() {
 		fclose(fout);
 		fout = NULL;
 	}
+	epLogActive = true;
 }
 void epLog(const char* string, ...) {
 	if (!epLogActive || !epLogEnabled) {

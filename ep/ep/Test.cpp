@@ -104,6 +104,7 @@ Test::~Test()
 		j != nullptr; j = j->next) {
 		j->joint = NULL;
 	}
+	epLogClose();
 }
 
 SelectedEPJoint* Test::AddSelectedJoint(b2ElasticPlasticJoint * j)
