@@ -546,6 +546,7 @@ public:
 				b2Vec2 p = b2Vec2(settings->epbX / 2 + 0.01f, 0);
 				epb=AddEPBeam(p);
 			}
+			loggedBody = epb->body;
 			settings->mouseJointForceScale = 300.f;
 			settings->bombMass = 200;
 			settings->addMass = 10 * settings->bombMass;
