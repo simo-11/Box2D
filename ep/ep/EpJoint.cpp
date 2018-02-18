@@ -207,6 +207,7 @@ void EpDebug::EndPositionIteration
 #define BS 100
 #define LX1 380
 #define LX2 450
+#define LX3 520
 void EpDebug::Ui(Test *t, SelectedEPJoint* j) {
 	ImGui::SetNextWindowSize(ImVec2(550, 760), ImGuiSetCond_FirstUseEver);
 	char buff[BS];
@@ -233,6 +234,7 @@ void EpDebug::Ui(Test *t, SelectedEPJoint* j) {
 			epd->velocityIterations,g,b);
 		ImGui::SameLine(LX1); ImGui::Text("min");
 		ImGui::SameLine(LX2); ImGui::Text("max");
+		ImGui::SameLine(LX3); ImGui::Text("final");
 		xyPlot("cdotx", epd->cdotx, epd->velocityIterations);
 		xyPlot("cdoty", epd->cdoty, epd->velocityIterations);
 		xyPlot("cdotz", epd->cdotz, epd->velocityIterations);
@@ -286,4 +288,5 @@ void EpDebug::xyPlot(const char * label, float * v, int count)
 	ImGui::SameLine();
 	ImGui::SameLine(LX1); ImGui::Text("% 6.3f",min);
 	ImGui::SameLine(LX2); ImGui::Text("% 6.3f",max);
+	ImGui::SameLine(LX3); ImGui::Text("% 6.3f", v[count-1]);
 }

@@ -332,6 +332,12 @@ void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 
 	wA -= iA * impulse2;
 	wB += iB * impulse2;
+#ifdef EP_LOG
+	if (epLogActive && epLogEnabled) {
+		epLog("J:VC wA=%g, wB=%g\n",
+			wA,wB);
+	}
+#endif
 
 	b2Vec2 Cdot1 = vB + b2Cross(wB, m_rB) - vA - b2Cross(wA, m_rA);
 
@@ -355,11 +361,11 @@ void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 		epLog("J:VC m_impulse2=%g %g %g\n",
 			m_impulse.x, m_impulse.y, m_impulse.z);
 		if (mA != 0) {
-			epLog("J:VC vA2=%g %g %g\n",
+			epLog("J:VC vA3=%g %g %g\n",
 				vA.x, vA.y, wA);
 		}
 		if (mB != 0) {
-			epLog("J:VC vB2=%g %g %g\n",
+			epLog("J:VC vB3=%g %g %g\n",
 				vB.x, vB.y, wB);
 		}
 	}
