@@ -407,9 +407,6 @@ void b2ElasticPlasticJoint::TuneInertia() {
 	float32 d2= dv.LengthSquared();
 	m_invIA=TuneInertia(m_bodyA, m_bodyB, d2, m_localAnchorA);
 	m_invIB=TuneInertia(m_bodyB, m_bodyA, d2, m_localAnchorB);
-	m_invIA = m_bodyA->m_invI;
-	m_invIB = m_bodyB->m_invI;
-
 }
 /**
 */
