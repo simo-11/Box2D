@@ -462,6 +462,10 @@ static void sInterface()
 			ImGui::Checkbox("Profile", &settings.drawProfile);
 			ImGui::Checkbox("Notes", &settings.drawNotes);
 			ImGui::Checkbox("Init Impulses", &settings.initImpulses);
+			ImGui::Checkbox("TuneInertia", &b2ElasticPlasticJoint::tuneInertia);
+			if (ImGui::IsItemHovered()) {
+				ImGui::SetTooltip("Inertia mofification in b2ElasticPlasticJoint");
+			}
 			ImGui::Checkbox("Ep-logging", &epLogEnabled);
 		}
 		if (ImGui::CollapsingHeader("Bomb settings")) {

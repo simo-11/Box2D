@@ -80,8 +80,6 @@ b2ElasticPlasticJoint::b2ElasticPlasticJoint(const b2ElasticPlasticJointDef* def
 	debugListener = nullptr;
 	positionIteration = 0;
 	velocityIteration = 0;
-	m_bodyAOrigI = m_bodyA->m_I;
-	m_bodyBOrigI = m_bodyB->m_I;
 	m_bias = 0.f;
 	m_gamma = 0.f;
 }
@@ -92,13 +90,11 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	m_indexB = m_bodyB->m_islandIndex;
 	m_localCenterA = m_bodyA->m_sweep.localCenter;
 	m_localCenterB = m_bodyB->m_sweep.localCenter;
-	// ep start
-	TuneMassData();
-	// ep end
 	m_invMassA = m_bodyA->m_invMass;
 	m_invMassB = m_bodyB->m_invMass;
-	m_invIA = m_bodyA->m_invI;
-	m_invIB = m_bodyB->m_invI;
+	// ep start
+	TuneInertia();
+	// ep end
 
 	float32 aA = data.positions[m_indexA].a;
 	b2Vec2 vA = data.velocities[m_indexA].v;
@@ -383,11 +379,9 @@ void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 
 bool b2ElasticPlasticJoint::WantsToBreak(){
 	if (m_currentRotation > m_maxRotation){
-		ResetMassData();
 		return true;
 	}
 	if (m_currentStrain > m_maxStrain){
-		ResetMassData();
 		return true;
 		// TODO,
 		// avoid breaking due to pure compression
@@ -397,48 +391,51 @@ bool b2ElasticPlasticJoint::WantsToBreak(){
 		iv.y = m_impulse.y;
 		float32 dotv=b2Dot(m_localAnchorA,iv);
 		if (dotv<0){
-			ResetMassData();
 			return true;
 		}
 	}
 	return false;
 }
-void b2ElasticPlasticJoint::ResetMassData() {
-	m_bodyA->ResetMassData();
-	m_bodyB->ResetMassData();
-}
+bool b2ElasticPlasticJoint::tuneInertia = true;
 /**
 */
-void b2ElasticPlasticJoint::TuneMassData() {
-	if (true || m_frequencyHz > 0.0f) {
-		return; // only for rigid plastic joints at this phase
+void b2ElasticPlasticJoint::TuneInertia() {
+	if (!tuneInertia) {
+		return; 
 	}
 	b2Vec2 dv = (m_bodyA->GetPosition() - m_bodyB->GetPosition());
 	float32 d2= dv.LengthSquared();
-	TuneBody(m_bodyA, m_bodyAOrigI, m_bodyB, d2, m_localAnchorA);
-	TuneBody(m_bodyB, m_bodyBOrigI, m_bodyA, d2, m_localAnchorB);
+	m_invIA=TuneInertia(m_bodyA, m_bodyB, d2, m_localAnchorA);
+	m_invIB=TuneInertia(m_bodyB, m_bodyA, d2, m_localAnchorB);
+	m_invIA = m_bodyA->m_invI;
+	m_invIB = m_bodyB->m_invI;
+
 }
 /**
 */
-void b2ElasticPlasticJoint::TuneBody(b2Body* b, 
-	float32 origI,
+float32 b2ElasticPlasticJoint::TuneInertia(b2Body* b,
 	b2Body* ob,
 	float32 d2, b2Vec2 anchor) {
 	float32 extra;
 	float32 mass;
 	float32 inertia;
+	if (b->m_invI == 0.f) {
+		return b->m_invI;
+	}
 	if (b->GetType() == b2_dynamicBody) {
 		if (ob->GetType() == b2_dynamicBody) {
 			mass = ob->m_mass;
-			inertia = ob->m_I;
-			extra = inertia + mass*d2;
+			extra = ob->m_I + mass*d2;
 		}
 		else {
 			mass = b->m_mass;
 			extra = mass*anchor.LengthSquared();
 		}
-		b->m_I = origI + extra;
-		b->m_invI = 1.f / b->m_I;
+		inertia=b->m_I + extra;
+		return 1.f/inertia;
+	}
+	else {
+		return b->m_invI;
 	}
 }
 	/**

@@ -111,8 +111,9 @@ public:
 	/// Get the maximum friction torque in N*m.
 	float32 GetMaxTorque() const;
 	bool WantsToBreak();
-	void TuneMassData(),ResetMassData();
-	static void TuneBody(b2Body* b, float32 origI, b2Body* ob, float32 d2,b2Vec2 anchor);
+	static bool tuneInertia;
+	void TuneInertia();
+	static float32 TuneInertia(b2Body* b, b2Body* ob, float32 d2,b2Vec2 anchor);
 	/// Dump to b2Log
 	void Dump();
 	static void SetLinearSlop(float32 value);
@@ -125,7 +126,6 @@ public:
 	void SetDebugListener(epDebugListener* listener) { debugListener = listener; }
 	unsigned char velocityIteration,positionIteration;
 	b2Vec3 Cdot;
-	float32 m_bodyAOrigI, m_bodyBOrigI;
 	float32 m_bias;
 	float32 m_gamma;
 protected:
