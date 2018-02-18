@@ -126,6 +126,8 @@ public:
 	unsigned char velocityIteration,positionIteration;
 	b2Vec3 Cdot;
 	float32 m_bodyAOrigI, m_bodyBOrigI;
+	float32 m_bias;
+	float32 m_gamma;
 protected:
 	epDebugListener* debugListener;
 	friend class b2Joint;
@@ -142,13 +144,11 @@ protected:
 
 	float32 m_frequencyHz; 
 	float32 m_dampingRatio;
-	float32 m_bias;
 
 	// Solver shared
 	b2Vec2 m_localAnchorA;
 	b2Vec2 m_localAnchorB;
 	float32 m_referenceAngle;
-	float32 m_gamma;
 	b2Vec3 m_impulse;
 	// ep
 	float32 m_k;

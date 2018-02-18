@@ -82,6 +82,8 @@ b2ElasticPlasticJoint::b2ElasticPlasticJoint(const b2ElasticPlasticJointDef* def
 	velocityIteration = 0;
 	m_bodyAOrigI = m_bodyA->m_I;
 	m_bodyBOrigI = m_bodyB->m_I;
+	m_bias = 0.f;
+	m_gamma = 0.f;
 }
 
 void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
@@ -402,7 +404,7 @@ void b2ElasticPlasticJoint::ResetMassData() {
 /**
 */
 void b2ElasticPlasticJoint::TuneMassData() {
-	if (m_frequencyHz > 0.0f) {
+	if (true || m_frequencyHz > 0.0f) {
 		return; // only for rigid plastic joints at this phase
 	}
 	b2Vec2 dv = (m_bodyA->GetPosition() - m_bodyB->GetPosition());

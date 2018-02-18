@@ -216,14 +216,21 @@ void EpDebug::Ui(Test *t, SelectedEPJoint* j) {
 		ImGui::End();
 		return;
 	}
+	float32 b, g;
+	b=g=0.f;
 	if (j->joint == NULL) {
 		ImGui::Text("Joint is no longer active");
+	}
+	else {
+		g = j->joint->m_gamma;
+		b = j->joint->m_bias;
 	}
 	EpDebug *epd = j->epd;
 	ImGui::BeginGroup();
 	int vc = epd->vo;
 	if (vc > 0) {
-		ImGui::Text("%d velocity iterations",epd->velocityIterations);
+		ImGui::Text("%d vis, g=%6.3g, b=%6.3g",
+			epd->velocityIterations,g,b);
 		ImGui::SameLine(LX1); ImGui::Text("min");
 		ImGui::SameLine(LX2); ImGui::Text("max");
 		xyPlot("cdotx", epd->cdotx, epd->velocityIterations);
