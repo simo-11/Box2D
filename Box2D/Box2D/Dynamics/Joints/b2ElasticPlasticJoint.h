@@ -111,9 +111,6 @@ public:
 	/// Get the maximum friction torque in N*m.
 	float32 GetMaxTorque() const;
 	bool WantsToBreak();
-	static bool tuneInertia;
-	void TuneInertia();
-	static float32 TuneInertia(b2Body* b, b2Body* ob, float32 d2,b2Vec2 anchor);
 	/// Dump to b2Log
 	void Dump();
 	static void SetLinearSlop(float32 value);

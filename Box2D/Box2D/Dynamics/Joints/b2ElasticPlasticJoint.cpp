@@ -92,9 +92,8 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	m_localCenterB = m_bodyB->m_sweep.localCenter;
 	m_invMassA = m_bodyA->m_invMass;
 	m_invMassB = m_bodyB->m_invMass;
-	// ep start
-	TuneInertia();
-	// ep end
+	m_invIA = m_bodyA->m_invI;
+	m_invIB = m_bodyB->m_invI;
 
 	float32 aA = data.positions[m_indexA].a;
 	b2Vec2 vA = data.velocities[m_indexA].v;
@@ -396,47 +395,6 @@ bool b2ElasticPlasticJoint::WantsToBreak(){
 	}
 	return false;
 }
-bool b2ElasticPlasticJoint::tuneInertia = true;
-/**
-*/
-void b2ElasticPlasticJoint::TuneInertia() {
-	if (!tuneInertia) {
-		return; 
-	}
-	b2Vec2 dv = (m_bodyA->GetPosition() - m_bodyB->GetPosition());
-	float32 d2= dv.LengthSquared();
-	m_invIA=TuneInertia(m_bodyA, m_bodyB, d2, m_localAnchorA);
-	m_invIB=TuneInertia(m_bodyB, m_bodyA, d2, m_localAnchorB);
-}
-/**
-*/
-float32 b2ElasticPlasticJoint::TuneInertia(b2Body* b,
-	b2Body* ob,
-	float32 d2, b2Vec2 anchor) {
-	float32 extra;
-	float32 mass;
-	float32 inertia;
-	if (b->m_invI == 0.f) {
-		return b->m_invI;
-	}
-	if (b->GetType() == b2_dynamicBody) {
-		if (ob->GetType() == b2_dynamicBody) {
-			mass = ob->m_mass;
-			extra = ob->m_I + mass*d2;
-		}
-		else {
-			mass = b->m_mass;
-			extra = mass*anchor.LengthSquared();
-		}
-		inertia=b->m_I + extra;
-		return 1.f/inertia;
-	}
-	else {
-		return b->m_invI;
-	}
-}
-	/**
-*/
 
 b2Vec2 b2ElasticPlasticJoint::GetClampedDeltaImpulse(b2Vec2 Cdot, 
 	const b2SolverData& data){
