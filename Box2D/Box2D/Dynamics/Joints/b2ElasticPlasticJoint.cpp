@@ -131,43 +131,46 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	K.ey.z = K.ez.y;
 	K.ez.z = iA + iB;
 
-	if (m_frequencyHz > 0.0f)
+	if (m_frequencyHz > 0.0f || K.ez.z != 0.0f)
 	{
 		K.GetInverse22(&m_mass);
 
 		float32 invM = iA + iB;
 		float32 m = invM > 0.0f ? 1.0f / invM : 0.0f;
 
-		// Frequency
-		float32 omega = 2.0f * b2_pi * m_frequencyHz;
-
-		// Damping coefficient
-		float32 d = 2.0f * m * m_dampingRatio * omega;
-
-		// Spring stiffness
-		float32 k = m * omega * omega;
-		m_k=k; // save for possible reuse during UpdateAnchors
-		// magic formulas
 		float32 h = data.step.dt;
-		m_gamma = h * (d + h * k);
-		m_gamma = m_gamma != 0.0f ? 1.0f / m_gamma : 0.0f;
+		if (m_frequencyHz > 0.0f) {
+			// Frequency
+			float32 omega = 2.0f * b2_pi * m_frequencyHz;
+			// Damping coefficient
+			float32 d = 2.0f * m * m_dampingRatio * omega;
+			// Spring stiffness
+			float32 k = m * omega * omega;
+			m_k = k; // save for possible reuse during UpdateAnchors
+	  		// magic formulas
+			m_gamma = h * (d + h * k);
+			m_gamma = m_gamma != 0.0f ? 1.0f / m_gamma : 0.0f;
+		}
+		else {
+			m_k = 0.f;
+			m_gamma = 0.1f;
+		}
 		invM += m_gamma;
 		m_mass.ez.z = invM != 0.0f ? 1.0f / invM : 0.0f;
-		if(m_maxElasticRotation!=0.f){
-			m_maxTorque = k*m_maxElasticRotation;
+		if (m_k != 0.f) {
+			if (m_maxElasticRotation != 0.f) {
+				m_maxTorque = m_k*m_maxElasticRotation;
+			}
+			float32 C = aB - aA - m_referenceAngle;
+			m_bias = C * h * m_k * m_gamma;
 		}
-		float32 C = aB - aA - m_referenceAngle;
-		m_bias = C * h * k * m_gamma;
+		else {
+			m_bias = 0.f;
+		}
 	}
 	else if (K.ez.z == 0.0f)
 	{
 		K.GetInverse22(&m_mass);
-		m_gamma = 0.0f;
-		m_bias = 0.0f;
-	}
-	else
-	{
-		K.GetSymInverse33(&m_mass);
 		m_gamma = 0.0f;
 		m_bias = 0.0f;
 	}
