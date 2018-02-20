@@ -138,8 +138,8 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 		float32 invM = iA + iB;
 		float32 m = invM > 0.0f ? 1.0f / invM : 0.0f;
 
-		float32 h = data.step.dt;
 		if (m_frequencyHz > 0.0f) {
+			float32 h = data.step.dt;
 			// Frequency
 			float32 omega = 2.0f * b2_pi * m_frequencyHz;
 			// Damping coefficient
@@ -150,14 +150,7 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	  		// magic formulas
 			m_gamma = h * (d + h * k);
 			m_gamma = m_gamma != 0.0f ? 1.0f / m_gamma : 0.0f;
-		}
-		else {
-			m_k = 0.f;
-			m_gamma = 0.1f;
-		}
-		invM += m_gamma;
-		m_mass.ez.z = invM != 0.0f ? 1.0f / invM : 0.0f;
-		if (m_k != 0.f) {
+			invM += m_gamma;
 			if (m_maxElasticRotation != 0.f) {
 				m_maxTorque = m_k*m_maxElasticRotation;
 			}
@@ -165,8 +158,11 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 			m_bias = C * h * m_k * m_gamma;
 		}
 		else {
+			m_k = 0.f;
+			m_gamma = 0.f;
 			m_bias = 0.f;
 		}
+		m_mass.ez.z = invM != 0.0f ? 1.0f / invM : 0.0f;
 	}
 	else if (K.ez.z == 0.0f)
 	{
