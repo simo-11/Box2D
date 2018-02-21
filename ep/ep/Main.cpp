@@ -727,6 +727,16 @@ static void sInterface()
 			ImGui::SameLine();
 			ImGui::SliderFloat("##epbHz", 
 				&settings.epbHz, 0.f, settings.hz, "%.2f Hz");
+			if (settings.epbHz > 0) {
+				ImGui::Text("MaxElasticRotation");
+				if (ImGui::IsItemHovered()) {
+					ImGui::SetTooltip
+					("MaxElasticRotation for elastic joints in radians");
+				}
+				ImGui::SameLine();
+				ImGui::SliderFloat("##epbMaxElasticRotation",
+					&settings.epbMaxElasticRotation, 0.f, 1.f, "%.2f rad");
+			}
 			ImGui::Text("Mass");
 			if (ImGui::IsItemHovered()) {
 				ImGui::SetTooltip("mass for beam");

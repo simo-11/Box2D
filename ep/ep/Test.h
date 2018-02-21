@@ -100,7 +100,7 @@ struct Settings
 		epbMaxRotation = 3;
 		epbX = 0.1f;
 		epbY = 3;
-		epbMaxElasticRotation = 1;
+		epbMaxElasticRotation = 0;
 		epbDebugListener = true;
 		epbHz = 0.f;
 		epbMass = 36.f;
