@@ -120,6 +120,7 @@ SelectedEPJoint* Test::AddSelectedJoint(b2ElasticPlasticJoint * j)
 	}
 	rt->id = j->GetId();
 	rt->joint = j;
+	rt->highlight = true;
 	return rt;
 }
 
@@ -706,7 +707,6 @@ void Test::SelectJoint(const b2Vec2 & p)
 			float32 d2 = (p - jp).LengthSquared();
 			if (d2 < r2) {
 				AddSelectedJoint(epj);
-				HighLightJoint(j);
 			}
 			break;
 		}

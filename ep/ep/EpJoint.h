@@ -78,6 +78,7 @@ struct EPBeam
 struct SelectedEPJoint
 {
 	int32 id; // allows survival during restarts
+	bool highlight;
 	float *forces = NULL; // store at most 3*EP_MAX_VALUES values
 	float *capacities = NULL; // store at most 5*EP_MAX_VALUES values
 	b2Vec2 maxForce; // max (rotated) force

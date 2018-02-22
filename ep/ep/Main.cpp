@@ -518,6 +518,10 @@ static void sInterface()
 					b2ElasticPlasticJoint *ep = NULL;
 					for (SelectedEPJoint* j = test->GetSelectedJointList();
 						j != nullptr; j = j->next) {
+						if (j->highlight) {
+							test->HighLightJoint(j->joint);
+							j->highlight = false;
+						}
 						char buff[20];
 						const char* label = buff;
 						sprintf(buff, "X##xepj-%d", j->id);
