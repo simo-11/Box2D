@@ -44,6 +44,8 @@ void b2Log(const char* string, ...)
 }
 
 FILE* fout = NULL;
+int epLogBytes;
+int maxEpLogBytes = 1 << 23;
 void epLogClose() {
 	if (fout!=NULL && fout != stdout) {
 		fclose(fout);
@@ -59,7 +61,8 @@ void epLog(const char* string, ...) {
 		const char * fn = "ep-log.txt";
 		fout = fopen(fn, "w");
 		if (fout) {
-			b2Log("ep-logging to %s\n",fn);
+			b2Log("ep-logging to %s, maxEpLogBytes=%d\n",fn,maxEpLogBytes);
+			epLogBytes = 0;
 		}else{
 			b2Log("Could not open %s, ep-logging to stdout", fn);
 			fout = stdout;
@@ -67,12 +70,19 @@ void epLog(const char* string, ...) {
 	}
 	va_list args;
 	va_start(args, string);
-	if (vfprintf(fout, string, args) < 0) {
+	int bytes = vfprintf(fout, string, args);
+	if ( bytes< 0) {
 		b2Log("epLog failed\n");
 		perror(string);
 	}
 	va_end(args);
 	fflush(fout);
+	epLogBytes += bytes;
+	if (epLogBytes > maxEpLogBytes) {
+		epLogEnabled = false;
+		b2Log("ep-logging stopped after %d bytes\n", epLogBytes);
+		epLogClose();
+	}
 }
 
 bool epLogActive = true;
