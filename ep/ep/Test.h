@@ -40,6 +40,11 @@ struct EPBeam;
 
 typedef Test* TestCreateFcn(Settings*);
 
+enum BombShape {
+	CIRCLE=0,
+	RECTANGLE=1,
+};
+
 #define	RAND_LIMIT	32767
 #define DRAW_STRING_NEW_LINE 16
 
@@ -109,10 +114,11 @@ struct Settings
 		initImpulses = false;
 		gravityRampUpTime = 1.0f;
 		bombMass = 1000;
-		bombRadius = 1;
+		bombShape = CIRCLE;
+		bombWidth = 2;
 		bombMultiplier = 10;
 		bombVelocity = b2Vec2(5, 0);
-		bombSpawnPoint = b2Vec2(-bombRadius, bombRadius);
+		bombSpawnPoint = b2Vec2(-0.5f*bombWidth, 0.5f*bombWidth);
 	}
 	float32 hz;
 	float32 mouseJointForceScale; 
@@ -144,7 +150,8 @@ struct Settings
 		epbMass, epbHz, epbMaxRotation, epbMaxStrain, epbMaxElasticRotation;
 	bool epbDebugListener;
 	float32 gravityRampUpTime;
-	float32 bombMass, bombRadius, bombMultiplier;
+	float32 bombMass, bombWidth, bombMultiplier;
+	BombShape bombShape;
 	b2Vec2 bombVelocity,bombSpawnPoint;
 };
 
@@ -275,7 +282,7 @@ public:
 	/** reset configurable settings */
 	virtual void reset(){};
 	virtual float getBombMass();
-	virtual float getBombRadius();
+	virtual float getBombWidth();
 	virtual float getBombVelocity();
 	b2Vec2 getBombSpawnPoint();
 	void setBombSpawnPoint(b2Vec2);

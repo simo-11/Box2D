@@ -789,12 +789,23 @@ void Test::LaunchBomb(const b2Vec2& position, const b2Vec2& velocity)
 	m_bomb = m_world->CreateBody(&bd);
 	m_bomb->SetLinearVelocity(velocity);
 	
-	b2CircleShape circle;
-	circle.m_radius = getBombRadius();
-	float32 r = circle.m_radius;
-	float32 area = b2_pi*r*r;
 	b2FixtureDef fd;
-	fd.shape = &circle;
+	float32 area;
+	float32 r = 0.5f*getBombWidth();
+	b2CircleShape circle;
+	b2PolygonShape rectangle;
+	switch (settings->bombShape) {
+	case CIRCLE:
+		circle.m_radius = r;
+		area= b2_pi*r*r;
+		fd.shape = &circle;
+		break;
+	case RECTANGLE:
+		rectangle.SetAsBox(r, r);
+		area = 4.f*r*r;
+		fd.shape = &rectangle;
+		break;
+	}
 	fd.density = getBombMass()/area;
 	fd.restitution = 0.0f;
 	fd.friction = 0.05f; // ice or oil
@@ -805,9 +816,9 @@ float Test::getBombMass()
 {
 	return settings->bombMass;
 }
-float Test::getBombRadius()
+float Test::getBombWidth()
 {
-	return settings->bombRadius;
+	return settings->bombWidth;
 }
 
 void Test::Step()

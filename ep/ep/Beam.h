@@ -54,6 +54,13 @@ namespace {
 	float32 lastCx,lastCy;
 	bool openLists;
 }
+
+namespace bo {
+	bool b1, b2, b3; // for ui checkboxes
+	float mdp[2];
+}
+
+
 class Beam : public Test
 {
 public:
@@ -82,6 +89,29 @@ public:
 	virtual float32 getFloorMinX(), getFloorMaxX();
 	Beam(Settings* sp) :Test(sp)
 	{
+		createDynamicItems();
+	}
+	void createDynamicItems() {
+		if (bo::b1) {
+			baseHz = 0.f;
+			density = 100.f;
+			horizontal = true;
+			addSoft = false;
+			addHard = false;
+			addElasticPlastic = true;
+			firstIsHinge = false;
+			settings->pause = true;
+			settings->gravityRampUpTime = 0.f;
+			openLists = true;
+			settings->bombShape = RECTANGLE;
+			settings->bombMass = 1e6f;
+			settings->bombSpawnPoint = b2Vec2
+				(0.5f*settings->bombWidth+0.01f, 
+				27+0.5f*settings->bombWidth+hy);
+			settings->bombVelocity = b2Vec2(0, 0);
+			m_bombSpawnPoint = settings->bombSpawnPoint;
+			LaunchBomb();
+		}
 	}
 	bool showMenu = true;
 	virtual void Ui(){
@@ -234,6 +264,22 @@ bool Beam::isMyType(){
 	return beamType == Cantilever;
 }
 
+void Beam::BeamExtraUi()
+{
+	if (ImGui::CollapsingHeader("BeamOptions", 0, true, openLists)) {
+		if (ImGui::Checkbox("B1", &bo::b1)) {
+			restartPending = true;
+		}
+		if (ImGui::IsItemHovered()) {
+			ImGui::SetTooltip("Horizontal\n\
+density=100\n\
+hz=0\n\
+1000000 kg mass\n\
+");
+		}
+	}
+}
+
 void Beam::reset(){
 	so_count = 1;
 	baseHz = 2;
@@ -252,6 +298,8 @@ void Beam::reset(){
 	horizontal = false;
 	openLists = false;
 	beamType = Cantilever;
+	bo::mdp[0]=0.51f*settings->addMassSize;
+	bo::mdp[1] = 39.f;
 	settings->reset();
 }
 
@@ -418,13 +466,21 @@ if (addElasticPlastic)
 			ay = sy - hy - 2 * i*hx;
 		}
 		b2Vec2 anchor(ax, ay);
+		b2ElasticPlasticJoint* joint = NULL;
 		if (i == 0 && firstIsHinge) {
 			hd.Initialize(prevBody, body, anchor);
 			m_world->CreateJoint(&hd);
 		}
 		else {
 			jd.Initialize(prevBody, body, anchor);
-			m_world->CreateJoint(&jd);
+			joint=(b2ElasticPlasticJoint*)m_world->CreateJoint(&jd);
+		}
+		if (bo::b1) {
+			if (prevBody == sbody && joint) {
+				loggedBody = body;
+				SelectedEPJoint *sp = AddSelectedJoint(joint);
+				sp->StartDebug();
+			}
 		}
 		prevBody = body;
 	}
@@ -554,9 +610,9 @@ public:
 			settings->epbMaxMoment = 275 * 54900 / 1000; // N/mm^2, mm^3, /1000 to get Nm
 			settings->pause = true;
 			settings->gravityRampUpTime = 0.f;
-			float32 br = settings->bombRadius;
+			float32 br = 0.5f*settings->bombWidth;
 			settings->addMassSize = 5 * br;
-			b2Vec2 p = b2Vec2(-(3 * settings->bombRadius + settings->addMassSize),
+			b2Vec2 p = b2Vec2(-(1.5f * settings->bombWidth + settings->addMassSize),
 				settings->addMassSize / 2);
 			AddMass(p);
 			p.x = settings->epbX + settings->epbY + settings->addMassSize;
@@ -575,7 +631,7 @@ public:
 };
 
 float32 EmptyBeam::getFloorMinX() {
-	return -(3 * settings->bombRadius + 2*settings->addMassSize);
+	return -(1.5f * settings->bombWidth + 2*settings->addMassSize);
 }
 
 float32 EmptyBeam::getFloorMaxX() {
@@ -598,9 +654,6 @@ inline bool EmptyBeam::isMyType()
 	return beamType == Empty;
 }
 
-void Beam::BeamExtraUi()
-{
-}
 
 void EmptyBeam::BeamExtraUi()
 {

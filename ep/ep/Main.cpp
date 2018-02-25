@@ -467,8 +467,20 @@ static void sInterface()
 		if (ImGui::CollapsingHeader("Bomb settings")) {
 			ImGui::Text("Mass");
 			ImGui::SliderFloat("kg##bombMass", &settings.bombMass, 100.f, 1000000.f, "%.0f",3);
-			ImGui::Text("Radius");
-			ImGui::SliderFloat("m##bombRadius", &settings.bombRadius, 0.05f, 10.f, "%.2f");
+			ImGui::Text("Shape");
+			ImGui::SameLine();
+			ImGui::RadioButton("Circle", (int *)&settings.bombShape, CIRCLE);
+			ImGui::SameLine();
+			ImGui::RadioButton("Rectangle", (int *)&settings.bombShape, RECTANGLE);
+			switch (settings.bombShape) {
+			case CIRCLE:
+				ImGui::Text("Diameter");
+				break;
+			case RECTANGLE:
+				ImGui::Text("Width");
+				break;
+			}
+			ImGui::SliderFloat("m##bombRadius", &settings.bombWidth, 0.05f, 10.f, "%.2f");
 			ImGui::Text("VelocityScale");
 			ImGui::SliderFloat("m##bombMultiplier",
 				&settings.bombMultiplier, 0.1f, 120.f, "%.2f");

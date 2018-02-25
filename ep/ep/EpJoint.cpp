@@ -286,7 +286,7 @@ void EpDebug::xyPlot(const char * label, float * v, int count)
 	}
 	ImGui::PlotLines(label, v, count, 0, NULL, min, max, graphSize);
 	ImGui::SameLine();
-	ImGui::SameLine(LX1); ImGui::Text("% 6.3f",min);
-	ImGui::SameLine(LX2); ImGui::Text("% 6.3f",max);
-	ImGui::SameLine(LX3); ImGui::Text("% 6.3f", v[count-1]);
+	ImGui::SameLine(LX1); ImGui::Text("% 6.3g",min);
+	ImGui::SameLine(LX2); ImGui::Text("% 6.3g",max);
+	ImGui::SameLine(LX3); ImGui::Text("% 6.3g", v[count-1]);
 }
