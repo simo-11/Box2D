@@ -93,6 +93,9 @@ public:
 		createDynamicItems();
 	}
 	void createDynamicItems() {
+		if (!isMyType()) {
+			return;
+		}
 		if (bo::b1) {
 			baseHz = 0.f;
 			density = 100.f;
