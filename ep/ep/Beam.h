@@ -100,15 +100,7 @@ public:
 			addHard = false;
 			addElasticPlastic = true;
 			firstIsHinge = false;
-			settings->pause = true;
-			settings->gravityRampUpTime = 0.f;
 			openLists = true;
-			settings->bombShape = RECTANGLE;
-			settings->bombMass = 1e6f;
-			settings->bombSpawnPoint = b2Vec2
-				(0.5f*settings->bombWidth+0.01f, 
-				27+0.5f*settings->bombWidth+hy);
-			settings->bombVelocity = b2Vec2(0, 0);
 			m_bombSpawnPoint = settings->bombSpawnPoint;
 			LaunchBomb();
 		}
@@ -268,6 +260,14 @@ void Beam::BeamExtraUi()
 {
 	if (ImGui::CollapsingHeader("BeamOptions", 0, true, openLists)) {
 		if (ImGui::Checkbox("B1", &bo::b1)) {
+			settings->pause = true;
+			settings->gravityRampUpTime = 0.f;
+			settings->bombShape = RECTANGLE;
+			settings->bombMass = 1e6f;
+			settings->bombSpawnPoint = b2Vec2
+			(0.5f*settings->bombWidth + 0.01f,
+				27 + 0.5f*settings->bombWidth + hy);
+			settings->bombVelocity = b2Vec2(0, 0);
 			restartPending = true;
 		}
 		if (ImGui::IsItemHovered()) {
@@ -659,6 +659,7 @@ void EmptyBeam::BeamExtraUi()
 {
 	if (ImGui::CollapsingHeader("EmptyBeamOptions",0,true,openLists)) {
 		if (ImGui::Checkbox("CS1", &ebo::cs1)) {
+			settings->bombShape = CIRCLE;
 			restartPending = true;
 		}
 		if (ImGui::IsItemHovered()) {

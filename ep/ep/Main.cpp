@@ -513,6 +513,9 @@ static void sInterface()
 		}
 		if (ImGui::CollapsingHeader("ElasticPlastic Joints",
 				NULL,true,test->OpenEPJoints())) {
+			ImGui::Text("EpDebug steps");
+			ImGui::SameLine();
+			ImGui::SliderInt("##EpDebugSteps", &settings.epDebugSteps, 1, 10);
 			if (ImGui::Checkbox("Select current EPJoint(s)", 
 					&settings.selectEPJoint)) {
 				settings.addRigidTriangles = false;

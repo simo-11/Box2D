@@ -35,12 +35,14 @@ Collects data from iterations
 */
 class EpDebug : public epDebugListener {
 public:
+	float *xyData;
 	float *vxA, *vxB, *vyA, *vyB, *vaA, *vaB;
 	float *pxA, *pxB, *pyA, *pyB, *paA, *paB;
 	float *cdotx, *cdoty, *cdotz;
 	float *ix, *iy,*ia;
 	bool showA, showB;
-	unsigned char velocityIterations, positionIterations,vo,po,pi;
+	unsigned char velocityIterations, positionIterations, vo, po, pi;
+	unsigned char epDebugSteps,stepsStored; 
 	EpDebug();
 	virtual ~EpDebug();
 	virtual void EndInitVelocityConstraints

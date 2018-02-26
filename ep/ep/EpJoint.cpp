@@ -43,15 +43,15 @@ void SelectedEPJoint::StopDebug()
 
 EpDebug::EpDebug()
 {
-	vxA = nullptr;
+	xyData = nullptr;
 	velocityIterations=positionIterations = 0;
 	vo = po = 0;
 	showA = showB= false;
 }
 EpDebug::~EpDebug()
 {
-	if (vxA != nullptr) {
-		b2Free(vxA);
+	if (xyData != nullptr) {
+		b2Free(xyData);
 	}
 }
 
@@ -75,36 +75,66 @@ void EpDebug::EndInitVelocityConstraints
 	}
 	velocityIterations = settings->velocityIterations;
 	positionIterations= settings->positionIterations;
-	if (vxA != nullptr && 2 * velocityIterations == vo
+	epDebugSteps = settings->epDebugSteps;
+	if (xyData != nullptr && 2 * velocityIterations == vo
 		&& 2 * positionIterations == po) {
-		// no changes
+		// move data if needed
+		if (stepsStored+1 >= epDebugSteps) {
+			int size = 2 * velocityIterations*(epDebugSteps - 1);
+			for (int i = 0; i < 9; i++) {
+				int d = i*2* velocityIterations*epDebugSteps;
+				int s = d + size;
+				memmove(&vxA[d], &vxA[s], size);
+			}
+			size = 2 * positionIterations*(epDebugSteps - 1);
+			for (int i = 0; i < 6; i++) {
+				int d = i * 2 * positionIterations*epDebugSteps;
+				int s = d + size;
+				memmove(&pxA[d], &pxA[s], size);
+			}
+			size = velocityIterations*(epDebugSteps - 1);
+			for (int i = 0; i < 3; i++) {
+				int d = i * velocityIterations*epDebugSteps;
+				int s = d + size;
+				memmove(&cdotx[d], &cdotx[s], size);
+			}
+		}
+		else {
+			stepsStored++;
+		}
 		return;
 	}
-	if (vxA != nullptr) {
-		b2Free(vxA);
+	if (xyData != nullptr) {
+		b2Free(xyData);
 	}
 	vo = 2 * velocityIterations;
 	po = 2 * positionIterations;
-	int size = (9 * vo + 6 * po+3*velocityIterations) * sizeof(float);
-	vxA=(float*)b2Alloc(size);
-	int i = vo;
-	vxB = &vxA[i]; i += vo;
-	vyA = &vxA[i]; i += vo;
-	vyB = &vxA[i]; i += vo;
-	vaA = &vxA[i]; i += vo;
-	vaB = &vxA[i]; i += vo;
-	ix = &vxA[i]; i += vo;
-	iy = &vxA[i]; i += vo;
-	ia = &vxA[i]; i += vo;
-	pxA = &vxA[i]; i += po;
-	pxB = &vxA[i]; i += po;
-	pyA = &vxA[i]; i += po;
-	pyB = &vxA[i]; i += po;
-	paA = &vxA[i]; i += po;
-	paB = &vxA[i]; i += po;
-	cdotx = &vxA[i]; i += velocityIterations;
-	cdoty = &vxA[i]; i += velocityIterations;
-	cdotz = &vxA[i]; i += velocityIterations;
+	int size = (9 * vo + 6 * po+3*velocityIterations) * 
+		epDebugSteps*sizeof(float);
+	xyData=(float*)b2Alloc(size);
+	stepsStored = 0;
+	vxA = xyData;
+	int vInc = vo*epDebugSteps;
+	int pInc = po*epDebugSteps;
+	int dInc = velocityIterations*epDebugSteps;
+	int i = vInc;
+	vxB = &vxA[i]; i += vInc;
+	vyA = &vxA[i]; i += vInc;
+	vyB = &vxA[i]; i += vInc;
+	vaA = &vxA[i]; i += vInc;
+	vaB = &vxA[i]; i += vInc;
+	ix = &vxA[i]; i += vInc;
+	iy = &vxA[i]; i += vInc;
+	ia = &vxA[i]; i += vInc;
+	pxA = &vxA[i]; i += pInc;
+	pxB = &vxA[i]; i += pInc;
+	pyA = &vxA[i]; i += pInc;
+	pyB = &vxA[i]; i += pInc;
+	paA = &vxA[i]; i += pInc;
+	paB = &vxA[i]; i += pInc;
+	cdotx = &vxA[i]; i += dInc;
+	cdoty = &vxA[i]; i += dInc;
+	cdotz = &vxA[i]; i += dInc;
 }
 
 void EpDebug::BeginVelocityIteration
@@ -116,8 +146,8 @@ void EpDebug::BeginVelocityIteration
 	int iA = joint->GetIslandIndexForA();
 	int iB = joint->GetIslandIndexForB();
 	b2Velocity* va = data.velocities;
-	int i = 2*joint->velocityIteration;
-	if (i >=vo) {
+	int i = vo*stepsStored+2*joint->velocityIteration;
+	if (i >=vo*epDebugSteps) {
 		return;
 	}
 	vxA[i] = va[iA].v.x;
@@ -141,8 +171,8 @@ void EpDebug::EndVelocityIteration
 	int iA = joint->GetIslandIndexForA();
 	int iB = joint->GetIslandIndexForB();
 	b2Velocity* va = data.velocities;
-	int i = 2 * joint->velocityIteration+1;
-	if (i >= vo) {
+	int i = vo*stepsStored + 2 * joint->velocityIteration+1;
+	if (i >= vo*epDebugSteps) {
 		return;
 	}
 	vxA[i] = va[iA].v.x;
@@ -155,7 +185,7 @@ void EpDebug::EndVelocityIteration
 	ix[i] = rf.x;
 	iy[i] = rf.y;
 	ia[i] = joint->GetReactionTorque(1.f);
-	int vi = joint->velocityIteration;
+	int vi = velocityIterations*stepsStored + joint->velocityIteration;
 	cdotx[vi] = joint->Cdot.x;
 	cdoty[vi] = joint->Cdot.y;
 	cdotz[vi] = joint->Cdot.z;
@@ -170,8 +200,8 @@ void EpDebug::BeginPositionIteration
 	int iA = joint->GetIslandIndexForA();
 	int iB = joint->GetIslandIndexForB();
 	b2Position* va = data.positions;
-	int i = 2 * joint->positionIteration;
-	if (i >= po) {
+	int i = po*stepsStored+ 2 * joint->positionIteration;
+	if (i >= po*epDebugSteps) {
 		return;
 	}
 	pxA[i] = va[iA].c.x;
@@ -192,8 +222,8 @@ void EpDebug::EndPositionIteration
 	int iA = joint->GetIslandIndexForA();
 	int iB = joint->GetIslandIndexForB();
 	b2Position* va = data.positions;
-	int i = 2 * joint->positionIteration+1;
-	if (i >= po) {
+	int i = po*stepsStored + 2 * joint->positionIteration+1;
+	if (i >= po*epDebugSteps) {
 		return;
 	}
 	pxA[i] = va[iA].c.x;
@@ -202,6 +232,19 @@ void EpDebug::EndPositionIteration
 	pyB[i] = va[iB].c.y;
 	paA[i] = va[iA].a;
 	paB[i] = va[iB].a;
+	// fill values if multiple steps are plotted
+	if (epDebugSteps <= 1) {
+		return;
+	}
+	int dmax = po*(stepsStored+1);
+	for (int di=i; di < dmax; di++) {
+		pxA[di] = pxA[i];
+		pxB[di] = pxB[i];
+		pyA[di] = pyA[i];
+		pyB[di] = pyB[i];
+		paA[di] = paA[i];
+		paB[di] = paB[i];
+	}
 }
 
 #define BS 100
@@ -228,16 +271,17 @@ void EpDebug::Ui(Test *t, SelectedEPJoint* j) {
 	}
 	EpDebug *epd = j->epd;
 	ImGui::BeginGroup();
-	int vc = epd->vo;
+	int vc = epd->vo*(epd->stepsStored+1);
 	if (vc > 0) {
 		ImGui::Text("%d vis, g=%6.3g, b=%6.3g",
 			epd->velocityIterations,g,b);
 		ImGui::SameLine(LX1); ImGui::Text("min");
 		ImGui::SameLine(LX2); ImGui::Text("max");
 		ImGui::SameLine(LX3); ImGui::Text("final");
-		xyPlot("cdotx", epd->cdotx, epd->velocityIterations);
-		xyPlot("cdoty", epd->cdoty, epd->velocityIterations);
-		xyPlot("cdotz", epd->cdotz, epd->velocityIterations);
+		int cdotCount = (epd->stepsStored + 1)*epd->velocityIterations;
+		xyPlot("cdotx", epd->cdotx, cdotCount);
+		xyPlot("cdoty", epd->cdoty, cdotCount);
+		xyPlot("cdotz", epd->cdotz, cdotCount);
 		if (epd->showA) {
 			xyPlot("vxA", epd->vxA, vc);
 			xyPlot("vyA", epd->vyA, vc);
@@ -251,9 +295,16 @@ void EpDebug::Ui(Test *t, SelectedEPJoint* j) {
 		xyPlot("ix", epd->ix, vc);
 		xyPlot("iy", epd->iy, vc);
 		xyPlot("ia", epd->ia, vc);
-		vc = 2 * epd->pi;
-		ImGui::Text("%d position iterations",
-			epd->pi);
+		if (epd->epDebugSteps > 1) {
+			vc = epd->po;
+			ImGui::Text("max %d position iterations",
+				epd->po/2);
+		}
+		else {
+			vc = 2 * epd->pi;
+			ImGui::Text("%d position iterations",
+				epd->pi);
+		}
 		if (epd->showA) {
 			xyPlot("pxA", epd->pxA, vc);
 			xyPlot("pyA", epd->pyA, vc);

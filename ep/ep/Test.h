@@ -78,6 +78,7 @@ struct Settings
 		mouseJointForceScale = 30.f;
 		velocityIterations = 8;
 		positionIterations = 3;
+		epDebugSteps = 1;
 		drawShapes = true;
 		drawJoints = true;
 		drawJointReactions = true;
@@ -123,6 +124,7 @@ struct Settings
 	float32 hz;
 	float32 mouseJointForceScale; 
 	int32 velocityIterations;
+	int32 epDebugSteps;
 	int32 positionIterations;
 	bool drawShapes;
 	bool drawJoints;
