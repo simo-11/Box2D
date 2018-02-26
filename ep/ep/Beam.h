@@ -56,7 +56,7 @@ namespace {
 }
 
 namespace bo {
-	bool b1, b2, b3; // for ui checkboxes
+	bool b1=true, b2, b3; // for ui checkboxes
 	float mdp[2];
 }
 
@@ -86,6 +86,7 @@ public:
 	virtual void reset();
 	virtual void build();
 	virtual void BeamExtraUi();
+	virtual bool OpenEPJoints() { return bo::b1; }
 	virtual float32 getFloorMinX(), getFloorMaxX();
 	Beam(Settings* sp) :Test(sp)
 	{

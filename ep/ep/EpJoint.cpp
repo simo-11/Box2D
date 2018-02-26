@@ -75,27 +75,31 @@ void EpDebug::EndInitVelocityConstraints
 	}
 	velocityIterations = settings->velocityIterations;
 	positionIterations= settings->positionIterations;
-	epDebugSteps = settings->epDebugSteps;
 	if (xyData != nullptr && 2 * velocityIterations == vo
-		&& 2 * positionIterations == po) {
+		&& 2 * positionIterations == po
+		&& epDebugSteps==settings->epDebugSteps) {
 		// move data if needed
+		int dataPointsInOneStep, size;
 		if (stepsStored+1 >= epDebugSteps) {
-			int size = 2 * velocityIterations*(epDebugSteps - 1);
+			dataPointsInOneStep = 2 * velocityIterations;
+			size = dataPointsInOneStep*(epDebugSteps - 1)*sizeof(float);
 			for (int i = 0; i < 9; i++) {
-				int d = i*2* velocityIterations*epDebugSteps;
-				int s = d + size;
+				int d = i*dataPointsInOneStep*epDebugSteps;
+				int s = d + dataPointsInOneStep;
 				memmove(&vxA[d], &vxA[s], size);
 			}
-			size = 2 * positionIterations*(epDebugSteps - 1);
+			dataPointsInOneStep = 2 * positionIterations;
+			size = dataPointsInOneStep*(epDebugSteps - 1)*sizeof(float);
 			for (int i = 0; i < 6; i++) {
-				int d = i * 2 * positionIterations*epDebugSteps;
-				int s = d + size;
+				int d = i * dataPointsInOneStep*epDebugSteps;
+				int s = d + dataPointsInOneStep;
 				memmove(&pxA[d], &pxA[s], size);
 			}
-			size = velocityIterations*(epDebugSteps - 1);
+			dataPointsInOneStep = velocityIterations;
+			size = velocityIterations*(epDebugSteps - 1)*sizeof(float);
 			for (int i = 0; i < 3; i++) {
-				int d = i * velocityIterations*epDebugSteps;
-				int s = d + size;
+				int d = i * dataPointsInOneStep*epDebugSteps;
+				int s = d + dataPointsInOneStep;
 				memmove(&cdotx[d], &cdotx[s], size);
 			}
 		}
@@ -107,6 +111,7 @@ void EpDebug::EndInitVelocityConstraints
 	if (xyData != nullptr) {
 		b2Free(xyData);
 	}
+	epDebugSteps = settings->epDebugSteps;
 	vo = 2 * velocityIterations;
 	po = 2 * positionIterations;
 	int size = (9 * vo + 6 * po+3*velocityIterations) * 

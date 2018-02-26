@@ -513,10 +513,15 @@ static void sInterface()
 		}
 		if (ImGui::CollapsingHeader("ElasticPlastic Joints",
 				NULL,true,test->OpenEPJoints())) {
-			ImGui::Text("EpDebug steps");
+			ImGui::BeginGroup();
+			ImGui::Text("Epd steps");
 			ImGui::SameLine();
 			ImGui::SliderInt("##EpDebugSteps", &settings.epDebugSteps, 1, 10);
-			if (ImGui::Checkbox("Select current EPJoint(s)", 
+			ImGui::EndGroup();
+			if (ImGui::IsItemHovered()) {
+				ImGui::SetTooltip("Show upto # steps\nin EpDebug Window");
+			}
+			if (ImGui::Checkbox("Select current EPJoint(s)",
 					&settings.selectEPJoint)) {
 				settings.addRigidTriangles = false;
 				settings.addEPBeams = false;
