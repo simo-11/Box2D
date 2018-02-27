@@ -56,8 +56,7 @@ namespace {
 }
 
 namespace bo {
-	bool b1=true, b2, b3; // for ui checkboxes
-	float mdp[2];
+	bool b1, b2, b3; // for ui checkboxes
 }
 
 
@@ -97,14 +96,6 @@ public:
 			return;
 		}
 		if (bo::b1) {
-			baseHz = 0.f;
-			density = 100.f;
-			horizontal = true;
-			addSoft = false;
-			addHard = false;
-			addElasticPlastic = true;
-			firstIsHinge = false;
-			openLists = true;
 			m_bombSpawnPoint = settings->bombSpawnPoint;
 			LaunchBomb();
 		}
@@ -265,20 +256,28 @@ void Beam::BeamExtraUi()
 	if (ImGui::CollapsingHeader("BeamOptions", 0, true, openLists)) {
 		if (ImGui::Checkbox("B1", &bo::b1)) {
 			settings->pause = true;
+			baseHz = 0.f;
 			settings->gravityRampUpTime = 0.f;
 			settings->bombShape = RECTANGLE;
-			settings->bombMass = 1e6f;
+			settings->bombMass = 10e6f;
 			settings->bombSpawnPoint = b2Vec2
 			(0.5f*settings->bombWidth + 0.01f,
 				27 + 0.5f*settings->bombWidth + hy);
 			settings->bombVelocity = b2Vec2(0, 0);
+			density = 7800.f;
+			horizontal = true;
+			addSoft = false;
+			addHard = false;
+			addElasticPlastic = true;
+			firstIsHinge = false;
+			openLists = true;
 			restartPending = true;
 		}
 		if (ImGui::IsItemHovered()) {
 			ImGui::SetTooltip("Horizontal\n\
-density=100\n\
+density=7800\n\
 hz=0\n\
-1000000 kg mass\n\
+10000000 kg mass\n\
 ");
 		}
 	}
@@ -302,8 +301,6 @@ void Beam::reset(){
 	horizontal = false;
 	openLists = false;
 	beamType = Cantilever;
-	bo::mdp[0]=0.51f*settings->addMassSize;
-	bo::mdp[1] = 39.f;
 	settings->reset();
 }
 
