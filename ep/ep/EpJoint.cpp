@@ -301,7 +301,7 @@ void EpDebug::Ui(Test *t, SelectedEPJoint* j) {
 		xyPlot("iy", epd->iy, vc);
 		xyPlot("ia", epd->ia, vc);
 		if (epd->epDebugSteps > 1) {
-			vc = epd->po;
+			vc = epd->po*(epd->stepsStored + 1);
 			ImGui::Text("max %d position iterations",
 				epd->po/2);
 		}

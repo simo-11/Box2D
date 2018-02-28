@@ -56,7 +56,8 @@ namespace {
 }
 
 namespace bo {
-	bool b1, b2, b3; // for ui checkboxes
+	int b1;
+	bool b2, b3; // for ui checkboxes
 }
 
 
@@ -254,8 +255,38 @@ bool Beam::isMyType(){
 void Beam::BeamExtraUi()
 {
 	if (ImGui::CollapsingHeader("BeamOptions", 0, true, openLists)) {
-		if (ImGui::Checkbox("B1", &bo::b1)) {
+		bool set1 = false;
+		float32 uihx,by;
+		if (ImGui::RadioButton("B1-1", &bo::b1,1)) {
+			set1 = true;
+			uihx = 10;
+			by = 27.01f;
+		}
+		if (ImGui::IsItemHovered()) {
+			ImGui::SetTooltip("Horizontal\n\
+density=7800\n\
+hz=0\n\
+10000000 kg mass\n\
+hx=10\n\
+");
+		}
+		ImGui::SameLine();
+		if (ImGui::RadioButton("B1-2", &bo::b1,2)) {
+			set1 = true;
+			uihx = 3;
+			by = 13.01f;
+		}
+		if (ImGui::IsItemHovered()) {
+			ImGui::SetTooltip("Horizontal\n\
+density=7800\n\
+hz=0\n\
+10000000 kg mass\n\
+hx=3\n\
+");
+		}
+		if (set1) {
 			settings->pause = true;
+			hx = uihx;
 			baseHz = 0.f;
 			settings->gravityRampUpTime = 0.f;
 			settings->bombShape = RECTANGLE;
@@ -263,7 +294,7 @@ void Beam::BeamExtraUi()
 			settings->bombMass = 10e6f;
 			settings->bombSpawnPoint = b2Vec2
 			(0.5f*settings->bombWidth + 0.01f,
-				27 + 0.5f*settings->bombWidth + hy);
+				by + 0.5f*settings->bombWidth + hy);
 			settings->bombVelocity = b2Vec2(0, 0);
 			density = 7800.f;
 			horizontal = true;
@@ -273,13 +304,7 @@ void Beam::BeamExtraUi()
 			firstIsHinge = false;
 			openLists = true;
 			restartPending = true;
-		}
-		if (ImGui::IsItemHovered()) {
-			ImGui::SetTooltip("Horizontal\n\
-density=7800\n\
-hz=0\n\
-10000000 kg mass\n\
-");
+
 		}
 	}
 }
