@@ -259,6 +259,7 @@ void Beam::BeamExtraUi()
 			baseHz = 0.f;
 			settings->gravityRampUpTime = 0.f;
 			settings->bombShape = RECTANGLE;
+			settings->bombWidth = 1.f;
 			settings->bombMass = 10e6f;
 			settings->bombSpawnPoint = b2Vec2
 			(0.5f*settings->bombWidth + 0.01f,
