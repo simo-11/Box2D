@@ -121,7 +121,7 @@ public:
 	int32 GetId() { return id; }
 	epDebugListener* GetDebugListener() { return debugListener; }
 	void SetDebugListener(epDebugListener* listener) { debugListener = listener; }
-	unsigned char velocityIteration,positionIteration;
+	int velocityIteration,positionIteration;
 	b2Vec3 Cdot;
 	float32 m_bias;
 	float32 m_gamma;

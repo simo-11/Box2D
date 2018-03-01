@@ -103,6 +103,7 @@ Test::~Test()
 	for (SelectedEPJoint* j = GetSelectedJointList();
 		j != nullptr; j = j->next) {
 		j->joint = NULL;
+		j->StopDebug();
 	}
 	epLogClose();
 }

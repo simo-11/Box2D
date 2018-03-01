@@ -86,4 +86,4 @@ void epLog(const char* string, ...) {
 }
 
 bool epLogActive = true;
-bool epLogEnabled = true;
+bool epLogEnabled = false;

@@ -41,8 +41,8 @@ public:
 	float *cdotx, *cdoty, *cdotz;
 	float *ix, *iy,*ia;
 	bool showA, showB;
-	unsigned char velocityIterations, positionIterations, vo, po, pi;
-	unsigned char epDebugSteps,stepsStored; 
+	int velocityIterations, positionIterations, vo, po, pi;
+	int epDebugSteps,stepsStored;
 	EpDebug();
 	virtual ~EpDebug();
 	virtual void EndInitVelocityConstraints

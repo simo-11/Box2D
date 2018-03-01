@@ -164,7 +164,7 @@ public:
 					ImGui::Text(" j-y");
 					for (b2Joint* j = m_world->GetJointList(); j; j = j->GetNext())
 					{
-						LogJoint(j, 1e-6f, 1e-6f, locs);
+						LogJoint(j, 1e-6f, 1e-6f, locs,"%.0f");
 					}
 				}
 				else {
@@ -293,7 +293,7 @@ hx=3\n\
 			settings->bombWidth = 1.f;
 			settings->bombMass = 10e6f;
 			settings->bombSpawnPoint = b2Vec2
-			(0.5f*settings->bombWidth + 0.01f,
+			(0.5f*settings->bombWidth + 0.02f,
 				by + 0.5f*settings->bombWidth + hy);
 			settings->bombVelocity = b2Vec2(0, 0);
 			density = 7800.f;
