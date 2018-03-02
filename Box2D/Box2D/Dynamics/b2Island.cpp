@@ -271,7 +271,7 @@ void b2Island::Solve(b2Profile* profile, const b2TimeStep& step, const b2Vec2& g
 	// ep start
 	if (doInitImpulses){
 		timer.Reset();
-		InitImpulses(step, gravity);
+		InitImpulses(solverData, gravity);
 		profile->initImpulse = timer.GetMilliseconds();
 	}
 	else{
@@ -587,18 +587,18 @@ void b2Island::Report(const b2ContactVelocityConstraint* constraints)
 }
 
 /**
-Scan through joints and init impulses for elasticPlastic joints
+Scan through joints and init impulses for rigidPlastic joints
 
 * if they are connected to non kinematic body (first phase)
 * restricted by contacts or other joints (future work)
 * matrix force method could also be applied (future work)
 */
-void b2Island::InitImpulses(const b2TimeStep& step, const b2Vec2& gravity)
+void b2Island::InitImpulses(b2SolverData& solverData, const b2Vec2& gravity)
 {
 	int32 nonDynamicBodyCount = 0, startJointCount=0, epCount=0;
 	b2Body** ndbStack = NULL; // non dynamic bodies
 	b2ElasticPlasticJoint** sjStack = NULL; // corresponding starting joints
-	b2ElasticPlasticJoint** epStack = NULL; // all ep joints
+	b2ElasticPlasticJoint** epStack = NULL; // all rigid plastic ep joints
 	// check if work is needed
 	for (int32 i = 0; i < m_jointCount; i++){
 		b2Joint  *joint = m_joints[i];
@@ -609,11 +609,9 @@ void b2Island::InitImpulses(const b2TimeStep& step, const b2Vec2& gravity)
 			continue;
 		}
 		b2ElasticPlasticJoint * epJoint = (b2ElasticPlasticJoint*)joint;
-#if 0
-		if (epJoint->aInitialized && epJoint->bInitialized){
+		if (epJoint->m_frequencyHz>0.f){ // skip elastic ones
 			continue;
 		}
-#endif
 		if (epStack == NULL){
 			epStack = (b2ElasticPlasticJoint**)m_allocator->Allocate
 				(m_jointCount * sizeof(b2ElasticPlasticJoint*));
@@ -647,8 +645,9 @@ void b2Island::InitImpulses(const b2TimeStep& step, const b2Vec2& gravity)
 		ii.sjStack = sjStack;
 		ii.nonDynamicBodyCount = nonDynamicBodyCount;
 		ii.ndbStack = ndbStack;
-		ii.step = &step;
+		ii.solverData = &solverData;
 		ii.gravity = &gravity;
+		ii.island = this;
 		ii.InitImpulses();
 	}
 	if (sjStack != NULL){

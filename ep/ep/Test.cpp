@@ -103,7 +103,7 @@ Test::~Test()
 	for (SelectedEPJoint* j = GetSelectedJointList();
 		j != nullptr; j = j->next) {
 		j->joint = NULL;
-		j->StopDebug();
+		j->DetachEpDebug();
 	}
 	epLogClose();
 }
@@ -197,6 +197,9 @@ void Test::SyncSelectedJoints()
 				b2ElasticPlasticJoint* epj = (b2ElasticPlasticJoint*)j;
 				if (rt->id == epj->GetId()) {
 					rt->joint = epj;
+					if (rt->dep) {
+						rt->AttachEpDebug();
+					}
 					goto found;
 				}
 				break;

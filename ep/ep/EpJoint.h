@@ -92,8 +92,7 @@ struct SelectedEPJoint
 	SelectedEPJoint();
 	~SelectedEPJoint();
 	EpDebug* getEpDebug();
-	void StartDebug();
-	void StopDebug();
+	void StartDebug(),StopDebug(),AttachEpDebug(),DetachEpDebug();
 };
 
 struct RigidTriangle

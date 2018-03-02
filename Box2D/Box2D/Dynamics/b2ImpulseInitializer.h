@@ -43,8 +43,9 @@ public:
 	b2Vec3 addImpulses(b2ElasticPlasticJoint*);
 	b2ElasticPlasticJoint* getNextJoint(b2ElasticPlasticJoint*);
 	bool isNearEnough(b2ElasticPlasticJoint*);
-	const b2TimeStep* step;
 	const b2Vec2* gravity;
+	b2Island* island;
+	b2SolverData* solverData;
 	int32 nonDynamicBodyCount = 0, startJointCount = 0, epCount = 0;
 	b2Body** ndbStack = NULL; // non dynamic bodies
 	b2ElasticPlasticJoint** sjStack = NULL; // corresponding starting joints

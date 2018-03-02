@@ -113,7 +113,7 @@ struct Settings
 		addRigidTriangles = false;
 		addEPBeams = false;
 		initImpulses = false;
-		gravityRampUpTime = 1.0f;
+		gravityRampUpTime = 0.0f;
 		bombMass = 1000;
 		bombShape = CIRCLE;
 		bombWidth = 2;

@@ -23,13 +23,17 @@ EpDebug* SelectedEPJoint::getEpDebug(){
 
 void SelectedEPJoint::StartDebug()
 {
-	getEpDebug();
-	joint->SetDebugListener(epd);
+	AttachEpDebug();
 	dep = true;
 }
 
-void SelectedEPJoint::StopDebug()
+void SelectedEPJoint::AttachEpDebug()
 {
+	getEpDebug();
+	joint->SetDebugListener(epd);
+}
+
+void SelectedEPJoint::DetachEpDebug(){
 	if (nullptr != epd) {
 		delete epd;
 		epd = nullptr;
@@ -37,6 +41,11 @@ void SelectedEPJoint::StopDebug()
 	if (joint != nullptr) {
 		joint->SetDebugListener(nullptr);
 	}
+}
+
+void SelectedEPJoint::StopDebug()
+{
+	DetachEpDebug();
 	dep = false;
 }
 
@@ -275,6 +284,10 @@ void EpDebug::Ui(Test *t, SelectedEPJoint* j) {
 		b = j->joint->m_bias;
 	}
 	EpDebug *epd = j->epd;
+	if (epd == nullptr) {
+		ImGui::End();
+		return;
+	}
 	ImGui::BeginGroup();
 	int vc = epd->vo*(epd->stepsStored+1);
 	if (vc > 0) {

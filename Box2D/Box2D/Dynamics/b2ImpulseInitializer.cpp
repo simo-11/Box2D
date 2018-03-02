@@ -51,7 +51,7 @@ than current one.
 Currently start point is assumed to be connected to rigid body.
 */
 b2Vec3 b2ImpulseInitializer::addImpulses(b2ElasticPlasticJoint* startJoint){
-	float32 h = step->dt;
+	float32 h = solverData->step.dt;
 	b2Body* b = startJoint->GetBodyA();
 	b2Vec2 jointPoint = startJoint->GetAnchorA();
 	b2Vec2 d,sp;
