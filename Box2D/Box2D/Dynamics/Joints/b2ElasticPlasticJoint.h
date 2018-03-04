@@ -22,6 +22,7 @@
 #define B2_ELASTIC_PLASTIC_JOINT_H
 
 #include "Box2D/Dynamics/Joints/b2Joint.h"
+#include "Box2D/Dynamics/b2ImpulseInitializer.h"
 
 class epDebugListener;
 /// Base on Weld joint definition. 
@@ -120,6 +121,7 @@ public:
 	static void resetEpId();
 	int32 GetId() { return id; }
 	epDebugListener* GetDebugListener() { return debugListener; }
+	b2ImpulseInitializer* GetImpulseInitializer();
 	void SetDebugListener(epDebugListener* listener) { debugListener = listener; }
 	int velocityIteration,positionIteration;
 	b2Vec3 Cdot;
@@ -127,11 +129,13 @@ public:
 	float32 m_gamma;
 protected:
 	epDebugListener* debugListener;
+	b2ImpulseInitializer *impulseInitializer;
 	friend class b2Joint;
 	friend class b2ImpulseInitializer;
 	friend class b2Island;
 
 	b2ElasticPlasticJoint(const b2ElasticPlasticJointDef* def);
+	~b2ElasticPlasticJoint();
 
 	void InitVelocityConstraints(const b2SolverData& data);
 	void UpdateAnchors(const b2SolverData& data);

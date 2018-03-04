@@ -31,6 +31,13 @@
 #include "Box2D/Common/b2StackAllocator.h"
 #include "Box2D/Common/b2Timer.h"
 
+bool b2ImpulseInitializer::IsWorkNeeded(b2Island *ic)
+{
+	return bodyCount!=ic->m_bodyCount 
+		|| jointCount!=ic->m_jointCount
+		|| contactCount!=ic->m_contactCount;
+}
+
 void b2ImpulseInitializer::InitImpulses(){
 	for (int32 i = 0; i < epCount; i++){
 		b2ElasticPlasticJoint* joint = epStack[i];
@@ -70,8 +77,16 @@ b2Vec3 b2ImpulseInitializer::addImpulses(b2ElasticPlasticJoint* startJoint){
 	float32 sm = b->GetMass()*b->m_gravityScale;
 	b2Vec2 f = sm* (*gravity) + b->m_force;
 	float32 m = b->m_torque - b2Cross(d, f);
-	p.Set(f.x, f.y, m);
+	p.Set(-f.x, -f.y, -m);
 	p = h*p;
+	// add impulses from contacts
+	b2Vec3 ci=getContactImpulses(b);
+	p.x += ci.x;
+	p.y += ci.y;
+	b2Vec2 cf;
+	cf.x = p.x;
+	cf.y = p.y;
+	p.z += ci.z - b2Cross(d, cf);
 	startJoint->m_impulse -= p;
 	b2ElasticPlasticJoint* nextJoint;
 	while ((nextJoint = getNextJoint(startJoint)) != NULL){
@@ -82,6 +97,56 @@ b2Vec3 b2ImpulseInitializer::addImpulses(b2ElasticPlasticJoint* startJoint){
 		startJoint->m_impulse += np;
 	}
 	return startJoint->m_impulse;
+}
+/**
+* These impulses will stop other body
+*/
+b2Vec3 b2ImpulseInitializer::getContactImpulses(b2Body * b)
+{
+	b2Vec3 cv=b2Vec3();
+	cv.SetZero();
+	for (int32 i = 0; i < island->m_contactCount; ++i)
+	{
+		b2Contact* c = island->m_contacts[i];
+		b2Fixture* fA = c->GetFixtureA();
+		b2Fixture* fB = c->GetFixtureB();
+		// Skip sensors
+		if (fA->IsSensor() || fB->IsSensor())
+		{
+			continue;
+		}
+		b2Body* bA = fA->GetBody();
+		b2Body* bB = fB->GetBody();
+		b2Body *bO;
+		if (bA == b) {
+			bO = bB;
+		}
+		else if (bB == b) {
+			bO = bA;
+		}
+		else {
+			continue;
+		}
+		b2MassData massData;
+		bO->GetMassData(&massData);
+		float32 mO = bO->m_mass;
+		if (mO == 0.f) {
+			continue;
+		}
+		float32 iO = bO->m_I;
+		int32  bi = bO->m_islandIndex;
+		float32 aO = solverData->positions[bi].a;
+		b2Vec2 pO = solverData->positions[bi].c;
+		b2Vec2 vO = solverData->velocities[bi].v;
+		float32 wO = solverData->velocities[bi].w;
+		cv.x += mO*vO.x;
+		cv.y += mO*vO.y;
+		b2Vec2 f(cv.x,cv.y);
+		b2Vec2 d;
+		d = b->GetWorldCenter() - bO->GetWorldCenter();
+		cv.z += iO*wO- b2Cross(d, f);
+	}
+	return cv;
 }
 b2ElasticPlasticJoint* b2ImpulseInitializer::getNextJoint
 	(b2ElasticPlasticJoint* startJoint){

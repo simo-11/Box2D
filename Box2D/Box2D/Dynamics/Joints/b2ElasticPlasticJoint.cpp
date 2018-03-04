@@ -78,10 +78,27 @@ b2ElasticPlasticJoint::b2ElasticPlasticJoint(const b2ElasticPlasticJointDef* def
 	m_torqueExceeded = false;
 	id = epId++;
 	debugListener = nullptr;
+	impulseInitializer = nullptr;
 	positionIteration = 0;
 	velocityIteration = 0;
 	m_bias = 0.f;
 	m_gamma = 0.f;
+}
+
+b2ElasticPlasticJoint::~b2ElasticPlasticJoint()
+{
+	if (impulseInitializer != nullptr) {
+		b2Free(impulseInitializer);
+		impulseInitializer = nullptr;
+	}
+}
+
+b2ImpulseInitializer * b2ElasticPlasticJoint::GetImpulseInitializer()
+{
+	if (nullptr == impulseInitializer) {
+		impulseInitializer = new b2ImpulseInitializer();
+	}
+	return impulseInitializer;
 }
 
 void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)

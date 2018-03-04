@@ -41,6 +41,7 @@ public:
 
 	void InitImpulses();
 	b2Vec3 addImpulses(b2ElasticPlasticJoint*);
+	b2Vec3 getContactImpulses(b2Body *b);
 	b2ElasticPlasticJoint* getNextJoint(b2ElasticPlasticJoint*);
 	bool isNearEnough(b2ElasticPlasticJoint*);
 	const b2Vec2* gravity;
@@ -51,5 +52,7 @@ public:
 	b2ElasticPlasticJoint** sjStack = NULL; // corresponding starting joints
 	b2ElasticPlasticJoint* currentStartJoint;
 	b2ElasticPlasticJoint** epStack = NULL; // all ep joints
+	int32 bodyCount=0, jointCount=0, contactCount=0;
+	bool IsWorkNeeded(b2Island*);
 };
 #endif

@@ -600,6 +600,7 @@ void b2Island::InitImpulses(b2SolverData& solverData, const b2Vec2& gravity)
 	b2ElasticPlasticJoint** sjStack = NULL; // corresponding starting joints
 	b2ElasticPlasticJoint** epStack = NULL; // all rigid plastic ep joints
 	// check if work is needed
+	//
 	for (int32 i = 0; i < m_jointCount; i++){
 		b2Joint  *joint = m_joints[i];
 		switch (joint->GetType()){
@@ -637,18 +638,27 @@ void b2Island::InitImpulses(b2SolverData& solverData, const b2Vec2& gravity)
 			sjStack[startJointCount++] = epJoint;
 		}
 	}
-	if (startJointCount > 0){
-		b2ImpulseInitializer ii;
-		ii.epCount = epCount;
-		ii.epStack = epStack;
-		ii.startJointCount = startJointCount;
-		ii.sjStack = sjStack;
-		ii.nonDynamicBodyCount = nonDynamicBodyCount;
-		ii.ndbStack = ndbStack;
-		ii.solverData = &solverData;
-		ii.gravity = &gravity;
-		ii.island = this;
-		ii.InitImpulses();
+	if (epCount == 0) {
+		return;
+	}
+	b2ImpulseInitializer *ii=(epStack[0])->GetImpulseInitializer();
+	// if there is no change in contacts or bodies rely on warmStarting
+	if (ii->IsWorkNeeded(this)) {
+		if (startJointCount > 0) {
+			ii->bodyCount = m_bodyCount;
+			ii->contactCount = m_contactCount;
+			ii->jointCount = m_jointCount;
+			ii->epCount = epCount;
+			ii->epStack = epStack;
+			ii->startJointCount = startJointCount;
+			ii->sjStack = sjStack;
+			ii->nonDynamicBodyCount = nonDynamicBodyCount;
+			ii->ndbStack = ndbStack;
+			ii->solverData = &solverData;
+			ii->gravity = &gravity;
+			ii->island = this;
+			ii->InitImpulses();
+		}
 	}
 	if (sjStack != NULL){
 		m_allocator->Free(sjStack);

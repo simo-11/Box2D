@@ -286,6 +286,7 @@ hx=3\n\
 		}
 		if (set1) {
 			settings->pause = true;
+			settings->initImpulses = true;
 			hx = uihx;
 			baseHz = 0.f;
 			settings->gravityRampUpTime = 0.f;
