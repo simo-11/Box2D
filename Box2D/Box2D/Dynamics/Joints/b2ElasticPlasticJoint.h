@@ -135,8 +135,7 @@ protected:
 	friend class b2Island;
 
 	b2ElasticPlasticJoint(const b2ElasticPlasticJointDef* def);
-	~b2ElasticPlasticJoint();
-
+	virtual ~b2ElasticPlasticJoint();
 	void InitVelocityConstraints(const b2SolverData& data);
 	void UpdateAnchors(const b2SolverData& data);
 	void UpdatePlasticity(const b2SolverData& data);

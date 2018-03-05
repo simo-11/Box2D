@@ -24,6 +24,8 @@
 
 #include "Box2D/Dynamics/Joints/b2ElasticPlasticJoint.h"
 #include "Box2D/Dynamics/b2Body.h"
+#include "Box2D/Dynamics/b2World.h"
+#include "Box2D/Common/b2BlockAllocator.h"
 #include "Box2D/Dynamics/b2Fixture.h"
 #include "Box2D/Dynamics/b2TimeStep.h"
 
@@ -87,8 +89,9 @@ b2ElasticPlasticJoint::b2ElasticPlasticJoint(const b2ElasticPlasticJointDef* def
 
 b2ElasticPlasticJoint::~b2ElasticPlasticJoint()
 {
-	if (impulseInitializer != nullptr) {
-		b2Free(impulseInitializer);
+	if (nullptr != impulseInitializer) {
+		m_bodyA->m_world->m_blockAllocator.Free
+			(impulseInitializer, sizeof(b2ImpulseInitializer));
 		impulseInitializer = nullptr;
 	}
 }
@@ -96,7 +99,9 @@ b2ElasticPlasticJoint::~b2ElasticPlasticJoint()
 b2ImpulseInitializer * b2ElasticPlasticJoint::GetImpulseInitializer()
 {
 	if (nullptr == impulseInitializer) {
-		impulseInitializer = new b2ImpulseInitializer();
+		void* mem = m_bodyA->m_world->m_blockAllocator.Allocate
+			(sizeof(b2ImpulseInitializer));
+		impulseInitializer = new (mem)b2ImpulseInitializer();
 	}
 	return impulseInitializer;
 }

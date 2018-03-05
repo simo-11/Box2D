@@ -223,6 +223,7 @@ private:
 	friend class b2Fixture;
 	friend class b2ContactManager;
 	friend class b2Controller;
+	friend class b2ElasticPlasticJoint;
 
 	void Solve(const b2TimeStep& step);
 	void SolveTOI(const b2TimeStep& step);
