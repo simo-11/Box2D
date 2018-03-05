@@ -170,15 +170,15 @@ public:
 				else {
 					LogSelectedJoints(1e-6f, 1e-6f, locs);
 				}
-				if (ImGui::CollapsingHeader("Contact forces N"))
+				if (ImGui::CollapsingHeader("Contact forces MN"))
 				{
-					float locs[] = { 50, 100, 150 };
+					float locs[] = { 60, 120, 160 };
 					ImGui::Text(" x-f"); ImGui::SameLine(locs[0]);
 					ImGui::Text(" y-f"); ImGui::SameLine(locs[1]);
 					ImGui::Text(" c-x"); ImGui::SameLine(locs[2]);
 					ImGui::Text(" c-y");
 					for (int i = 0; i < m_pointCount; i++) {
-						LogContact(m_points + i, 1.0f, locs, "%5.0f");
+						LogContact(m_points + i, 1e-6f, locs, "%.2f");
 					}
 				}
 				if (showElasticPlastic && ImGui::CollapsingHeader

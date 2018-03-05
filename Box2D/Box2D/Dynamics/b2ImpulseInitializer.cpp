@@ -77,15 +77,15 @@ b2Vec3 b2ImpulseInitializer::addImpulses(b2ElasticPlasticJoint* startJoint){
 	float32 sm = b->GetMass()*b->m_gravityScale;
 	b2Vec2 f = sm* (*gravity) + b->m_force;
 	float32 m = b->m_torque - b2Cross(d, f);
-	p.Set(-f.x, -f.y, -m);
+	p.Set(f.x, f.y, m);
 	p = h*p;
 	// add impulses from contacts
 	b2Vec3 ci=getContactImpulses(b);
 	p.x += ci.x;
 	p.y += ci.y;
 	b2Vec2 cf;
-	cf.x = p.x;
-	cf.y = p.y;
+	cf.x = ci.x;
+	cf.y = ci.y;
 	p.z += ci.z - b2Cross(d, cf);
 	startJoint->m_impulse -= p;
 	b2ElasticPlasticJoint* nextJoint;
