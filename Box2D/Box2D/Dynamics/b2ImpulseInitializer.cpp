@@ -48,6 +48,7 @@ void b2ImpulseInitializer::InitImpulses(){
 	for (int32 i = 0; i < startJointCount; i++){
 		currentStartJoint = sjStack[i];
 		addImpulses(currentStartJoint);
+		currentStartJoint->initImpulseDone = true;
 	}
 }
 

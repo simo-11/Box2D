@@ -127,6 +127,7 @@ public:
 	b2Vec3 Cdot;
 	float32 m_bias;
 	float32 m_gamma;
+	bool initImpulseDone;
 protected:
 	epDebugListener* debugListener;
 	b2ImpulseInitializer *impulseInitializer;

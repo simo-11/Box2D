@@ -85,6 +85,7 @@ b2ElasticPlasticJoint::b2ElasticPlasticJoint(const b2ElasticPlasticJointDef* def
 	velocityIteration = 0;
 	m_bias = 0.f;
 	m_gamma = 0.f;
+	initImpulseDone = false;
 }
 
 b2ElasticPlasticJoint::~b2ElasticPlasticJoint()
@@ -195,9 +196,10 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 
 	if (data.step.warmStarting)
 	{
-		// Scale impulses to support a variable time step.
-		m_impulse *= data.step.dtRatio;
-
+		if (!initImpulseDone) {
+			// Scale impulses to support a variable time step.
+			m_impulse *= data.step.dtRatio;
+		}
 		b2Vec2 P(m_impulse.x, m_impulse.y);
 
 		vA -= mA * P;

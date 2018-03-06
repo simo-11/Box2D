@@ -276,12 +276,16 @@ void EpDebug::Ui(Test *t, SelectedEPJoint* j) {
 	}
 	float32 b, g;
 	b=g=0.f;
+	char *iiDone;
 	if (j->joint == NULL) {
 		ImGui::Text("Joint is no longer active");
+		iiDone = "";
 	}
 	else {
-		g = j->joint->m_gamma;
-		b = j->joint->m_bias;
+		b2ElasticPlasticJoint *epj = j->joint;
+		g = epj->m_gamma;
+		b = epj->m_bias;
+		iiDone = epj->initImpulseDone ? ", ii=t" : ", ii=f";
 	}
 	EpDebug *epd = j->epd;
 	if (epd == nullptr) {
@@ -291,8 +295,8 @@ void EpDebug::Ui(Test *t, SelectedEPJoint* j) {
 	ImGui::BeginGroup();
 	int vc = epd->vo*(epd->stepsStored+1);
 	if (vc > 0) {
-		ImGui::Text("%d vis, g=%6.3g, b=%6.3g",
-			epd->velocityIterations,g,b);
+		ImGui::Text("%d vis, g=%6.3g, b=%6.3g %s",
+			epd->velocityIterations,g,b,iiDone);
 		ImGui::SameLine(LX1); ImGui::Text("min");
 		ImGui::SameLine(LX2); ImGui::Text("max");
 		ImGui::SameLine(LX3); ImGui::Text("final");

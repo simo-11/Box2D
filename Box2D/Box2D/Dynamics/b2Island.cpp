@@ -261,20 +261,13 @@ void b2Island::Solve(b2Profile* profile, const b2TimeStep& step, const b2Vec2& g
 	{
 		contactSolver.WarmStart();
 	}
-	
-	for (int32 i = 0; i < m_jointCount; ++i)
-	{
-		m_joints[i]->InitVelocityConstraints(solverData);
-	}
-
-	profile->solveInit = timer.GetMilliseconds();
 	// ep start
-	if (doInitImpulses){
+	if (doInitImpulses) {
 		timer.Reset();
 		InitImpulses(solverData, gravity);
 		profile->initImpulse = timer.GetMilliseconds();
 	}
-	else{
+	else {
 		profile->initImpulse = 0;
 	}
 	if (m_jointCount > 0) {
@@ -284,6 +277,13 @@ void b2Island::Solve(b2Profile* profile, const b2TimeStep& step, const b2Vec2& g
 		epLogActive = false;
 	}
 	// ep end
+
+	for (int32 i = 0; i < m_jointCount; ++i)
+	{
+		m_joints[i]->InitVelocityConstraints(solverData);
+	}
+
+	profile->solveInit = timer.GetMilliseconds();
 	// Solve velocity constraints
 	timer.Reset();
 	for (int32 i = 0; i < step.velocityIterations; ++i)
@@ -610,6 +610,7 @@ void b2Island::InitImpulses(b2SolverData& solverData, const b2Vec2& gravity)
 			continue;
 		}
 		b2ElasticPlasticJoint * epJoint = (b2ElasticPlasticJoint*)joint;
+		epJoint->initImpulseDone = false;
 		if (epJoint->m_frequencyHz>0.f){ // skip elastic ones
 			continue;
 		}
