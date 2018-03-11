@@ -48,6 +48,7 @@ void b2ImpulseInitializer::InitImpulses(){
 	for (int32 i = 0; i < startJointCount; i++){
 		currentStartJoint = sjStack[i];
 		addImpulses(currentStartJoint);
+		checkImpulses(currentStartJoint);
 		currentStartJoint->initImpulseDone = true;
 	}
 }
@@ -93,11 +94,59 @@ b2Vec3 b2ImpulseInitializer::addImpulses(b2ElasticPlasticJoint* startJoint){
 	while ((nextJoint = getNextJoint(startJoint)) != NULL){
 		b2Vec3 np = addImpulses(nextJoint);
 		b2Vec2 njf(np.x,np.y);
-		b2Vec2 jd = nextJoint->GetAnchorA()-sp;
+		// for rigidPlastic both anchors are at same point
+		b2Vec2 jd = nextJoint->GetAnchorA()-sp; 
 		np.z += b2Cross(jd, njf);
 		startJoint->m_impulse += np;
 	}
 	return startJoint->m_impulse;
+}
+/** check if joint can handle impulse and stop bodies
+ if impulse can be handled
+ TODO partial
+*/
+void b2ImpulseInitializer::checkImpulses
+	(b2ElasticPlasticJoint * startJoint)
+{
+	for (b2ElasticPlasticJoint* j = startJoint; 
+		j != NULL; 
+		j = getNextJoint(j)) {
+		if (!j->CanHandleInitialImpulse(solverData)) {
+			return;
+		}
+	}
+
+	for (b2ElasticPlasticJoint* j = startJoint;
+		j != NULL;
+		j = getNextJoint(j)) {
+		b2Body* ba = j->m_bodyA;
+		b2Body* bb = j->m_bodyB;
+		solverData->velocities[ba->m_islandIndex].v=b2Vec2(0.f,0.f);
+		solverData->velocities[ba->m_islandIndex].w = 0.f;
+		solverData->velocities[bb->m_islandIndex].v = b2Vec2(0.f, 0.f);
+		solverData->velocities[bb->m_islandIndex].w = 0.f;
+		for (int32 i = 0; i < island->m_contactCount; ++i)
+		{
+			b2Contact* c = island->m_contacts[i];
+			b2Fixture* fA = c->GetFixtureA();
+			b2Fixture* fB = c->GetFixtureB();
+			// Skip sensors
+			if (fA->IsSensor() || fB->IsSensor())
+			{
+				continue;
+			}
+			b2Body* bA = fA->GetBody();
+			b2Body* bB = fB->GetBody();
+			if (bA == ba || bA==bb) {
+				solverData->velocities[bB->m_islandIndex].v= b2Vec2(0.f, 0.f);
+				solverData->velocities[bB->m_islandIndex].w = 0.f;
+			}
+			if(bB == ba || bB ==bb) {
+				solverData->velocities[bA->m_islandIndex].v = b2Vec2(0.f, 0.f);
+				solverData->velocities[bA->m_islandIndex].w = 0.f;
+			}
+		}
+	}
 }
 /**
 * These impulses will stop other body

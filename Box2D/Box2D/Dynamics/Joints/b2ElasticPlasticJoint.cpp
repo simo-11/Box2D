@@ -218,13 +218,7 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	data.velocities[m_indexB].v = vB;
 	data.velocities[m_indexB].w = wB;
 	// ep
-	m_maxImpulse.z = m_maxTorque*data.step.dt;
-	// rotate original maxForce to match current average rotation
-	// this could probably made more precise but this scenario is seldom
-	// significant
-	b2Vec2 rotatedForce = GetRotatedMaxForce();
-	m_maxImpulse.x = (rotatedForce.x)*data.step.dt;
-	m_maxImpulse.y = (rotatedForce.y)*data.step.dt;
+	m_maxImpulse = GetMaxImpulse(data.step.dt);
 	velocityIteration = 0;
 	positionIteration = 0;
 	if (nullptr != debugListener) {
@@ -660,6 +654,34 @@ bool b2ElasticPlasticJoint::SolvePositionConstraints(const b2SolverData& data)
 	}
 	positionIteration++;
 	return jointOk;
+}
+
+b2Vec3 b2ElasticPlasticJoint::GetMaxImpulse(float32 dt)
+{
+	b2Vec3 mi = b2Vec3();
+	mi.z = m_maxTorque*dt;
+	// rotate original maxForce to match current average rotation
+	// this could probably made more precise but this scenario is seldom
+	// significant
+	b2Vec2 rotatedForce = GetRotatedMaxForce();
+	mi.x = (rotatedForce.x)*dt;
+	mi.y = (rotatedForce.y)*dt;
+	return mi;
+}
+
+bool b2ElasticPlasticJoint::CanHandleInitialImpulse(const b2SolverData * data)
+{
+	b2Vec3 mi = GetMaxImpulse(data->step.dt);
+	if (b2Abs(m_impulse.x) > mi.x) {
+		return false;
+	}
+	if (b2Abs(m_impulse.y) > mi.y) {
+		return false;
+	}
+	if (b2Abs(m_impulse.z) > mi.z) {
+		return false;
+	}
+	return true;
 }
 
 void b2ElasticPlasticJoint::SetLinearSlop(float32 value){

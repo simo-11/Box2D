@@ -472,6 +472,17 @@ void b2ContactSolver::SolveVelocityConstraints()
 					// Accumulate
 					cp1->normalImpulse = x.x;
 					cp2->normalImpulse = x.y;
+#ifdef EP_LOG
+					epLog("C:LCP1, i=%d x=%g %g\n", i, x.x, x.y);
+					if (mA != 0) {
+						epLog("C:LCP1 vA=%g %g %g\n",
+							vA.x, vA.y, wA);
+					}
+					if (mB != 0) {
+						epLog("C:LCP1 vB=%g %g %g\n",
+							vB.x, vB.y, wB);
+					}
+#endif
 
 #if B2_DEBUG_SOLVER == 1
 					// Postconditions
@@ -515,7 +526,17 @@ void b2ContactSolver::SolveVelocityConstraints()
 					// Accumulate
 					cp1->normalImpulse = x.x;
 					cp2->normalImpulse = x.y;
-
+#ifdef EP_LOG
+					epLog("C:LCP2, i=%d x=%g %g\n", i, x.x, x.y);
+					if (mA != 0) {
+						epLog("C:LCP2 vA=%g %g %g\n",
+							vA.x, vA.y, wA);
+					}
+					if (mB != 0) {
+						epLog("C:LCP2 vB=%g %g %g\n",
+							vB.x, vB.y, wB);
+					}
+#endif
 #if B2_DEBUG_SOLVER == 1
 					// Postconditions
 					dv1 = vB + b2Cross(wB, cp1->rB) - vA - b2Cross(wA, cp1->rA);
@@ -557,7 +578,17 @@ void b2ContactSolver::SolveVelocityConstraints()
 					// Accumulate
 					cp1->normalImpulse = x.x;
 					cp2->normalImpulse = x.y;
-
+#ifdef EP_LOG
+					epLog("C:LCP3, i=%d x=%g %g\n", i, x.x, x.y);
+					if (mA != 0) {
+						epLog("C:LCP3 vA=%g %g %g\n",
+							vA.x, vA.y, wA);
+					}
+					if (mB != 0) {
+						epLog("C:LCP3 vB=%g %g %g\n",
+							vB.x, vB.y, wB);
+					}
+#endif
 #if B2_DEBUG_SOLVER == 1
 					// Postconditions
 					dv2 = vB + b2Cross(wB, cp2->rB) - vA - b2Cross(wA, cp2->rA);
@@ -597,10 +628,20 @@ void b2ContactSolver::SolveVelocityConstraints()
 					// Accumulate
 					cp1->normalImpulse = x.x;
 					cp2->normalImpulse = x.y;
-
+#ifdef EP_LOG
+					epLog("C:LCP4, i=%d x=%g %g\n", i, x.x, x.y);
+					if (mA != 0) {
+						epLog("C:LCP4 vA=%g %g %g\n",
+							vA.x, vA.y, wA);
+					}
+					if (mB != 0) {
+						epLog("C:LCP4 vB=%g %g %g\n",
+							vB.x, vB.y, wB);
+					}
+#endif
 					break;
 				}
-
+				epLog("C:LCP failed");
 				// No solution, give up. This is hit sometimes, but it doesn't seem to matter.
 				break;
 			}

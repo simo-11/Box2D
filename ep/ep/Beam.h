@@ -261,6 +261,7 @@ void Beam::BeamExtraUi()
 			set1 = true;
 			uihx = 10;
 			by = 27.01f;
+			settings->epDebugSteps = 10;
 		}
 		if (ImGui::IsItemHovered()) {
 			ImGui::SetTooltip("Horizontal\n\
@@ -275,6 +276,7 @@ hx=10\n\
 			set1 = true;
 			uihx = 3;
 			by = 13.01f;
+			settings->epDebugSteps = 10;
 		}
 		if (ImGui::IsItemHovered()) {
 			ImGui::SetTooltip("Horizontal\n\
@@ -645,8 +647,11 @@ public:
 			AddMass(p);
 			p.x = settings->epbX + settings->epbY + settings->addMassSize;
 			AddMass(p);
-			g_camera.m_zoom = 0.25f*br;
-			g_camera.m_center = b2Vec2(0, br);
+			/** update view if bombSpawnPoint is modified */
+			if (settings->bombSpawnPoint.y != br) {
+				g_camera.m_zoom = 0.25f*br;
+				g_camera.m_center = b2Vec2(0, br);
+			}
 			settings->bombSpawnPoint = b2Vec2(-br, br);
 			m_bombSpawnPoint = settings->bombSpawnPoint;
 			settings->epbMass = 12 * settings->epbY; // 12 kg/m
@@ -688,12 +693,13 @@ void EmptyBeam::BeamExtraUi()
 	if (ImGui::CollapsingHeader("EmptyBeamOptions",0,true,openLists)) {
 		if (ImGui::Checkbox("CS1", &ebo::cs1)) {
 			settings->bombShape = CIRCLE;
+			settings->bombVelocity = b2Vec2(5, 0);
 			restartPending = true;
 		}
 		if (ImGui::IsItemHovered()) {
 			ImGui::SetTooltip("AddEPBeams\n\
 mjForceScale=300\n\
-bombMass=200\n\
+bomb=200kg circle, 5 m/s\n\
 zoom=0.25\n\
 pause=true");
 		}

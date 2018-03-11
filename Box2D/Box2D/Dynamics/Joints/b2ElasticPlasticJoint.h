@@ -142,6 +142,8 @@ protected:
 	void UpdatePlasticity(const b2SolverData& data);
 	void SolveVelocityConstraints(const b2SolverData& data);
 	bool SolvePositionConstraints(const b2SolverData& data);
+	b2Vec3 GetMaxImpulse(float32 dt);
+	bool CanHandleInitialImpulse(const b2SolverData* data);
 
 	float32 m_frequencyHz; 
 	float32 m_dampingRatio;

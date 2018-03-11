@@ -41,6 +41,7 @@ public:
 
 	void InitImpulses();
 	b2Vec3 addImpulses(b2ElasticPlasticJoint*);
+	void checkImpulses(b2ElasticPlasticJoint*);
 	b2Vec3 getContactImpulses(b2Body *b);
 	b2ElasticPlasticJoint* getNextJoint(b2ElasticPlasticJoint*);
 	bool isNearEnough(b2ElasticPlasticJoint*);
