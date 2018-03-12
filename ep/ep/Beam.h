@@ -277,6 +277,8 @@ hx=10\n\
 			uihx = 3;
 			by = 13.01f;
 			settings->epDebugSteps = 10;
+			settings->initImpulses = false;
+			epLogEnabled = true;
 		}
 		if (ImGui::IsItemHovered()) {
 			ImGui::SetTooltip("Horizontal\n\
@@ -288,7 +290,6 @@ hx=3\n\
 		}
 		if (set1) {
 			settings->pause = true;
-			settings->initImpulses = true;
 			hx = uihx;
 			baseHz = 0.f;
 			settings->gravityRampUpTime = 0.f;

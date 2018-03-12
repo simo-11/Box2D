@@ -144,24 +144,25 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	float32 iA = m_invIA, iB = m_invIB;
 
 	b2Mat33 K;
-	K.ex.x = mA + mB + m_rA.y * m_rA.y * iA + m_rB.y * m_rB.y * iB;
-	K.ey.x = -m_rA.y * m_rA.x * iA - m_rB.y * m_rB.x * iB;
-	K.ez.x = -m_rA.y * iA - m_rB.y * iB;
-	K.ex.y = K.ey.x;
-	K.ey.y = mA + mB + m_rA.x * m_rA.x * iA + m_rB.x * m_rB.x * iB;
-	K.ez.y = m_rA.x * iA + m_rB.x * iB;
-	K.ex.z = K.ez.x;
-	K.ey.z = K.ez.y;
 	K.ez.z = iA + iB;
-
+	if (m_frequencyHz > 0.0f || K.ez.z == 0.f) {
+		K.ex.x = mA + mB + m_rA.y * m_rA.y * iA + m_rB.y * m_rB.y * iB;
+		K.ey.x = -m_rA.y * m_rA.x * iA - m_rB.y * m_rB.x * iB;
+		K.ez.x = -m_rA.y * iA - m_rB.y * iB;
+		K.ex.y = K.ey.x;
+		K.ey.y = mA + mB + m_rA.x * m_rA.x * iA + m_rB.x * m_rB.x * iB;
+		K.ez.y = m_rA.x * iA + m_rB.x * iB;
+		K.ex.z = K.ez.x;
+		K.ey.z = K.ez.y;
+	}
 	if (m_frequencyHz > 0.0f || K.ez.z != 0.0f)
 	{
-		K.GetInverse22(&m_mass);
 
 		float32 invM = iA + iB;
 		float32 m = invM > 0.0f ? 1.0f / invM : 0.0f;
 
 		if (m_frequencyHz > 0.0f) {
+			K.GetInverse22(&m_mass);
 			float32 h = data.step.dt;
 			// Frequency
 			float32 omega = 2.0f * b2_pi * m_frequencyHz;
@@ -184,6 +185,12 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 			m_k = 0.f;
 			m_gamma = 0.f;
 			m_bias = 0.f;
+			float32 iM = mA + mB;
+			m_mass.ex.SetZero();
+			m_mass.ey.SetZero();
+			m_mass.ez.SetZero();
+			m_mass.ex.x = iM != 0.f ? 1.f / iM : 0.f;
+			m_mass.ey.y = m_mass.ex.x;
 		}
 		m_mass.ez.z = invM != 0.0f ? 1.0f / invM : 0.0f;
 	}
@@ -373,11 +380,11 @@ void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 		epLog("J:VC m_impulse2=%g %g %g\n",
 			m_impulse.x, m_impulse.y, m_impulse.z);
 		if (mA != 0) {
-			epLog("J:VC vA3=%g %g %g\n",
+			epLog("J:VC vA2=%g %g %g\n",
 				vA.x, vA.y, wA);
 		}
 		if (mB != 0) {
-			epLog("J:VC vB3=%g %g %g\n",
+			epLog("J:VC vB2=%g %g %g\n",
 				vB.x, vB.y, wB);
 		}
 	}
