@@ -629,8 +629,9 @@ public:
 	void createDynamicItems() {
 		if (ebo::cs1) {
 			EPBeam *epb = GetLastEPBeam();
+			float32 hx = settings->epbX / 2;
 			if (NULL == epb->body) {
-				b2Vec2 p = b2Vec2(settings->epbX / 2 + 0.01f, 0);
+				b2Vec2 p = b2Vec2(hx + 0.01f, 0);
 				epb=AddEPBeam(p);
 			}
 			loggedBody = epb->body;
@@ -642,6 +643,9 @@ public:
 			settings->pause = true;
 			settings->gravityRampUpTime = 0.f;
 			float32 br = 0.5f*settings->bombWidth;
+			if (hx>0.7f*br) {
+				epb->translate(b2Vec2(0, -hx));
+			}
 			settings->addMassSize = 5 * br;
 			b2Vec2 p = b2Vec2(-(1.5f * settings->bombWidth + settings->addMassSize),
 				settings->addMassSize / 2);

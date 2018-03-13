@@ -74,6 +74,7 @@ struct EPBeam
 		next = nullptr;
 		body = nullptr;
 	}
+	void translate(b2Vec2 t);
 };
 
 #define EP_MAX_VALUES 10

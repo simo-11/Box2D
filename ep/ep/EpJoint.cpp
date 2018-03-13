@@ -363,3 +363,19 @@ void EpDebug::xyPlot(const char * label, float * v, int count)
 	ImGui::SameLine(LX2); ImGui::Text("% 6.3g",max);
 	ImGui::SameLine(LX3); ImGui::Text("% 6.3g", v[count-1]);
 }
+
+void EPBeam::translate(b2Vec2 t)
+{
+	position[0] += t.x;
+	position[1] += t.y;
+	{
+		const b2Transform tr = sBody->GetTransform();
+		b2Vec2 p = tr.p;
+		sBody->SetTransform(p + t, tr.q.GetAngle());
+	}
+	{
+		const b2Transform tr = body->GetTransform();
+		b2Vec2 p = tr.p;
+		body->SetTransform(p + t, tr.q.GetAngle());
+	}
+}
