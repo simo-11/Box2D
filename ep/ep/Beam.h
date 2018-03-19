@@ -56,8 +56,7 @@ namespace {
 }
 
 namespace bo {
-	int b1;
-	bool b2, b3; // for ui checkboxes
+	int b1,b2;
 }
 
 
@@ -255,10 +254,13 @@ bool Beam::isMyType(){
 void Beam::BeamExtraUi()
 {
 	if (ImGui::CollapsingHeader("BeamOptions", 0, true, openLists)) {
-		bool set1 = false;
-		float32 uihx,by;
+		float32 uihx=0.f,by=0.f;
+		if (ImGui::Button("None")) {
+			bo::b1 = 0;
+			bo::b2 = 0;
+		}
 		if (ImGui::RadioButton("B1-1", &bo::b1,1)) {
-			set1 = true;
+			bo::b2 = 0;
 			uihx = 10;
 			by = 27.01f;
 			settings->epDebugSteps = 10;
@@ -273,7 +275,7 @@ hx=10\n\
 		}
 		ImGui::SameLine();
 		if (ImGui::RadioButton("B1-2", &bo::b1,2)) {
-			set1 = true;
+			bo::b2 = 0;
 			uihx = 3;
 			by = 13.01f;
 			settings->epDebugSteps = 10;
@@ -288,9 +290,10 @@ hz=0\n\
 hx=3\n\
 ");
 		}
-		if (set1) {
+		if (bo::b1 && uihx!=0.f) {
 			settings->pause = true;
 			hx = uihx;
+			so_count = 1;
 			baseHz = 0.f;
 			settings->gravityRampUpTime = 0.f;
 			settings->bombShape = RECTANGLE;
@@ -308,7 +311,33 @@ hx=3\n\
 			firstIsHinge = false;
 			openLists = true;
 			restartPending = true;
-
+		}
+		if (ImGui::RadioButton("B2-1", &bo::b2, 1)) {
+			bo::b1 = 0;
+			uihx = 1.f;
+			epLogEnabled = true;
+		}
+		if (ImGui::IsItemHovered()) {
+			ImGui::SetTooltip("Horizontal\n\
+density=7800\n\
+hz=0\n\
+hx=1\n\
+10 bodies\n\
+");
+		}
+		if (bo::b2 && uihx!=0.f) {
+			settings->pause = true;
+			hx = uihx;
+			baseHz = 0.f;
+			density = 7800.f;
+			so_count = 10;
+			horizontal = true;
+			addSoft = false;
+			addHard = false;
+			addElasticPlastic = true;
+			firstIsHinge = false;
+			openLists = true;
+			restartPending = true;
 		}
 	}
 }
