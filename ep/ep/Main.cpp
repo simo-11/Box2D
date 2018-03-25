@@ -553,7 +553,8 @@ static void sInterface()
 							ImGui::SetTooltip("Remove from current EPJoint list");
 						}
 						ImGui::SameLine();
-						if (ImGui::Checkbox("EpDebug", &(j->dep))) {
+						sprintf(buff, "EpDebug##epd-%d", j->id);
+						if (ImGui::Checkbox(label, &(j->dep))) {
 							if (j->dep) {
 								j->StartDebug();
 							}
