@@ -424,7 +424,13 @@ b2Vec2 b2ElasticPlasticJoint::GetClampedDeltaImpulse(b2Vec2 Cdot,
 	const b2SolverData& data){
 	b2Vec2 impulse = -b2Mul22(m_mass, Cdot);
 	b2Vec2 clamped;
-	b2Vec3 maxImpulse = GetClampedMaxImpulse(Cdot, data);
+	b2Vec3 maxImpulse;
+	if (m_forceExceeded) {
+		maxImpulse = GetClampedMaxImpulse(Cdot, data);
+	}
+	else {
+		maxImpulse = m_maxImpulse;
+	}
 	b2Vec3 high = maxImpulse - m_impulse;
 	b2Vec3 low = -maxImpulse - m_impulse;
 	clamped.x = b2Clamp(impulse.x, low.x, high.x);
@@ -465,7 +471,13 @@ float32 b2ElasticPlasticJoint::GetClampedDeltaImpulse(float32 Cdot,
 	const b2SolverData& data){
 	float32 impulse = -m_mass.ez.z * (Cdot + m_bias + m_gamma * m_impulse.z);
 	float32 clamped;
-	float32 maxImpulse = GetClampedMaxImpulse(Cdot, data);
+	float32 maxImpulse;
+	if (m_torqueExceeded) {
+		maxImpulse = GetClampedMaxImpulse(Cdot, data);
+	}
+	else {
+		maxImpulse = m_maxImpulse.z;
+	}
 	float32 high = maxImpulse - m_impulse.z;
 	float32 low = -maxImpulse - m_impulse.z;
 	clamped = b2Clamp(impulse, low, high);
