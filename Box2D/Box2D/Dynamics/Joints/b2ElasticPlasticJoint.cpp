@@ -337,7 +337,7 @@ void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 			epLog("J:VC vB1=%g %g %g\n",
 				vB.x, vB.y, wB);
 		}
-		epLog("J:VC m_impulse1=%g %g %g\n",
+		epLog("J:VC:%d m_impulse1=%g %g %g\n",id,
 			m_impulse.x, m_impulse.y, m_impulse.z);
 	}
 #endif
@@ -377,7 +377,7 @@ void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 			Cdot1.x, Cdot1.y, Cdot2);
 		epLog("J:VC impulse=%g %g %g\n",
 			impulse1.x, impulse1.y, impulse2);
-		epLog("J:VC m_impulse2=%g %g %g\n",
+		epLog("J:VC:%d m_impulse2=%g %g %g\n",id,
 			m_impulse.x, m_impulse.y, m_impulse.z);
 		if (mA != 0) {
 			epLog("J:VC vA2=%g %g %g\n",
@@ -627,7 +627,7 @@ bool b2ElasticPlasticJoint::SolvePositionConstraints(const b2SolverData& data)
 		positionError = C1.Length();
 		angularError = b2Abs(C2);
 #ifdef EP_LOG
-		epLog("J:PC positionError=%g, angularError=%g\n",
+		epLog("J:PC:%d positionError=%g, angularError=%g\n",id,
 			positionError,angularError);
 #endif
 
