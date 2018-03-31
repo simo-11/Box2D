@@ -154,7 +154,7 @@ public:
 					}
 				}
 				float locs[4] = { 40, 80, 120, 160 };
-				if (ImGui::CollapsingHeader("Joint forces MN/MNm"), 0, true, openLists)
+				if (ImGui::CollapsingHeader("Joint forces MN/MNm", 0, true, openLists))
 				{
 					ImGui::Text(" x-f"); ImGui::SameLine(locs[0]);
 					ImGui::Text(" y-f"); ImGui::SameLine(locs[1]);
@@ -330,7 +330,7 @@ hx=1\n\
 			hx = uihx;
 			baseHz = 0.f;
 			density = 7800.f;
-			so_count = 10;
+			so_count = 2;
 			horizontal = true;
 			addSoft = false;
 			addHard = false;
