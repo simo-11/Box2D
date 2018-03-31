@@ -330,11 +330,11 @@ void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 #ifdef EP_LOG
 	if (epLogActive && epLogEnabled) {
 		if (mA != 0) {
-			epLog("J:VC vA1=%g %g %g\n",
+			epLog("J:VC:%d vA1=%g %g %g\n",id,
 				vA.x, vA.y, wA);
 		}
 		if (mB != 0) {
-			epLog("J:VC vB1=%g %g %g\n",
+			epLog("J:VC:%d vB1=%g %g %g\n",id,
 				vB.x, vB.y, wB);
 		}
 		epLog("J:VC:%d m_impulse1=%g %g %g\n",id,
@@ -353,7 +353,7 @@ void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 	wB += iB * impulse2;
 #ifdef EP_LOG
 	if (epLogActive && epLogEnabled) {
-		epLog("J:VC wA=%g, wB=%g\n",
+		epLog("J:VC:%d wA=%g, wB=%g\n",id,
 			wA,wB);
 	}
 #endif
@@ -373,18 +373,18 @@ void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 	wB += iB * b2Cross(m_rB, P);
 #ifdef EP_LOG
 	if (epLogActive && epLogEnabled) {
-		epLog("J:VC Cdot=%g %g %g\n",
+		epLog("J:VC:%d Cdot=%g %g %g\n",id,
 			Cdot1.x, Cdot1.y, Cdot2);
-		epLog("J:VC impulse=%g %g %g\n",
+		epLog("J:VC:%d impulse=%g %g %g\n",id,
 			impulse1.x, impulse1.y, impulse2);
 		epLog("J:VC:%d m_impulse2=%g %g %g\n",id,
 			m_impulse.x, m_impulse.y, m_impulse.z);
 		if (mA != 0) {
-			epLog("J:VC vA2=%g %g %g\n",
+			epLog("J:VC:%d vA2=%g %g %g\n",id,
 				vA.x, vA.y, wA);
 		}
 		if (mB != 0) {
-			epLog("J:VC vB2=%g %g %g\n",
+			epLog("J:VC:%d vB2=%g %g %g\n",id,
 				vB.x, vB.y, wB);
 		}
 	}
@@ -649,7 +649,7 @@ bool b2ElasticPlasticJoint::SolvePositionConstraints(const b2SolverData& data)
 		cA -= mA * P;
 		float32 M = Clamp((b2Cross(rA, P) + impulse.z), data);
 #ifdef EP_LOG
-		epLog("J:PC P=%g %g, M1=%g",
+		epLog("J:PC:%d P=%g %g, M1=%g",id,
 			P.x, P.y, M);
 #endif
 		aA -= iA * M;
