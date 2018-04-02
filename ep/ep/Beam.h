@@ -85,7 +85,7 @@ public:
 	virtual void reset();
 	virtual void build();
 	virtual void BeamExtraUi();
-	virtual bool OpenEPJoints() { return bo::b1; }
+	virtual bool OpenEPJoints() { return (bo::b1||bo::b2); }
 	virtual float32 getFloorMinX(), getFloorMaxX();
 	Beam(Settings* sp) :Test(sp)
 	{
@@ -541,6 +541,10 @@ if (addElasticPlastic)
 				SelectedEPJoint *sp = AddSelectedJoint(joint);
 				sp->StartDebug();
 			}
+		}
+		else if (bo::b2) {
+			SelectedEPJoint *sp = AddSelectedJoint(joint);
+			sp->StartDebug();
 		}
 		prevBody = body;
 	}

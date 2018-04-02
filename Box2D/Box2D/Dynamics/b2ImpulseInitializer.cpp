@@ -48,8 +48,7 @@ void b2ImpulseInitializer::InitImpulses(){
 	for (int32 i = 0; i < startJointCount; i++){
 		currentStartJoint = sjStack[i];
 		addImpulses(currentStartJoint);
-		checkImpulses(currentStartJoint);
-		currentStartJoint->initImpulseDone = true;
+		//checkImpulses(currentStartJoint);
 	}
 }
 
@@ -99,6 +98,7 @@ b2Vec3 b2ImpulseInitializer::addImpulses(b2ElasticPlasticJoint* startJoint){
 		np.z += b2Cross(jd, njf);
 		startJoint->m_impulse += np;
 	}
+	startJoint->initImpulseDone = true;
 	return startJoint->m_impulse;
 }
 /** check if joint can handle impulse and stop bodies
