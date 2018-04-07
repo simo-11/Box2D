@@ -239,6 +239,9 @@ public:
 	static Test* Create(Settings *settings)
 	{
 		Beam* t = new Beam(settings);
+		if (t->OpenEPJoints()) {
+			t->DeleteSelectedJoints();;
+		}
 		t->build();
 		t->CommonEpInit();
 		return t;
