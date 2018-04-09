@@ -24,6 +24,11 @@
 #include "Box2D/Dynamics/Joints/b2Joint.h"
 #include "Box2D/Dynamics/b2ImpulseInitializer.h"
 
+enum SOLVE_ORDER {
+	FORCE,
+	MOMENT,
+};
+
 class epDebugListener;
 /// Base on Weld joint definition. 
 struct b2ElasticPlasticJointDef : public b2JointDef
@@ -128,6 +133,7 @@ public:
 	float32 m_bias;
 	float32 m_gamma;
 	bool initImpulseDone;
+	SOLVE_ORDER *solveOrder;
 protected:
 	epDebugListener* debugListener;
 	b2ImpulseInitializer *impulseInitializer;

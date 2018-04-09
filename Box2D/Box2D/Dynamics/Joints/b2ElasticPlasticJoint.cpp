@@ -42,6 +42,7 @@ namespace
 	int32 epId = 0;
 }
 
+
 void b2ElasticPlasticJointDef::Initialize(b2Body* bA, b2Body* bB, const b2Vec2& anchor)
 {
 	bodyA = bA;
@@ -51,6 +52,8 @@ void b2ElasticPlasticJointDef::Initialize(b2Body* bA, b2Body* bB, const b2Vec2& 
 	referenceAngle = bodyB->GetAngle() - bodyA->GetAngle();
 }
 
+static SOLVE_ORDER momentFirst[] = {MOMENT,FORCE};
+static SOLVE_ORDER forceFirst[] = {FORCE,MOMENT};
 void b2ElasticPlasticJoint::resetEpId(){
 	epId = 0;
 }
@@ -155,6 +158,7 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 		K.ex.z = K.ez.x;
 		K.ey.z = K.ez.y;
 	}
+	solveOrder = momentFirst;
 	if (m_frequencyHz > 0.0f || K.ez.z != 0.0f)
 	{
 
@@ -191,6 +195,7 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 			m_mass.ez.SetZero();
 			m_mass.ex.x = iM != 0.f ? 1.f / iM : 0.f;
 			m_mass.ey.y = m_mass.ex.x;
+			solveOrder = forceFirst;
 		}
 		m_mass.ez.z = invM != 0.0f ? 1.0f / invM : 0.0f;
 	}
@@ -344,39 +349,51 @@ void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 	if (nullptr != debugListener) {
 		debugListener->BeginVelocityIteration(this, data);
 	}
-	float32 Cdot2 = wB - wA;
+	b2Vec2 Cdot1;
+	float32 Cdot2,impulse2;
+	for (int i = 0; i < 2; i++) {
+		switch (solveOrder[i]) {
+		case MOMENT:
+			Cdot2 = wB - wA;
+			impulse2 = GetClampedDeltaImpulse(Cdot2, data);
+			m_impulse.z += impulse2;
 
-	float32 impulse2 = GetClampedDeltaImpulse(Cdot2, data);
-	m_impulse.z += impulse2;
-
-	wA -= iA * impulse2;
-	wB += iB * impulse2;
+			wA -= iA * impulse2;
+			wB += iB * impulse2;
 #ifdef EP_LOG
-	if (epLogActive && epLogEnabled) {
-		epLog("J:VC:%d wA=%g, wB=%g\n",id,
-			wA,wB);
-	}
+			if (epLogActive && epLogEnabled) {
+				epLog("J:VC:%d Cdot2=%g, impulse2=%g, wA=%g, wB=%g\n", id,
+					Cdot2, impulse2, wA, wB);
+			}
 #endif
+			break;
+		case FORCE:
+			Cdot1 = vB + b2Cross(wB, m_rB) - vA - b2Cross(wA, m_rA);
 
-	b2Vec2 Cdot1 = vB + b2Cross(wB, m_rB) - vA - b2Cross(wA, m_rA);
+			b2Vec2 impulse1 = GetClampedDeltaImpulse(Cdot1, data);
+			m_impulse.x += impulse1.x;
+			m_impulse.y += impulse1.y;
 
-	b2Vec2 impulse1 = GetClampedDeltaImpulse(Cdot1, data);
-	m_impulse.x += impulse1.x;
-	m_impulse.y += impulse1.y;
+			b2Vec2 P = impulse1;
 
-	b2Vec2 P = impulse1;
+			vA -= mA * P;
+			wA -= iA * b2Cross(m_rA, P);
 
-	vA -= mA * P;
-	wA -= iA * b2Cross(m_rA, P);
-
-	vB += mB * P;
-	wB += iB * b2Cross(m_rB, P);
+			vB += mB * P;
+			wB += iB * b2Cross(m_rB, P);
+#ifdef EP_LOG
+			if (epLogActive && epLogEnabled) {
+				epLog("J:VC:%d Cdot1=%g %g\n", id,
+					Cdot1.x, Cdot1.y);
+				epLog("J:VC:%d impulse=%g %g\n", id,
+					impulse1.x, impulse1.y);
+			}
+#endif
+			break;
+		}
+	}
 #ifdef EP_LOG
 	if (epLogActive && epLogEnabled) {
-		epLog("J:VC:%d Cdot=%g %g %g\n",id,
-			Cdot1.x, Cdot1.y, Cdot2);
-		epLog("J:VC:%d impulse=%g %g %g\n",id,
-			impulse1.x, impulse1.y, impulse2);
 		epLog("J:VC:%d m_impulse2=%g %g %g\n",id,
 			m_impulse.x, m_impulse.y, m_impulse.z);
 		if (mA != 0) {
