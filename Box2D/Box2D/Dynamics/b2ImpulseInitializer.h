@@ -54,6 +54,6 @@ public:
 	b2ElasticPlasticJoint* currentStartJoint;
 	b2ElasticPlasticJoint** epStack = NULL; // all ep joints
 	int32 bodyCount=0, jointCount=0, contactCount=0;
-	bool IsWorkNeeded(b2Island*);
+	bool IsInitImpulsesNeeded(b2Island*);
 };
 #endif

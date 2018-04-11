@@ -46,7 +46,7 @@ public:
 	}
 
 	void Solve(b2Profile* profile, const b2TimeStep& step, const b2Vec2& gravity, bool allowSleep);
-	void InitImpulses(b2SolverData& solverData, const b2Vec2& gravity); // ep
+	void InitRigidPlasticJoints(b2SolverData& solverData, const b2Vec2& gravity); // ep
 	static void SetInitImpulses(bool);
 	static bool IsInitImpulses();
 	void SolveTOI(const b2TimeStep& subStep, int32 toiIndexA, int32 toiIndexB);

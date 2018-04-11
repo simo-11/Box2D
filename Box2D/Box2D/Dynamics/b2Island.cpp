@@ -264,7 +264,7 @@ void b2Island::Solve(b2Profile* profile, const b2TimeStep& step, const b2Vec2& g
 	// ep start
 	if (doInitImpulses) {
 		timer.Reset();
-		InitImpulses(solverData, gravity);
+		InitRigidPlasticJoints(solverData, gravity);
 		profile->initImpulse = timer.GetMilliseconds();
 	}
 	else {
@@ -587,13 +587,15 @@ void b2Island::Report(const b2ContactVelocityConstraint* constraints)
 }
 
 /**
-Scan through joints and init impulses for rigidPlastic joints
+Scan through joints and init impulses 
+and select master bodies
+for rigidPlastic joints
 
 * if they are connected to non kinematic body (first phase)
 * restricted by contacts or other joints (future work)
 * matrix force method could also be applied (future work)
 */
-void b2Island::InitImpulses(b2SolverData& solverData, const b2Vec2& gravity)
+void b2Island::InitRigidPlasticJoints(b2SolverData& solverData, const b2Vec2& gravity)
 {
 	int32 nonDynamicBodyCount = 0, startJointCount=0, epCount=0;
 	b2Body** ndbStack = NULL; // non dynamic bodies
@@ -644,7 +646,7 @@ void b2Island::InitImpulses(b2SolverData& solverData, const b2Vec2& gravity)
 	}
 	b2ImpulseInitializer *ii=(epStack[0])->GetImpulseInitializer();
 	// if there is no change in contacts or bodies rely on warmStarting
-	if (ii->IsWorkNeeded(this)) {
+	if (ii->IsInitImpulsesNeeded(this)) {
 		if (startJointCount > 0) {
 			ii->bodyCount = m_bodyCount;
 			ii->contactCount = m_contactCount;

@@ -31,7 +31,7 @@
 #include "Box2D/Common/b2StackAllocator.h"
 #include "Box2D/Common/b2Timer.h"
 
-bool b2ImpulseInitializer::IsWorkNeeded(b2Island *ic)
+bool b2ImpulseInitializer::IsInitImpulsesNeeded(b2Island *ic)
 {
 	return bodyCount!=ic->m_bodyCount 
 		|| jointCount!=ic->m_jointCount

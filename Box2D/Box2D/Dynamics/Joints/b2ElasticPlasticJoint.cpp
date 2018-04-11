@@ -387,25 +387,19 @@ void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 					Cdot1.x, Cdot1.y);
 				epLog("J:VC:%d impulse=%g %g\n", id,
 					impulse1.x, impulse1.y);
+				if (mA != 0) {
+					epLog("J:VC:%d vA2=%g %g %g\n", id,
+						vA.x, vA.y, wA);
+				}
+				if (mB != 0) {
+					epLog("J:VC:%d vB2=%g %g %g\n", id,
+						vB.x, vB.y, wB);
+				}
 			}
 #endif
 			break;
 		}
 	}
-#ifdef EP_LOG
-	if (epLogActive && epLogEnabled) {
-		epLog("J:VC:%d m_impulse2=%g %g %g\n",id,
-			m_impulse.x, m_impulse.y, m_impulse.z);
-		if (mA != 0) {
-			epLog("J:VC:%d vA2=%g %g %g\n",id,
-				vA.x, vA.y, wA);
-		}
-		if (mB != 0) {
-			epLog("J:VC:%d vB2=%g %g %g\n",id,
-				vB.x, vB.y, wB);
-		}
-	}
-#endif
 	data.velocities[m_indexA].v = vA;
 	data.velocities[m_indexA].w = wA;
 	data.velocities[m_indexB].v = vB;
