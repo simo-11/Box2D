@@ -77,6 +77,11 @@ b2ElasticPlasticJoint::b2ElasticPlasticJoint(const b2ElasticPlasticJointDef* def
 		m_dampingRatio = def->dampingRatio;
 		m_maxElasticRotation = def->maxElasticRotation;
 		break;
+	case e_rigidPlasticJoint:
+		m_frequencyHz = 0.f;
+		m_dampingRatio = 0.f;
+		m_maxElasticRotation = 0.f;
+		break;
 	}
 	m_impulse.SetZero();
 	m_maxForce = def->maxForce;
