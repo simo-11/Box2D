@@ -340,6 +340,7 @@ void b2Island::Solve(b2Profile* profile, const b2TimeStep& step, const b2Vec2& g
 	{
 		switch (m_joints[i]->GetType()) {
 		case e_elasticPlasticJoint:
+		case e_rigidPlasticJoint:
 			((b2ElasticPlasticJoint*)(m_joints[i]))->UpdatePlasticity(solverData);
 			break;
 		}
@@ -607,6 +608,7 @@ void b2Island::InitRigidPlasticJoints(b2SolverData& solverData, const b2Vec2& gr
 		b2Joint  *joint = m_joints[i];
 		switch (joint->GetType()){
 		case e_elasticPlasticJoint:
+		case e_rigidPlasticJoint:
 			break;
 		default:
 			continue;

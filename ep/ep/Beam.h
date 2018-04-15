@@ -50,7 +50,8 @@ namespace {
 	float32 hy;
 	float fy; //MPa
 	float maxElasticRotation, maxRotation, maxStrain;
-	bool addSoft, addHard, addElasticPlastic, showElasticPlastic, firstIsHinge, horizontal;
+	bool addSoft, addHard, addElasticPlastic, addRigidPlastic,
+		showElasticPlastic, firstIsHinge, horizontal;
 	float32 lastCx,lastCy;
 	bool openLists;
 }
@@ -63,7 +64,7 @@ namespace bo {
 class Beam : public Test
 {
 public:
-	b2Vec2 noteWeld1, noteSoftWeld1, noteElasticPlastic1;
+	b2Vec2 noteWeld1, noteSoftWeld1, noteElasticPlastic1, noteRigidPlastic1;
 	virtual b2Body* getStaticBody(b2PolygonShape staticShape, float32 sy){
 		b2FixtureDef sfd;
 		sfd.shape = &staticShape;
@@ -144,8 +145,9 @@ public:
 					ImGui::Checkbox("Soft", &addSoft);
 					ImGui::SameLine();
 					ImGui::Checkbox("Hard", &addHard);
-					ImGui::SameLine();
 					ImGui::Checkbox("ElasticPlastic", &addElasticPlastic);
+					ImGui::SameLine();
+					ImGui::Checkbox("RigidPlastic", &addRigidPlastic);
 					ImGui::Checkbox("FirstIsHinge", &firstIsHinge);
 					ImGui::SameLine();
 					ImGui::Checkbox("Horizontal", &horizontal);
@@ -192,6 +194,7 @@ public:
 					{
 						switch (j->GetType()){
 						case e_elasticPlasticJoint:
+						case e_rigidPlasticJoint:
 							LogEpCapasity((b2ElasticPlasticJoint*)j, locs);
 							break;
 						}
@@ -209,6 +212,7 @@ public:
 					{
 						switch (j->GetType()) {
 						case e_elasticPlasticJoint:
+						case e_rigidPlasticJoint:
 							LogEpJointErrors((b2ElasticPlasticJoint*)j, jelocs);
 							break;
 						}
@@ -234,6 +238,9 @@ public:
 		}
 		if (addElasticPlastic){
 			g_debugDraw.DrawString(noteElasticPlastic1, "ElasticPlasticJoint");
+		}
+		if (addRigidPlastic) {
+			g_debugDraw.DrawString(noteRigidPlastic1, "RigidPlasticJoint");
 		}
 	}
 	static Test* Create(Settings *settings)
@@ -537,6 +544,92 @@ if (addElasticPlastic)
 		else {
 			jd.Initialize(prevBody, body, anchor);
 			joint=(b2ElasticPlasticJoint*)m_world->CreateJoint(&jd);
+		}
+		if (bo::b1) {
+			if (prevBody == sbody && joint) {
+				loggedBody = body;
+				SelectedEPJoint *sp = AddSelectedJoint(joint);
+				sp->StartDebug();
+			}
+		}
+		else if (bo::b2) {
+			SelectedEPJoint *sp = AddSelectedJoint(joint);
+			sp->StartDebug();
+		}
+		prevBody = body;
+	}
+}
+if (addRigidPlastic)
+{
+	showElasticPlastic = true;
+	sy += 5 + totalLength;
+	b2Body* sbody = getStaticBody(staticShape, sy);
+
+	b2PolygonShape shape;
+	if (horizontal) {
+		shape.SetAsBox(hx, hy);
+	}
+	else {
+		shape.SetAsBox(hy, hx);
+	}
+
+	b2FixtureDef fd;
+	fd.shape = &shape;
+	fd.density = density;
+
+	b2RigidPlasticJointDef jd;
+	// select smaller, either axial or cutting
+	if (horizontal) {
+		jd.maxForce.x = b2Min(2 * hy, hx)*fy*1e6f;
+		jd.maxForce.y = b2Min(2 * hx, hy)*fy*1e6f;
+	}
+	else {
+		jd.maxForce.x = b2Min(2 * hx, hy)*fy*1e6f;
+		jd.maxForce.y = b2Min(2 * hy, hx)*fy*1e6f;
+	}
+	jd.maxTorque = hy * hy* fy*1e6f;
+	jd.maxElasticRotation = maxElasticRotation;
+	jd.maxRotation = maxRotation;
+	jd.maxStrain = maxStrain * b2Min(hx, hy);
+	jd.frequencyHz = baseHz;
+	jd.dampingRatio = baseDampingRatio;
+
+	b2Body* prevBody = sbody;
+	noteRigidPlastic1.Set(-hy, sy + 2 + hy);
+	for (int32 i = 0; i < so_count; ++i)
+	{
+		b2BodyDef bd;
+		bd.type = b2_dynamicBody;
+		float32 x, y;
+		if (horizontal) {
+			x = (2 * i + 1)*hx;
+			y = sy;
+		}
+		else {
+			x = -hy;
+			y = sy - hy - (2 * i + 1)*hx;
+		}
+		bd.position.Set(x, y);
+		b2Body* body = m_world->CreateBody(&bd);
+		body->CreateFixture(&fd);
+		float32 ax, ay;
+		if (horizontal) {
+			ax = 2 * i*hx;
+			ay = sy;
+		}
+		else {
+			ax = -hy;
+			ay = sy - hy - 2 * i*hx;
+		}
+		b2Vec2 anchor(ax, ay);
+		b2RigidPlasticJoint* joint = NULL;
+		if (i == 0 && firstIsHinge) {
+			hd.Initialize(prevBody, body, anchor);
+			m_world->CreateJoint(&hd);
+		}
+		else {
+			jd.Initialize(prevBody, body, anchor);
+			joint = (b2RigidPlasticJoint*)m_world->CreateJoint(&jd);
 		}
 		if (bo::b1) {
 			if (prevBody == sbody && joint) {

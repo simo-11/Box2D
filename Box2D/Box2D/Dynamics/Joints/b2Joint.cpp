@@ -29,6 +29,7 @@
 #include "Box2D/Dynamics/Joints/b2RopeJoint.h"
 #include "Box2D/Dynamics/Joints/b2MotorJoint.h"
 #include "Box2D/Dynamics/Joints/b2ElasticPlasticJoint.h"
+#include "Box2D/Dynamics/Joints/b2RigidPlasticJoint.h"
 #include "Box2D/Dynamics/b2Body.h"
 #include "Box2D/Dynamics/b2World.h"
 #include "Box2D/Common/b2BlockAllocator.h"
@@ -126,6 +127,14 @@ b2Joint* b2Joint::Create(const b2JointDef* def, b2BlockAllocator* allocator)
 		}
 		break;
 
+		case e_rigidPlasticJoint:
+		{
+			void* mem = allocator->Allocate(sizeof(b2RigidPlasticJoint));
+			joint = new (mem)b2RigidPlasticJoint
+			(static_cast<const b2RigidPlasticJointDef*>(def));
+		}
+		break;
+
 	default:
 		b2Assert(false);
 		break;
@@ -184,6 +193,9 @@ void b2Joint::Destroy(b2Joint* joint, b2BlockAllocator* allocator)
 		break;
 	case e_elasticPlasticJoint:
 		allocator->Free(joint, sizeof(b2ElasticPlasticJoint));
+		break;
+	case e_rigidPlasticJoint:
+		allocator->Free(joint, sizeof(b2RigidPlasticJoint));
 		break;
 	default:
 		b2Assert(false);

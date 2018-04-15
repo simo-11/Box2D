@@ -134,6 +134,8 @@ public:
 	float32 m_gamma;
 	bool initImpulseDone;
 	SOLVE_ORDER *solveOrder;
+	static SOLVE_ORDER* getMomentFirst();
+	static SOLVE_ORDER* getForceFirst();
 protected:
 	epDebugListener* debugListener;
 	b2ImpulseInitializer *impulseInitializer;

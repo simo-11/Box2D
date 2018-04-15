@@ -1183,6 +1183,7 @@ void b2World::DrawJointReaction(b2Joint* joint)
 	switch (joint->GetType())
 	{
 	case e_elasticPlasticJoint:
+	case e_rigidPlasticJoint:
 		b2ElasticPlasticJoint* ep = (b2ElasticPlasticJoint*)joint;
 		b2Vec2 rf = ep->GetRotatedMaxForce();
 		color.Set(1, 0, 0);

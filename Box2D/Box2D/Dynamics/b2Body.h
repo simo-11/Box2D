@@ -401,6 +401,7 @@ private:
 	friend class b2GearJoint;
 	friend class b2MotorJoint;
 	friend class b2ElasticPlasticJoint; // ep
+	friend class b2RigidPlasticJoint; // ep
 	friend class b2ImpulseInitializer; // ep
 	friend class b2MouseJoint;
 	friend class b2PrismaticJoint;

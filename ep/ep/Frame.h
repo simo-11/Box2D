@@ -117,6 +117,7 @@ public:
 					for (b2Joint* j = m_world->GetJointList(); j; j = j->GetNext())
 					{
 						switch (j->GetType()) {
+						case e_rigidPlasticJoint:
 						case e_elasticPlasticJoint:
 							LogEpCapasity((b2ElasticPlasticJoint*)j, locs);
 							break;
@@ -134,6 +135,7 @@ public:
 					for (b2Joint* j = m_world->GetJointList(); j; j = j->GetNext())
 					{
 						switch (j->GetType()) {
+						case e_rigidPlasticJoint:
 						case e_elasticPlasticJoint:
 							LogEpJointErrors((b2ElasticPlasticJoint*)j, jelocs);
 							break;

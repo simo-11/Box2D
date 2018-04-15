@@ -54,6 +54,14 @@ void b2ElasticPlasticJointDef::Initialize(b2Body* bA, b2Body* bB, const b2Vec2& 
 
 static SOLVE_ORDER momentFirst[] = {MOMENT,FORCE};
 static SOLVE_ORDER forceFirst[] = {FORCE,MOMENT};
+
+SOLVE_ORDER* b2ElasticPlasticJoint::getMomentFirst() {
+	return momentFirst;
+}
+SOLVE_ORDER* b2ElasticPlasticJoint::getForceFirst() {
+	return forceFirst;
+}
+
 void b2ElasticPlasticJoint::resetEpId(){
 	epId = 0;
 }
@@ -63,14 +71,16 @@ b2ElasticPlasticJoint::b2ElasticPlasticJoint(const b2ElasticPlasticJointDef* def
 	m_localAnchorA = def->localAnchorA;
 	m_localAnchorB = def->localAnchorB;
 	m_referenceAngle = def->referenceAngle;
-	m_frequencyHz = def->frequencyHz;
-	m_dampingRatio = def->dampingRatio;
-
+	switch (def->type) {
+	case e_elasticPlasticJoint:
+		m_frequencyHz = def->frequencyHz;
+		m_dampingRatio = def->dampingRatio;
+		m_maxElasticRotation = def->maxElasticRotation;
+		break;
+	}
 	m_impulse.SetZero();
-
 	m_maxForce = def->maxForce;
 	m_maxTorque = def->maxTorque;
-	m_maxElasticRotation = def->maxElasticRotation;
 	m_maxStrain = def->maxStrain;
 	m_maxRotation = def->maxRotation;
 	m_currentStrain = 0.f;

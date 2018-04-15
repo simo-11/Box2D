@@ -40,7 +40,8 @@ enum b2JointType
 	e_frictionJoint,
 	e_ropeJoint,
 	e_motorJoint,
-	e_elasticPlasticJoint
+	e_elasticPlasticJoint,
+	e_rigidPlasticJoint,
 };
 
 enum b2LimitState

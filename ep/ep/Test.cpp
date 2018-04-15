@@ -192,6 +192,7 @@ void Test::SyncSelectedJoints()
 		for (b2Joint* j = m_world->GetJointList(); j; j = j->GetNext())
 		{
 			switch (j->GetType()) {
+			case e_rigidPlasticJoint:
 			case e_elasticPlasticJoint:
 				b2Vec2 jp = 0.5f*(j->GetAnchorA() + j->GetAnchorB());
 				b2ElasticPlasticJoint* epj = (b2ElasticPlasticJoint*)j;
@@ -704,6 +705,7 @@ void Test::SelectJoint(const b2Vec2 & p)
 	for (b2Joint* j = m_world->GetJointList(); j; j = j->GetNext())
 	{
 		switch (j->GetType()) {
+		case e_rigidPlasticJoint:
 		case e_elasticPlasticJoint:
 			b2ElasticPlasticJoint* epj=(b2ElasticPlasticJoint*)j;
 			b2Vec2 jp = 0.5f*(j->GetAnchorA() + j->GetAnchorB());
@@ -886,6 +888,7 @@ void Test::Step()
 		b2Joint* nj = j->GetNext();
 		switch (j->GetType())
 		{
+		case e_rigidPlasticJoint:
 		case e_elasticPlasticJoint:
 		{
 			b2ElasticPlasticJoint* ej = (b2ElasticPlasticJoint*)j;
