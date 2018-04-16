@@ -564,7 +564,6 @@ if (addRigidPlastic)
 	showElasticPlastic = true;
 	sy += 5 + totalLength;
 	b2Body* sbody = getStaticBody(staticShape, sy);
-
 	b2PolygonShape shape;
 	if (horizontal) {
 		shape.SetAsBox(hx, hy);
@@ -572,11 +571,9 @@ if (addRigidPlastic)
 	else {
 		shape.SetAsBox(hy, hx);
 	}
-
 	b2FixtureDef fd;
 	fd.shape = &shape;
 	fd.density = density;
-
 	b2RigidPlasticJointDef jd;
 	// select smaller, either axial or cutting
 	if (horizontal) {
@@ -593,7 +590,6 @@ if (addRigidPlastic)
 	jd.maxStrain = maxStrain * b2Min(hx, hy);
 	jd.frequencyHz = baseHz;
 	jd.dampingRatio = baseDampingRatio;
-
 	b2Body* prevBody = sbody;
 	noteRigidPlastic1.Set(-hy, sy + 2 + hy);
 	for (int32 i = 0; i < so_count; ++i)
@@ -614,12 +610,12 @@ if (addRigidPlastic)
 		body->CreateFixture(&fd);
 		float32 ax, ay;
 		if (horizontal) {
-			ax = 2 * i*hx;
+			ax = 0.f;
 			ay = sy;
 		}
 		else {
 			ax = -hy;
-			ay = sy - hy - 2 * i*hx;
+			ay = sy - hy;
 		}
 		b2Vec2 anchor(ax, ay);
 		b2RigidPlasticJoint* joint = NULL;
@@ -642,7 +638,6 @@ if (addRigidPlastic)
 			SelectedEPJoint *sp = AddSelectedJoint(joint);
 			sp->StartDebug();
 		}
-		prevBody = body;
 	}
 }
 { // rescale using m_zoom and m_center if dimensions change
@@ -665,6 +660,9 @@ if (addRigidPlastic)
 	}
 	if (addElasticPlastic) {
 		noteElasticPlastic1.y += noteMove;
+	}
+	if (addRigidPlastic) {
+		noteRigidPlastic1.y += noteMove;
 	}
 }
 }
