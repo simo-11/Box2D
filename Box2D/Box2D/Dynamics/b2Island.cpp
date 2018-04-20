@@ -170,6 +170,9 @@ b2Island::b2Island(
 
 	m_velocities = (b2Velocity*)m_allocator->Allocate(m_bodyCapacity * sizeof(b2Velocity));
 	m_positions = (b2Position*)m_allocator->Allocate(m_bodyCapacity * sizeof(b2Position));
+	ndbStack=NULL;
+	sjStack=NULL;
+	epStack=NULL;
 }
 
 b2Island::~b2Island()
@@ -262,6 +265,9 @@ void b2Island::Solve(b2Profile* profile, const b2TimeStep& step, const b2Vec2& g
 		contactSolver.WarmStart();
 	}
 	// ep start
+	nonDynamicBodyCount=startJointCount=epCount=0;
+	InitEpStacks();
+
 	if (doInitImpulses) {
 		timer.Reset();
 		InitRigidPlasticJoints(solverData, gravity);
@@ -295,8 +301,8 @@ void b2Island::Solve(b2Profile* profile, const b2TimeStep& step, const b2Vec2& g
 		{
 			m_joints[j]->SolveVelocityConstraints(solverData);
 		}
-
 		contactSolver.SolveVelocityConstraints();
+		UpdateRigidPlasticJoints(solverData);
 	}
 
 	// Store impulses for warm starting
@@ -427,6 +433,19 @@ void b2Island::Solve(b2Profile* profile, const b2TimeStep& step, const b2Vec2& g
 			}
 		}
 	}
+	if (sjStack != NULL) {
+		m_allocator->Free(sjStack);
+		sjStack = NULL;
+	}
+	if (ndbStack != NULL) {
+		m_allocator->Free(ndbStack);
+		ndbStack = NULL;
+	}
+	if (epStack != NULL) {
+		m_allocator->Free(epStack);
+		epStack = NULL;
+	}
+
 	epLogActive = true;
 }
 
@@ -587,6 +606,47 @@ void b2Island::Report(const b2ContactVelocityConstraint* constraints)
 	}
 }
 
+void b2Island::InitEpStacks() {
+	for (int32 i = 0; i < m_jointCount; i++) {
+		b2Joint  *joint = m_joints[i];
+		switch (joint->GetType()) {
+		case e_elasticPlasticJoint:
+		case e_rigidPlasticJoint:
+			break;
+		default:
+			continue;
+		}
+		b2ElasticPlasticJoint * epJoint = (b2ElasticPlasticJoint*)joint;
+		epJoint->initImpulseDone = false;
+		if (epJoint->m_frequencyHz>0.f) { // skip elastic ones
+			continue;
+		}
+		if (epStack == NULL) {
+			epStack = (b2ElasticPlasticJoint**)m_allocator->Allocate
+			(m_jointCount * sizeof(b2ElasticPlasticJoint*));
+		}
+		epStack[epCount++] = epJoint;
+		bool ndb = false;
+		for (int bi = 0; bi<2; bi++) {
+			b2Body *body = (bi == 0) ? joint->GetBodyA() : joint->GetBodyB();
+			if (body->GetType() != b2_dynamicBody) {
+				if (ndbStack == NULL) {
+					ndbStack = (b2Body**)m_allocator->Allocate
+					(m_bodyCount * sizeof(b2Body*));
+				}
+				ndbStack[nonDynamicBodyCount++] = body;
+				ndb = true;
+			}
+		}
+		if (ndb) {
+			if (sjStack == NULL) {
+				sjStack = (b2ElasticPlasticJoint**)m_allocator->Allocate
+				(m_jointCount * sizeof(b2ElasticPlasticJoint*));
+			}
+			sjStack[startJointCount++] = epJoint;
+		}
+	}
+}
 /**
 Scan through joints and init impulses 
 and select master bodies
@@ -598,51 +658,6 @@ for rigidPlastic joints
 */
 void b2Island::InitRigidPlasticJoints(b2SolverData& solverData, const b2Vec2& gravity)
 {
-	int32 nonDynamicBodyCount = 0, startJointCount=0, epCount=0;
-	b2Body** ndbStack = NULL; // non dynamic bodies
-	b2ElasticPlasticJoint** sjStack = NULL; // corresponding starting joints
-	b2ElasticPlasticJoint** epStack = NULL; // all rigid plastic ep joints
-	// check if work is needed
-	//
-	for (int32 i = 0; i < m_jointCount; i++){
-		b2Joint  *joint = m_joints[i];
-		switch (joint->GetType()){
-		case e_elasticPlasticJoint:
-		case e_rigidPlasticJoint:
-			break;
-		default:
-			continue;
-		}
-		b2ElasticPlasticJoint * epJoint = (b2ElasticPlasticJoint*)joint;
-		epJoint->initImpulseDone = false;
-		if (epJoint->m_frequencyHz>0.f){ // skip elastic ones
-			continue;
-		}
-		if (epStack == NULL){
-			epStack = (b2ElasticPlasticJoint**)m_allocator->Allocate
-				(m_jointCount * sizeof(b2ElasticPlasticJoint*));
-		}
-		epStack[epCount++] = epJoint;
-		bool ndb = false;
-		for (int bi = 0; bi<2; bi++){
-			b2Body *body = (bi==0)?joint->GetBodyA():joint->GetBodyB();
-			if (body->GetType() != b2_dynamicBody){
-				if (ndbStack == NULL){
-					ndbStack=(b2Body**)m_allocator->Allocate
-						(m_bodyCount * sizeof(b2Body*));
-				}
-				ndbStack[nonDynamicBodyCount++] = body;
-				ndb = true;
-			}
-		}
-		if (ndb){
-			if (sjStack == NULL){
-				sjStack = (b2ElasticPlasticJoint**)m_allocator->Allocate
-					(m_jointCount * sizeof(b2ElasticPlasticJoint*));
-			}
-			sjStack[startJointCount++] = epJoint;
-		}
-	}
 	if (epCount == 0) {
 		return;
 	}
@@ -665,13 +680,25 @@ void b2Island::InitRigidPlasticJoints(b2SolverData& solverData, const b2Vec2& gr
 			ii->InitImpulses();
 		}
 	}
-	if (sjStack != NULL){
-		m_allocator->Free(sjStack);
+}
+
+/**
+*/
+void b2Island::UpdateRigidPlasticJoints(b2SolverData& solverData)
+{
+	if (epCount == 0) {
+		return;
 	}
-	if (ndbStack != NULL){
-		m_allocator->Free(ndbStack);
-	}
-	if (epStack != NULL){
-		m_allocator->Free(epStack);
+	for (int32 i = 0; i < epCount; i++) {
+		b2ElasticPlasticJoint  *joint = epStack[i];
+		switch (joint->GetType()) {
+		case e_elasticPlasticJoint:
+			continue;
+		case e_rigidPlasticJoint:
+			break;
+		default:
+			continue;
+		}
+		b2ElasticPlasticJoint * epJoint = (b2ElasticPlasticJoint*)joint;
 	}
 }

@@ -49,6 +49,13 @@ public:
 	void InitRigidPlasticJoints(b2SolverData& solverData, const b2Vec2& gravity); // ep
 	static void SetInitImpulses(bool);
 	static bool IsInitImpulses();
+	int32 nonDynamicBodyCount, startJointCount, epCount;
+	b2Body** ndbStack; // non dynamic bodies
+	b2ElasticPlasticJoint** sjStack; // corresponding starting joints
+	b2ElasticPlasticJoint** epStack; // all rigid plastic ep joints
+	void InitEpStacks();
+	void UpdateRigidPlasticJoints(b2SolverData& solverData);
+	// end ep
 	void SolveTOI(const b2TimeStep& subStep, int32 toiIndexA, int32 toiIndexB);
 
 	void Add(b2Body* body)
