@@ -84,6 +84,7 @@ b2ElasticPlasticJoint::b2ElasticPlasticJoint(const b2ElasticPlasticJointDef* def
 		break;
 	}
 	m_impulse.SetZero();
+	m_jim.SetZero();
 	m_maxForce = def->maxForce;
 	m_maxTorque = def->maxTorque;
 	m_maxStrain = def->maxStrain;
@@ -788,6 +789,7 @@ void b2ElasticPlasticJoint::SetMaxElasticRotation(float32 val)
 {
 	m_maxElasticRotation = val;
 }
+
 
 float32 b2ElasticPlasticJoint::GetMaxTorque() const
 {

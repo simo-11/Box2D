@@ -17,7 +17,7 @@
 * 
 * Simo Nikula started 2018
 * This constraint is designed to simulate ductile materials like
-* steel when elastic part cannot be taken into account.
+* steel when elastic part cannot be taken into account due to high natural frequencies
 * Main focus is on bending.
 */
 
@@ -28,7 +28,10 @@
 #include "Box2D/Dynamics/b2Fixture.h"
 #include "Box2D/Dynamics/b2TimeStep.h"
 
-
+/**
+bA is currently assumed to be master body which is possibly connected to multiple
+bodies
+*/
 void b2RigidPlasticJointDef::Initialize(b2Body* bA, b2Body* bB, const b2Vec2& anchor)
 {
 	bodyA = bA;
@@ -103,11 +106,13 @@ void b2RigidPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 			// Scale impulses to support a variable time step.
 			m_impulse *= data.step.dtRatio;
 		}
+		/*
 		b2Vec2 P(m_impulse.x, m_impulse.y);
 		vA -= mA * P;
 		wA -= iA * (b2Cross(m_rA, P) + m_impulse.z);
 		vB += mB * P;
 		wB += iB * (b2Cross(m_rB, P) + m_impulse.z);
+		*/
 	}
 	else
 	{
@@ -129,6 +134,7 @@ void b2RigidPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 
 bool b2RigidPlasticJoint::SolvePositionConstraints(const b2SolverData& data)
 {
+	return true;
 	b2Vec2 cA = data.positions[m_indexA].c;
 	float32 aA = data.positions[m_indexA].a;
 	b2Vec2 cB = data.positions[m_indexB].c;
@@ -230,9 +236,10 @@ void b2RigidPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 			Cdot2 = wB - wA;
 			impulse2 = GetClampedDeltaImpulse(Cdot2, data);
 			m_impulse.z += impulse2;
-
+/*
 			wA -= iA * impulse2;
 			wB += iB * impulse2;
+*/
 #ifdef EP_LOG
 			if (epLogActive && epLogEnabled) {
 				epLog("J:VC:%d Cdot2=%g, impulse2=%g, wA=%g, wB=%g\n", id,
@@ -246,10 +253,12 @@ void b2RigidPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 			m_impulse.x += impulse1.x;
 			m_impulse.y += impulse1.y;
 			b2Vec2 P = impulse1;
+			/**
 			vA -= mA * P;
 			wA -= iA * b2Cross(m_rA, P);
 			vB += mB * P;
 			wB += iB * b2Cross(m_rB, P);
+			*/
 #ifdef EP_LOG
 			if (epLogActive && epLogEnabled) {
 				epLog("J:VC:%d Cdot1=%g %g\n", id,
@@ -280,3 +289,13 @@ void b2RigidPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 	velocityIteration++;
 }
 
+b2Vec2 b2RigidPlasticJoint::GetReactionForce(float32 inv_dt) const
+{
+	b2Vec2 P(m_jim.x, m_jim.y);
+	return inv_dt * P;
+}
+
+float32 b2RigidPlasticJoint::GetReactionTorque(float32 inv_dt) const
+{
+	return inv_dt * m_jim.z;
+}

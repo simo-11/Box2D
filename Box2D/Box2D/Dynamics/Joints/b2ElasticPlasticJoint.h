@@ -136,12 +136,14 @@ public:
 	SOLVE_ORDER *solveOrder;
 	static SOLVE_ORDER* getMomentFirst();
 	static SOLVE_ORDER* getForceFirst();
+	b2Vec3 m_jim; // joined impulse
 protected:
 	epDebugListener* debugListener;
 	b2ImpulseInitializer *impulseInitializer;
 	friend class b2Joint;
 	friend class b2ImpulseInitializer;
 	friend class b2Island;
+	friend class b2RigidJointHandler;
 
 	b2ElasticPlasticJoint(const b2ElasticPlasticJointDef* def);
 	virtual ~b2ElasticPlasticJoint();

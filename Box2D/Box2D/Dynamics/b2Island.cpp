@@ -20,6 +20,7 @@
 #include "Box2D/Dynamics/b2Island.h"
 #include "Box2D/Dynamics/b2ImpulseInitializer.h" // ep
 #include "Box2D/Dynamics/Joints/b2ElasticPlasticJoint.h" // ep
+#include "Box2D/Dynamics/Joints/b2RigidJointHandler.h" // ep
 #include "Box2D/Dynamics/b2Body.h"
 #include "Box2D/Dynamics/b2Fixture.h"
 #include "Box2D/Dynamics/b2World.h"
@@ -689,6 +690,7 @@ void b2Island::UpdateRigidPlasticJoints(b2SolverData& solverData)
 	if (epCount == 0) {
 		return;
 	}
+	b2RigidJointHandler rjh;
 	for (int32 i = 0; i < epCount; i++) {
 		b2ElasticPlasticJoint  *joint = epStack[i];
 		switch (joint->GetType()) {
@@ -699,6 +701,33 @@ void b2Island::UpdateRigidPlasticJoints(b2SolverData& solverData)
 		default:
 			continue;
 		}
-		b2ElasticPlasticJoint * epJoint = (b2ElasticPlasticJoint*)joint;
+		b2ElasticPlasticJoint** ejStack = (b2ElasticPlasticJoint**)m_allocator->Allocate
+		(epCount* sizeof(b2ElasticPlasticJoint*));
+		int32 ejCount = 0;
+		b2Vec3 jim;
+		jim.SetZero();
+		for (int32 j = i; j < epCount; j++) {
+			b2ElasticPlasticJoint  *jj = epStack[j];
+			if (joint->m_bodyA != jj->m_bodyA) {
+				continue;
+			}
+			switch (joint->GetType()) {
+			case e_elasticPlasticJoint:
+				continue;
+			case e_rigidPlasticJoint:
+				break;
+			default:
+				continue;
+			}
+			ejStack[ejCount++]=jj;
+			jim += jj->m_impulse;
+		}
+		joint->m_jim = jim;
+		rjh.ejCount = ejCount;
+		rjh.ejStack = ejStack;
+		rjh.masterJoint = joint;
+		rjh.data = &solverData;
+		rjh.handle();
+		m_allocator->Free(ejStack);
 	}
 }
