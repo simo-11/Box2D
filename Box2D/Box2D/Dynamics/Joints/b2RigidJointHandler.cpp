@@ -57,8 +57,11 @@ void b2RigidJointHandler::handleForceOverLoad()
 {
 }
 
+/**
+*/
 void b2RigidJointHandler::handleMomentOverLoad()
 {
+	mbi = masterJoint->m_indexB;
 }
 
 void b2RigidJointHandler::checkLimits()

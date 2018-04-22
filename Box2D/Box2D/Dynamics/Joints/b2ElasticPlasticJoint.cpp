@@ -275,7 +275,7 @@ void b2ElasticPlasticJoint::UpdateAnchors(const b2SolverData & data)
 	// current implementation is based on idea
 	// that tearing joint up joint should be more meaningful
 	// than pushing
-	if (m_forceExceeded || origDistance < newDistance) {
+	if (m_forceExceeded && origDistance < newDistance) {
 		float32 sf = newDistance / origDistance;
 		m_localAnchorA *= sf;
 		m_localAnchorB *= sf;
@@ -317,7 +317,7 @@ void b2ElasticPlasticJoint::UpdatePlasticity(const b2SolverData & data)
 	// current implementation is based on idea
 	// that tearing joint up joint should be more meaningful
 	// than pushing
-	if (m_forceExceeded || origDistance < newDistance) {
+	if (m_forceExceeded && origDistance < newDistance) {
 		float32 sf = newDistance / origDistance;
 		m_localAnchorA *= sf;
 		m_localAnchorB *= sf;
