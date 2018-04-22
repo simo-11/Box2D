@@ -100,22 +100,7 @@ void b2RigidPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	m_mass.ex.x = iM != 0.f ? 1.f / iM : 0.f;
 	m_mass.ey.y = m_mass.ex.x;
 	m_mass.ez.z = invM != 0.0f ? 1.0f / invM : 0.0f;
-	if (data.step.warmStarting)
-	{
-		if (!initImpulseDone) {
-			// Scale impulses to support a variable time step.
-			m_impulse *= data.step.dtRatio;
-		}
-		/*
-		b2Vec2 P(m_impulse.x, m_impulse.y);
-		vA -= mA * P;
-		wA -= iA * (b2Cross(m_rA, P) + m_impulse.z);
-		vB += mB * P;
-		wB += iB * (b2Cross(m_rB, P) + m_impulse.z);
-		*/
-	}
-	else
-	{
+	if (!initImpulseDone){
 		m_impulse.SetZero();
 	}
 	solveOrder = b2ElasticPlasticJoint::getForceFirst();

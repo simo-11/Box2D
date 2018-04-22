@@ -44,11 +44,12 @@ class b2RigidJointHandler
 public:
 	b2RigidJointHandler();
 	b2ElasticPlasticJoint* masterJoint;
-	b2Body* masterBody;
+	int32 mbi; // master body index
 	int32 ejCount;
 	b2ElasticPlasticJoint** ejStack;
 	b2SolverData* data;
 	void handle(),reset(),handleOverLoads(),updateBodies();
+	void handleMomentOverLoad(), handleForceOverLoad();
 	void checkLimits();
 	bool xfol, yfol, zmol;
 };
