@@ -57,7 +57,7 @@ namespace {
 }
 
 namespace bo {
-	int b1,b2;
+	int b1,b2,b3;
 }
 
 
@@ -86,7 +86,7 @@ public:
 	virtual void reset();
 	virtual void build();
 	virtual void BeamExtraUi();
-	virtual bool OpenEPJoints() { return (bo::b1||bo::b2); }
+	virtual bool OpenEPJoints() { return (bo::b1||bo::b2||bo::b3); }
 	virtual float32 getFloorMinX(), getFloorMaxX();
 	Beam(Settings* sp) :Test(sp)
 	{
@@ -268,9 +268,11 @@ void Beam::BeamExtraUi()
 		if (ImGui::Button("None")) {
 			bo::b1 = 0;
 			bo::b2 = 0;
+			bo::b3 = 0;
 		}
 		if (ImGui::RadioButton("B1-1", &bo::b1,1)) {
 			bo::b2 = 0;
+			bo::b3 = 0;
 			uihx = 10;
 			by = 27.01f;
 			settings->epDebugSteps = 10;
@@ -286,6 +288,7 @@ hx=10\n\
 		ImGui::SameLine();
 		if (ImGui::RadioButton("B1-2", &bo::b1,2)) {
 			bo::b2 = 0;
+			bo::b3 = 0;
 			uihx = 3;
 			by = 13.01f;
 			settings->epDebugSteps = 10;
@@ -324,6 +327,7 @@ hx=3\n\
 		}
 		if (ImGui::RadioButton("B2-1", &bo::b2, 1)) {
 			bo::b1 = 0;
+			bo::b3 = 0;
 			uihx = 1.f;
 			epLogEnabled = true;
 		}
@@ -345,6 +349,34 @@ hx=1\n\
 			addSoft = false;
 			addHard = false;
 			addElasticPlastic = true;
+			firstIsHinge = false;
+			openLists = true;
+			restartPending = true;
+		}
+		if (ImGui::RadioButton("B3", &bo::b3, 1)) {
+			bo::b1 = 0;
+			bo::b2 = 0;
+			uihx = 10.f;
+			epLogEnabled = true;
+		}
+		if (ImGui::IsItemHovered()) {
+			ImGui::SetTooltip("Horizontal\n\
+density=7800\n\
+rigidPlastic\n\
+hx=1\n\
+3 bodies\n\
+");
+		}
+		if (bo::b3 && uihx != 0.f) {
+			settings->pause = true;
+			hx = uihx;
+			density = 7800.f;
+			so_count = 3;
+			horizontal = true;
+			addSoft = false;
+			addHard = false;
+			addElasticPlastic = false;
+			addRigidPlastic = true;
 			firstIsHinge = false;
 			openLists = true;
 			restartPending = true;
@@ -634,7 +666,7 @@ if (addRigidPlastic)
 				sp->StartDebug();
 			}
 		}
-		else if (bo::b2) {
+		else if (bo::b2||bo::b3) {
 			SelectedEPJoint *sp = AddSelectedJoint(joint);
 			sp->StartDebug();
 		}

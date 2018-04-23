@@ -796,6 +796,9 @@ float32 b2ElasticPlasticJoint::GetMaxTorque() const
 	return m_maxTorque;
 }
 
+bool hasPositionIterations() {
+	return true;
+}
 
 void b2ElasticPlasticJoint::Dump()
 {

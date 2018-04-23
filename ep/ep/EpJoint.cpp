@@ -276,6 +276,7 @@ void EpDebug::Ui(Test *t, SelectedEPJoint* j) {
 	}
 	float32 b, g;
 	b=g=0.f;
+	bool hasPositionIterations = false;
 	char *iiDone;
 	if (j->joint == NULL) {
 		ImGui::Text("Joint is no longer active");
@@ -283,6 +284,7 @@ void EpDebug::Ui(Test *t, SelectedEPJoint* j) {
 	}
 	else {
 		b2ElasticPlasticJoint *epj = j->joint;
+		hasPositionIterations = epj->hasPositionIterations();
 		g = epj->m_gamma;
 		b = epj->m_bias;
 		iiDone = epj->initImpulseDone ? ", ii=t" : ", ii=f";
@@ -296,7 +298,7 @@ void EpDebug::Ui(Test *t, SelectedEPJoint* j) {
 	int vc = epd->vo*(epd->stepsStored+1);
 	if (vc > 0) {
 		ImGui::Text("%d vis, g=%6.3g, b=%6.3g %s",
-			epd->velocityIterations,g,b,iiDone);
+			epd->velocityIterations, g, b, iiDone);
 		ImGui::SameLine(LX1); ImGui::Text("min");
 		ImGui::SameLine(LX2); ImGui::Text("max");
 		ImGui::SameLine(LX3); ImGui::Text("final");
@@ -317,25 +319,27 @@ void EpDebug::Ui(Test *t, SelectedEPJoint* j) {
 		xyPlot("ix", epd->ix, vc);
 		xyPlot("iy", epd->iy, vc);
 		xyPlot("ia", epd->ia, vc);
-		if (epd->epDebugSteps > 1) {
-			vc = epd->po*(epd->stepsStored + 1);
-			ImGui::Text("max %d position iterations",
-				epd->po/2);
-		}
-		else {
-			vc = 2 * epd->pi;
-			ImGui::Text("%d position iterations",
-				epd->pi);
-		}
-		if (epd->showA) {
-			xyPlot("pxA", epd->pxA, vc);
-			xyPlot("pyA", epd->pyA, vc);
-			xyPlot("paA", epd->paA, vc);
-		}
-		if (epd->showB) {
-			xyPlot("pxB", epd->pxB, vc);
-			xyPlot("pyB", epd->pyB, vc);
-			xyPlot("paB", epd->paB, vc);
+		if (hasPositionIterations) {
+			if (epd->epDebugSteps > 1) {
+				vc = epd->po*(epd->stepsStored + 1);
+				ImGui::Text("max %d position iterations",
+					epd->po / 2);
+			}
+			else {
+				vc = 2 * epd->pi;
+				ImGui::Text("%d position iterations",
+					epd->pi);
+			}
+			if (epd->showA) {
+				xyPlot("pxA", epd->pxA, vc);
+				xyPlot("pyA", epd->pyA, vc);
+				xyPlot("paA", epd->paA, vc);
+			}
+			if (epd->showB) {
+				xyPlot("pxB", epd->pxB, vc);
+				xyPlot("pyB", epd->pyB, vc);
+				xyPlot("paB", epd->paB, vc);
+			}
 		}
 	}
 	ImGui::EndGroup();

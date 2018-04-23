@@ -128,6 +128,7 @@ public:
 	epDebugListener* GetDebugListener() { return debugListener; }
 	b2ImpulseInitializer* GetImpulseInitializer();
 	void SetDebugListener(epDebugListener* listener) { debugListener = listener; }
+	virtual bool hasPositionIterations() { return true; }
 	int velocityIteration,positionIteration;
 	b2Vec3 Cdot;
 	float32 m_bias;
