@@ -701,7 +701,8 @@ void b2Island::UpdateRigidPlasticJoints(b2SolverData& solverData)
 		default:
 			continue;
 		}
-		b2ElasticPlasticJoint** ejStack = (b2ElasticPlasticJoint**)m_allocator->Allocate
+		b2ElasticPlasticJoint** ejStack =
+			(b2ElasticPlasticJoint**)m_allocator->Allocate
 		(epCount* sizeof(b2ElasticPlasticJoint*));
 		int32 ejCount = 0;
 		b2Vec3 jim;
