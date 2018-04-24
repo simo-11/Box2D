@@ -544,7 +544,7 @@ static void sInterface()
 						}
 						char buff[20];
 						const char* label = buff;
-						sprintf(buff, "X##xepj-%d", j->id);
+						sprintf(buff, "X %d##xepj-%d", j->id,j->id);
 						if (ImGui::SmallButton(label)) {
 							ep = j->joint;
 						}
@@ -569,7 +569,6 @@ static void sInterface()
 						if (j->dep) {
 							EpDebug::Ui(test,j);
 						}
-						ImGui::SameLine();
 						if (NULL == j->forces) {
 							if (ImGui::SmallButton("Plot forces")) {
 								j->forces = new float[3 * EP_MAX_VALUES]();
