@@ -218,9 +218,13 @@ void b2RigidPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 	for (int i = 0; i < 2; i++) {
 		switch (solveOrder[i]) {
 		case MOMENT:
+		{
+			b2Vec2 imf(m_impulse.x, m_impulse.y);
+			m_impulse.z = -b2Cross(m_rB, imf);
 			Cdot2 = wB - wA;
 			impulse2 = GetClampedDeltaImpulse(Cdot2, data);
 			m_impulse.z += impulse2;
+		}
 /*
 			wA -= iA * impulse2;
 			wB += iB * impulse2;

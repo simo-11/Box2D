@@ -353,7 +353,7 @@ hx=1\n\
 			openLists = true;
 			restartPending = true;
 		}
-		if (ImGui::RadioButton("B3", &bo::b3, 1)) {
+		if (ImGui::RadioButton("B3-1", &bo::b3, 1)) {
 			bo::b1 = 0;
 			bo::b2 = 0;
 			uihx = 10.f;
@@ -365,6 +365,23 @@ density=7800\n\
 rigidPlastic\n\
 hx=1\n\
 3 bodies\n\
+epDebug and log active\n\
+");
+		}
+		ImGui::SameLine();
+		if (ImGui::RadioButton("B3-2", &bo::b3, 2)) {
+			bo::b1 = 0;
+			bo::b2 = 0;
+			uihx = 10.f;
+			epLogEnabled = false;
+		}
+		if (ImGui::IsItemHovered()) {
+			ImGui::SetTooltip("Horizontal\n\
+density=7800\n\
+rigidPlastic\n\
+hx=1\n\
+3 bodies\n\
+epDebug and log not active\n\
 ");
 		}
 		if (bo::b3 && uihx != 0.f) {
@@ -668,7 +685,9 @@ if (addRigidPlastic)
 		}
 		else if (bo::b2||bo::b3) {
 			SelectedEPJoint *sp = AddSelectedJoint(joint);
-			sp->StartDebug();
+			if (bo::b3 & 1) {
+				sp->StartDebug();
+			}
 		}
 	}
 }
