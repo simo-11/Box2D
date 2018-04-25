@@ -138,6 +138,7 @@ public:
 	static SOLVE_ORDER* getMomentFirst();
 	static SOLVE_ORDER* getForceFirst();
 	b2Vec3 m_jim; // joined impulse
+	int32 id;
 protected:
 	epDebugListener* debugListener;
 	b2ImpulseInitializer *impulseInitializer;
@@ -182,7 +183,6 @@ protected:
 	bool m_forceExceeded, m_torqueExceeded;
 	// Impulse initialization
 	bool aInitialized, bInitialized;
-	int32 id;
 
 	// Solver temp
 	int32 m_indexA;

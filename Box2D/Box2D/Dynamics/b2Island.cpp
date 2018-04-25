@@ -29,7 +29,7 @@
 #include "Box2D/Dynamics/Joints/b2Joint.h"
 #include "Box2D/Common/b2StackAllocator.h"
 #include "Box2D/Common/b2Timer.h"
-
+#include <algorithm>
 /*
 Position Correction Notes
 =========================
@@ -607,6 +607,18 @@ void b2Island::Report(const b2ContactVelocityConstraint* constraints)
 	}
 }
 
+/// This is used to sort ep:s to match creation order.
+inline bool epLessThan(const b2ElasticPlasticJoint* j1, 
+	const b2ElasticPlasticJoint* j2)
+{
+	if (j1->id < j2->id)
+	{
+		return true;
+	}
+	return false;
+}
+
+
 void b2Island::InitEpStacks() {
 	for (int32 i = 0; i < m_jointCount; i++) {
 		b2Joint  *joint = m_joints[i];
@@ -646,6 +658,9 @@ void b2Island::InitEpStacks() {
 			}
 			sjStack[startJointCount++] = epJoint;
 		}
+	}
+	if (epStack != NULL) {
+		std::sort(&epStack[0],&epStack[epCount], epLessThan);
 	}
 }
 /**
