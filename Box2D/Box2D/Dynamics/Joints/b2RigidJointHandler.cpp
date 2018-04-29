@@ -58,10 +58,31 @@ void b2RigidJointHandler::handleForceOverLoad()
 }
 
 /**
+* get joint inertia of b-bodies
+* and add 
 */
 void b2RigidJointHandler::handleMomentOverLoad()
 {
+	float32 jm = 0.f;
+	float32 ji = 0.f;
+	for (int32 i = 0; i < ejCount; i++) {
+		b2ElasticPlasticJoint* joint = ejStack[i];
+		b2Body* bb = joint->m_bodyB;
+		float32 m = bb->GetMass();
+		jm += m;
+		ji += bb->GetInertia() + m * joint->m_rB.LengthSquared();
+	}
 	mbi = masterJoint->m_indexB;
+	b2Vec2 c = data->positions[mbi].c;
+	float32 a = data->positions[mbi].a;
+	b2Vec2 v = data->velocities[mbi].v;
+	float32 w = data->velocities[mbi].w;
+	w -= masterJoint->m_jim.z / ji;
+	a += data->step.dt*w;
+	data->positions[mbi].c = c;
+	data->positions[mbi].a = a;
+	data->velocities[mbi].v = v;
+	data->velocities[mbi].w = w;
 }
 
 void b2RigidJointHandler::checkLimits()

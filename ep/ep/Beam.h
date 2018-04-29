@@ -364,7 +364,7 @@ hx=1\n\
 density=7800\n\
 rigidPlastic\n\
 hx=1\n\
-3 bodies\n\
+4 bodies\n\
 epDebug and log active\n\
 ");
 		}
@@ -380,7 +380,7 @@ epDebug and log active\n\
 density=7800\n\
 rigidPlastic\n\
 hx=1\n\
-3 bodies\n\
+4 bodies\n\
 epDebug and log not active\n\
 ");
 		}
@@ -388,7 +388,7 @@ epDebug and log not active\n\
 			settings->pause = true;
 			hx = uihx;
 			density = 7800.f;
-			so_count = 3;
+			so_count = 4;
 			horizontal = true;
 			addSoft = false;
 			addHard = false;
