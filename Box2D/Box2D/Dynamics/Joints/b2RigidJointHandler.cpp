@@ -77,12 +77,15 @@ void b2RigidJointHandler::handleMomentOverLoad()
 	float32 a = data->positions[mbi].a;
 	b2Vec2 v = data->velocities[mbi].v;
 	float32 w = data->velocities[mbi].w;
-	w -= masterJoint->m_jim.z / ji;
-	a += data->step.dt*w;
-	data->positions[mbi].c = c;
-	data->positions[mbi].a = a;
-	data->velocities[mbi].v = v;
-	data->velocities[mbi].w = w;
+	float dw = masterJoint->m_jim.z / ji;
+	b2Vec2 P(masterJoint->m_jim.x, masterJoint->m_jim.y);
+	b2Vec2 dv = 1.f / jm * P + w * masterJoint->m_rB;
+	float da = data->step.dt*w;
+	b2Vec2 dc= data->step.dt*v;
+	data->positions[mbi].c += dc;
+	data->positions[mbi].a += da;
+	data->velocities[mbi].v += dv;
+	data->velocities[mbi].w += dw;
 }
 
 void b2RigidJointHandler::checkLimits()
