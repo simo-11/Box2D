@@ -45,11 +45,8 @@ void b2RigidJointHandler::updateBodies()
 		b2Vec2 cB = data->positions[ib].c;
 		b2Vec2 vB= vA + b2Cross(wA, cB - cA);
 		float32 wB=wA;
-		float32 aB=aA;
 		data->velocities[ib].v = vB;
 		data->velocities[ib].w = wB;
-		data->positions[ib].c = cB;
-		data->positions[ib].a = aB;
 	}
 }
 
@@ -70,20 +67,25 @@ void b2RigidJointHandler::handleMomentOverLoad()
 		b2Body* bb = joint->m_bodyB;
 		float32 m = bb->GetMass();
 		jm += m;
-		ji += bb->GetInertia() + m * joint->m_rB.LengthSquared();
+		float32 mr2 = m * joint->m_rB.LengthSquared();
+		ji += mr2;
 	}
 	mbi = masterJoint->m_indexB;
 	b2Vec2 c = data->positions[mbi].c;
 	float32 a = data->positions[mbi].a;
 	b2Vec2 v = data->velocities[mbi].v;
 	float32 w = data->velocities[mbi].w;
-	float dw = masterJoint->m_jim.z / ji;
-	b2Vec2 P(masterJoint->m_jim.x, masterJoint->m_jim.y);
-	b2Vec2 dv = 1.f / jm * P + w * masterJoint->m_rB;
-	float da = data->step.dt*w;
-	b2Vec2 dc= data->step.dt*v;
-	data->positions[mbi].c += dc;
-	data->positions[mbi].a += da;
+	float32 m = masterJoint->m_jim.z;
+	float32 mm = masterJoint->m_maxImpulse.z;
+	float32 em;
+	if (m > 0) {
+		em = m - mm;
+	}
+	else {
+		em = m + mm;
+	}
+	float32 dw = em / ji;
+	b2Vec2 dv = dw * masterJoint->m_rB;
 	data->velocities[mbi].v += dv;
 	data->velocities[mbi].w += dw;
 }
