@@ -356,7 +356,7 @@ hx=1\n\
 		if (ImGui::RadioButton("B3-1", &bo::b3, 1)) {
 			bo::b1 = 0;
 			bo::b2 = 0;
-			uihx = 10.f;
+			uihx = 40.f;
 			epLogEnabled = true;
 		}
 		if (ImGui::IsItemHovered()) {
@@ -364,7 +364,7 @@ hx=1\n\
 density=7800\n\
 rigidPlastic\n\
 hx=1\n\
-4 bodies\n\
+one 80 m body\n\
 epDebug and log active\n\
 ");
 		}
@@ -380,7 +380,7 @@ epDebug and log active\n\
 density=7800\n\
 rigidPlastic\n\
 hx=1\n\
-4 bodies\n\
+4 10 m bodies\n\
 epDebug and log not active\n\
 ");
 		}
@@ -388,7 +388,7 @@ epDebug and log not active\n\
 			settings->pause = true;
 			hx = uihx;
 			density = 7800.f;
-			so_count = 4;
+			so_count = (int)(40.f/uihx);
 			horizontal = true;
 			addSoft = false;
 			addHard = false;

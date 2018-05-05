@@ -85,7 +85,7 @@ void b2RigidJointHandler::handleMomentOverLoad()
 		em = m + mm;
 	}
 	float32 dw = em / ji;
-	b2Vec2 dv = dw * masterJoint->m_rB;
+	b2Vec2 dv = b2Cross(dw, masterJoint->m_rB);
 	data->velocities[mbi].v += dv;
 	data->velocities[mbi].w += dw;
 }
