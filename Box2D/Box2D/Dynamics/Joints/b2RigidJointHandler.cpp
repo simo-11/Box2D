@@ -15,7 +15,7 @@ void b2RigidJointHandler::handle()
 void b2RigidJointHandler::reset()
 {
 	xfol = yfol = zmol = false;
-	mbi = masterJoint->m_indexA;
+	mbi = masterJoint->m_mbi;
 }
 
 void b2RigidJointHandler::handleOverLoads()
@@ -70,11 +70,12 @@ void b2RigidJointHandler::handleMomentOverLoad()
 		float32 mr2 = m * joint->m_rB.LengthSquared();
 		ji += mr2;
 	}
-	mbi = masterJoint->m_indexB;
-	b2Vec2 c = data->positions[mbi].c;
-	float32 a = data->positions[mbi].a;
 	b2Vec2 v = data->velocities[mbi].v;
 	float32 w = data->velocities[mbi].w;
+	mbi = masterJoint->m_indexB;
+	masterJoint->m_mbi = mbi;
+	data->velocities[mbi].w = w;
+	data->velocities[mbi].v=v+b2Cross(w, masterJoint->m_rB);
 	float32 m = masterJoint->m_jim.z;
 	float32 mm = masterJoint->m_maxImpulse.z;
 	float32 em;
@@ -88,6 +89,7 @@ void b2RigidJointHandler::handleMomentOverLoad()
 	b2Vec2 dv = b2Cross(dw, masterJoint->m_rB);
 	data->velocities[mbi].v += dv;
 	data->velocities[mbi].w += dw;
+	masterJoint->m_impulse.z=0.f;
 }
 
 void b2RigidJointHandler::checkLimits()

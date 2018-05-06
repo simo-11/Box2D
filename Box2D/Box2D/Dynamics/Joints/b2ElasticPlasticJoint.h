@@ -187,6 +187,7 @@ protected:
 	// Solver temp
 	int32 m_indexA;
 	int32 m_indexB;
+	int32 m_mbi;
 	b2Vec2 m_rA;
 	b2Vec2 m_rB;
 	b2Vec2 m_localCenterA;
