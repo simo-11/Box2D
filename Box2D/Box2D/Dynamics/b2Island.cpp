@@ -20,6 +20,7 @@
 #include "Box2D/Dynamics/b2Island.h"
 #include "Box2D/Dynamics/b2ImpulseInitializer.h" // ep
 #include "Box2D/Dynamics/Joints/b2ElasticPlasticJoint.h" // ep
+#include "Box2D/Dynamics/Joints/b2RigidPlasticJoint.h" // ep
 #include "Box2D/Dynamics/Joints/b2RigidJointHandler.h" // ep
 #include "Box2D/Dynamics/b2Body.h"
 #include "Box2D/Dynamics/b2Fixture.h"
@@ -347,8 +348,10 @@ void b2Island::Solve(b2Profile* profile, const b2TimeStep& step, const b2Vec2& g
 	{
 		switch (m_joints[i]->GetType()) {
 		case e_elasticPlasticJoint:
-		case e_rigidPlasticJoint:
 			((b2ElasticPlasticJoint*)(m_joints[i]))->UpdatePlasticity(solverData);
+			break;
+		case e_rigidPlasticJoint:
+			((b2RigidPlasticJoint*)(m_joints[i]))->UpdatePlasticity(solverData);
 			break;
 		}
 	}

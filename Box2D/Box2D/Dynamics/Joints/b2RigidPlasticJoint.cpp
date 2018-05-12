@@ -194,3 +194,31 @@ float32 b2RigidPlasticJoint::GetReactionTorque(float32 inv_dt) const
 {
 	return inv_dt * m_jim.z;
 }
+
+/**
+* After velocity iterations
+*/
+void b2RigidPlasticJoint::UpdatePlasticity(const b2SolverData & data)
+{
+	if (!isOverLoaded()) {
+		return;
+	}
+	b2Vec2 cA = data.positions[m_indexA].c;
+	b2Vec2 cB = data.positions[m_indexB].c;
+	float32 newDistance = (cA - cB).Length();
+	float32 origDistance = m_localAnchorA.Length() + m_localAnchorB.Length();
+	// this needs more analysis
+	// current implementation is based on idea
+	// that tearing joint up joint should be more meaningful
+	// than pushing
+	if ((isOverLoaded(X) || isOverLoaded(Y)) && origDistance < newDistance) {
+		float32 sf = newDistance / origDistance;
+		m_localAnchorA *= sf;
+		m_localAnchorB *= sf;
+		m_currentStrain += b2Abs(newDistance - origDistance);
+	}
+	if (!isOverLoaded(RZ)) {
+		return;
+	}
+	updateRotationalPlasticity(data, 0.f);
+}

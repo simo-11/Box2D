@@ -48,6 +48,7 @@ class b2RigidPlasticJoint  : public b2ElasticPlasticJoint
 public:
 	b2Vec2 GetReactionForce(float32 inv_dt) const;
 	float32 GetReactionTorque(float32 inv_dt) const;
+	void UpdatePlasticity(const b2SolverData & data);
 	virtual bool hasPositionIterations() {
 		return false;
 	}
