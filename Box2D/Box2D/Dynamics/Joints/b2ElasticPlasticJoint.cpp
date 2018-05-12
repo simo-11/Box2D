@@ -62,6 +62,20 @@ SOLVE_ORDER* b2ElasticPlasticJoint::getForceFirst() {
 	return forceFirst;
 }
 
+bool b2ElasticPlasticJoint::isOverLoaded(OVERLOAD_DIRECTION d)
+{
+	switch (d) {
+	case ANY:
+		return overLoads.any();
+	}
+	return overLoads.test(d);
+}
+
+void b2ElasticPlasticJoint::setOverLoaded(OVERLOAD_DIRECTION d, bool v)
+{
+	overLoads.set(d,v);
+}
+
 void b2ElasticPlasticJoint::resetEpId(){
 	epId = 0;
 }

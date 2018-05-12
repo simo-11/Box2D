@@ -71,6 +71,7 @@ void b2RigidPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	m_indexA = m_bodyA->m_islandIndex;
 	m_indexB = m_bodyB->m_islandIndex;
 	m_mbi = m_indexA;
+	overLoads.reset();
 	m_localCenterA = m_bodyA->m_sweep.localCenter;
 	m_localCenterB = m_bodyB->m_sweep.localCenter;
 	m_invMassA = m_bodyA->m_invMass;
@@ -153,8 +154,17 @@ void b2RigidPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 	if (nullptr != debugListener) {
 		debugListener->BeginVelocityIteration(this, data);
 	}
-	b2Vec2 Cdot1 = vB + b2Cross(wB, m_rB) - vA - b2Cross(wA, m_rA);
-	float32 Cdot2 = wB - wA;
+	b2Vec2 Cdot1;
+	float32 Cdot2;
+	if (isOverLoaded()) {
+		Cdot1.x = 0;
+		Cdot1.y = 0;
+		Cdot2 = 0;
+	}
+	else {
+		Cdot1 = vB + b2Cross(wB, m_rB) - vA - b2Cross(wA, m_rA);
+		Cdot2 = wB - wA;
+	}
 	b2Vec3 Cdot(Cdot1.x, Cdot1.y, Cdot2);
 
 	b2Vec3 impulse = -b2Mul(m_mass, Cdot);

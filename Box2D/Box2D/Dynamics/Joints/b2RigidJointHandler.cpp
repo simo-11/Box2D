@@ -14,16 +14,16 @@ void b2RigidJointHandler::handle()
 
 void b2RigidJointHandler::reset()
 {
-	xfol = yfol = zmol = false;
 	mbi = masterJoint->m_mbi;
 }
 
 void b2RigidJointHandler::handleOverLoads()
 {
-	if (zmol) {
+	if (masterJoint->isOverLoaded(RZ)) {
 		handleMomentOverLoad();
 	}
-	if (xfol || yfol) {
+	if (masterJoint->isOverLoaded(X)  || 
+		masterJoint->isOverLoaded(Y)) {
 		handleForceOverLoad();
 	}
 }
@@ -69,24 +69,31 @@ void b2RigidJointHandler::handleMomentOverLoad()
 		jm += m;
 		float32 mr2 = m * joint->m_rB.LengthSquared();
 		ji += mr2;
+		joint->m_impulse.z = 0.f;
+		joint->setOverLoaded(RZ);
 	}
 	b2Vec2 v = data->velocities[mbi].v;
 	float32 w = data->velocities[mbi].w;
 	mbi = masterJoint->m_indexB;
-	masterJoint->m_mbi = mbi;
-	data->velocities[mbi].w = w;
-	data->velocities[mbi].v=v+b2Cross(w, masterJoint->m_rB);
+	if (masterJoint->m_mbi != mbi) {
+		masterJoint->m_mbi = mbi;
+		data->velocities[mbi].w = w;
+		data->velocities[mbi].v = v + b2Cross(w, masterJoint->m_rB);
+	}
 	float32 m = masterJoint->m_jim.z;
 	float32 mm = masterJoint->m_maxImpulse.z;
 	float32 em;
-	if (m > 0) {
+	if (m > mm) {
 		em = m - mm;
 	}
-	else {
+	else if(m<-mm) {
 		em = m + mm;
 	}
-	float32 dw = em / ji;
-	b2Vec2 dv = b2Cross(dw, masterJoint->m_rB);
+	else {
+		em = m;
+	}
+	float32 dw = -em / ji;
+	b2Vec2 dv = -b2Cross(dw, masterJoint->m_rB);
 	data->velocities[mbi].v += dv;
 	data->velocities[mbi].w += dw;
 	masterJoint->m_impulse.z=0.f;
@@ -94,13 +101,19 @@ void b2RigidJointHandler::handleMomentOverLoad()
 
 void b2RigidJointHandler::checkLimits()
 {
-	if (b2Abs(masterJoint->m_jim.z) >= masterJoint->m_maxImpulse.z) {
-		zmol = true;
+	if (!masterJoint->isOverLoaded(RZ)) {
+		if (b2Abs(masterJoint->m_jim.z) >= masterJoint->m_maxImpulse.z) {
+			masterJoint->setOverLoaded(RZ, true);
+		}
 	}
-	if (b2Abs(masterJoint->m_jim.x) >= masterJoint->m_maxImpulse.x) {
-		xfol = true;
+	if (!masterJoint->isOverLoaded(X)) {
+		if (b2Abs(masterJoint->m_jim.x) >= masterJoint->m_maxImpulse.x) {
+			masterJoint->setOverLoaded(X, true);
+		}
 	}
-	if (b2Abs(masterJoint->m_jim.y) >= masterJoint->m_maxImpulse.y) {
-		yfol = true;
+	if (!masterJoint->isOverLoaded(Y)) {
+		if (b2Abs(masterJoint->m_jim.y) >= masterJoint->m_maxImpulse.y) {
+			masterJoint->setOverLoaded(Y, true);
+		}
 	}
 }

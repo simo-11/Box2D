@@ -23,10 +23,18 @@
 
 #include "Box2D/Dynamics/Joints/b2Joint.h"
 #include "Box2D/Dynamics/b2ImpulseInitializer.h"
+#include <bitset>
 
 enum SOLVE_ORDER {
 	FORCE,
 	MOMENT,
+};
+
+enum OVERLOAD_DIRECTION {
+	X,
+	Y,
+	RZ,
+	ANY,
 };
 
 class epDebugListener;
@@ -138,6 +146,9 @@ public:
 	static SOLVE_ORDER* getMomentFirst();
 	static SOLVE_ORDER* getForceFirst();
 	b2Vec3 m_jim; // joined impulse
+	std::bitset<3> overLoads;
+	bool isOverLoaded(OVERLOAD_DIRECTION d=ANY);
+	void setOverLoaded(OVERLOAD_DIRECTION, bool value=true);
 	int32 id;
 protected:
 	epDebugListener* debugListener;

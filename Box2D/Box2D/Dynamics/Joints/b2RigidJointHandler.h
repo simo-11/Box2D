@@ -51,7 +51,6 @@ public:
 	void handle(),reset(),handleOverLoads(),updateBodies();
 	void handleMomentOverLoad(), handleForceOverLoad();
 	void checkLimits();
-	bool xfol, yfol, zmol;
 };
 
 #endif
