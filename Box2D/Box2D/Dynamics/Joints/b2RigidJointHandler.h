@@ -48,8 +48,8 @@ public:
 	int32 ejCount;
 	b2ElasticPlasticJoint** ejStack;
 	b2SolverData* data;
-	void handle(),reset(),handleOverLoads(),updateBodies();
-	void handleMomentOverLoad(), handleForceOverLoad();
+	void handle(),reset(),handleLoads(),updateBodies();
+	void handleMoment(), handleForce();
 	void checkLimits();
 };
 

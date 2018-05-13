@@ -8,7 +8,7 @@ void b2RigidJointHandler::handle()
 {
 	reset();
 	checkLimits();
-	handleOverLoads();
+	handleLoads();
 	updateBodies();
 }
 
@@ -17,15 +17,10 @@ void b2RigidJointHandler::reset()
 	mbi = masterJoint->m_mbi;
 }
 
-void b2RigidJointHandler::handleOverLoads()
+void b2RigidJointHandler::handleLoads()
 {
-	if (masterJoint->isOverLoaded(RZ)) {
-		handleMomentOverLoad();
-	}
-	if (masterJoint->isOverLoaded(X)  || 
-		masterJoint->isOverLoaded(Y)) {
-		handleForceOverLoad();
-	}
+	handleMoment();
+	handleForce();
 }
 
 void b2RigidJointHandler::updateBodies()
@@ -50,16 +45,31 @@ void b2RigidJointHandler::updateBodies()
 	}
 }
 
-void b2RigidJointHandler::handleForceOverLoad()
+void b2RigidJointHandler::handleForce()
 {
 }
 
 /**
+* for non overload
+* reset to state at beginning of step
+* for overload
 * get joint inertia of b-bodies
-* and add 
+* and update velocities 
 */
-void b2RigidJointHandler::handleMomentOverLoad()
+void b2RigidJointHandler::handleMoment()
 {
+	/* velocities from beginng of step are used */
+	b2Body* b = masterJoint->m_bodyB;
+	b2Vec2 v = b->GetLinearVelocity();
+	float32 w = b->GetAngularVelocity();
+	if (!masterJoint->isOverLoaded(RZ)) {
+		int32 mba = masterJoint->m_indexA;
+		int32 mbb = masterJoint->m_indexB;
+		mbi = mba;
+		data->velocities[mbi].v = v;
+		data->velocities[mbi].w = w ;
+		return;
+	}
 	float32 jm = 0.f;
 	float32 ji = 0.f;
 	for (int32 i = 0; i < ejCount; i++) {
@@ -69,11 +79,8 @@ void b2RigidJointHandler::handleMomentOverLoad()
 		jm += m;
 		float32 mr2 = m * joint->m_rB.LengthSquared();
 		ji += mr2;
-		joint->m_impulse.z = 0.f;
 		joint->setOverLoaded(RZ);
 	}
-	b2Vec2 v = data->velocities[mbi].v;
-	float32 w = data->velocities[mbi].w;
 	mbi = masterJoint->m_indexB;
 	if (masterJoint->m_mbi != mbi) {
 		masterJoint->m_mbi = mbi;
@@ -94,26 +101,16 @@ void b2RigidJointHandler::handleMomentOverLoad()
 	}
 	float32 dw = -em / ji;
 	b2Vec2 dv = -b2Cross(dw, masterJoint->m_rB);
-	data->velocities[mbi].v += dv;
-	data->velocities[mbi].w += dw;
-	masterJoint->m_impulse.z=0.f;
+	data->velocities[mbi].v = v+dv;
+	data->velocities[mbi].w = w+dw;
 }
 
 void b2RigidJointHandler::checkLimits()
 {
-	if (!masterJoint->isOverLoaded(RZ)) {
-		if (b2Abs(masterJoint->m_jim.z) >= masterJoint->m_maxImpulse.z) {
-			masterJoint->setOverLoaded(RZ, true);
-		}
-	}
-	if (!masterJoint->isOverLoaded(X)) {
-		if (b2Abs(masterJoint->m_jim.x) >= masterJoint->m_maxImpulse.x) {
-			masterJoint->setOverLoaded(X, true);
-		}
-	}
-	if (!masterJoint->isOverLoaded(Y)) {
-		if (b2Abs(masterJoint->m_jim.y) >= masterJoint->m_maxImpulse.y) {
-			masterJoint->setOverLoaded(Y, true);
-		}
-	}
+	bool v = b2Abs(masterJoint->m_jim.z) >= masterJoint->m_maxImpulse.z;
+	masterJoint->setOverLoaded(RZ, v);
+	v = b2Abs(masterJoint->m_jim.x) >= masterJoint->m_maxImpulse.x;
+	masterJoint->setOverLoaded(X, v);
+	v = b2Abs(masterJoint->m_jim.y) >= masterJoint->m_maxImpulse.y;
+	masterJoint->setOverLoaded(Y, v);
 }
