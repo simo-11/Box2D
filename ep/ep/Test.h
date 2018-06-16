@@ -143,6 +143,7 @@ struct Settings
 	bool enableSubStepping;
 	bool enableSleep;
 	bool pause;
+	float32 targetTime = 60;
 	bool singleStep;
 	bool addRigidTriangles, addMasses, addEPBeams,selectEPJoint; // using ALT-MB1 if active
 	float32 addMass = 1000000, addMassSize=2;

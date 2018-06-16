@@ -830,7 +830,10 @@ float Test::getBombWidth()
 void Test::Step()
 {
 	float32 timeStep = settings->hz > 0.0f ? 1.0f / settings->hz : float32(0.0f);
-
+	if (!settings->pause &&
+		settings->targetTime <= steppedTime + timeStep) {
+		settings->pause = true;
+	}
 	if (settings->pause)
 	{
 		if (settings->singleStep)

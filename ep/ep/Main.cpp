@@ -417,6 +417,9 @@ static void sInterface()
 		}
 		ImGui::Separator();
 		if (ImGui::CollapsingHeader("General Settings")){
+			ImGui::Text("TargetTime");
+			ImGui::SameLine();
+			ImGui::SliderFloat("##TargetTime", &settings.targetTime, 0.0f, 100.0f, "%.3f s", 2.0f);
 			ImGui::Text("Vel Iters");
 			ImGui::SameLine();
 			ImGui::SliderInt("##Vel Iters", &settings.velocityIterations, 0, 50);
