@@ -64,10 +64,10 @@ void b2RigidJointHandler::handleMoment()
 	float32 w = b->GetAngularVelocity();
 	if (!masterJoint->isOverLoaded(RZ)) {
 		int32 mba = masterJoint->m_indexA;
-		int32 mbb = masterJoint->m_indexB;
 		mbi = mba;
-		data->velocities[mbi].v = v;
-		data->velocities[mbi].w = w ;
+		int32 mbb = masterJoint->m_indexB;
+		data->velocities[mbb].v = v;
+		data->velocities[mbb].w = w ;
 		return;
 	}
 	float32 jm = 0.f;
