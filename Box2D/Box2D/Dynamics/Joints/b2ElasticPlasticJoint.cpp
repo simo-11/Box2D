@@ -76,6 +76,15 @@ void b2ElasticPlasticJoint::setOverLoaded(OVERLOAD_DIRECTION d, bool v)
 	overLoads.set(d,v);
 }
 
+bool b2ElasticPlasticJoint::wasOverLoaded(OVERLOAD_DIRECTION d)
+{
+	switch (d) {
+	case ANY:
+		return savedOverLoads.any();
+	}
+	return savedOverLoads.test(d);
+}
+
 void b2ElasticPlasticJoint::resetEpId(){
 	epId = 0;
 }

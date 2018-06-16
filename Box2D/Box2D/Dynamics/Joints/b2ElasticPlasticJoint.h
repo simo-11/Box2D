@@ -146,8 +146,9 @@ public:
 	static SOLVE_ORDER* getMomentFirst();
 	static SOLVE_ORDER* getForceFirst();
 	b2Vec3 m_jim; // joined impulse
-	std::bitset<3> overLoads;
+	std::bitset<3> overLoads,savedOverLoads;
 	bool isOverLoaded(OVERLOAD_DIRECTION d=ANY);
+	bool wasOverLoaded(OVERLOAD_DIRECTION d = ANY);
 	void setOverLoaded(OVERLOAD_DIRECTION, bool value=true);
 	int32 id;
 protected:
