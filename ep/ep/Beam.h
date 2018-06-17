@@ -369,6 +369,22 @@ epDebug and log active\n\
 ");
 		}
 		ImGui::SameLine();
+		if (ImGui::RadioButton("B3-11", &bo::b3, 11)) {
+			bo::b1 = 0;
+			bo::b2 = 0;
+			uihx = 40.f;
+			epLogEnabled = true;
+		}
+		if (ImGui::IsItemHovered()) {
+			ImGui::SetTooltip("Horizontal\n\
+density=7800\n\
+elasticPlastic 10Hz\n\
+hx=1\n\
+one 80 m body\n\
+epDebug and log active\n\
+");
+		}
+		ImGui::SameLine();
 		if (ImGui::RadioButton("B3-2", &bo::b3, 2)) {
 			bo::b1 = 0;
 			bo::b2 = 0;
@@ -392,8 +408,16 @@ epDebug and log not active\n\
 			horizontal = true;
 			addSoft = false;
 			addHard = false;
-			addElasticPlastic = false;
-			addRigidPlastic = true;
+			switch (bo::b3) {
+			case 11:
+				addElasticPlastic = true;
+				addRigidPlastic = false;
+				baseHz = 10;
+				break;
+			default:
+				addElasticPlastic = false;
+				addRigidPlastic = true;
+			}
 			firstIsHinge = false;
 			openLists = true;
 			restartPending = true;
@@ -601,7 +625,7 @@ if (addElasticPlastic)
 				sp->StartDebug();
 			}
 		}
-		else if (bo::b2) {
+		else if (bo::b2||bo::b3) {
 			SelectedEPJoint *sp = AddSelectedJoint(joint);
 			sp->StartDebug();
 		}
@@ -685,7 +709,8 @@ if (addRigidPlastic)
 		}
 		else if (bo::b2||bo::b3) {
 			SelectedEPJoint *sp = AddSelectedJoint(joint);
-			if (bo::b3 & 1) {
+			switch(bo::b3){
+			case 1:
 				sp->StartDebug();
 			}
 		}
