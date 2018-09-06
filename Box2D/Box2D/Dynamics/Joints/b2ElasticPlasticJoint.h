@@ -140,7 +140,7 @@ public:
 	int velocityIteration,positionIteration;
 	b2Vec3 Cdot;
 	float32 m_bias;
-	float32 m_gamma;
+	float32 m_gamma,m_dw0;
 	bool initImpulseDone;
 	SOLVE_ORDER *solveOrder;
 	static SOLVE_ORDER* getMomentFirst();

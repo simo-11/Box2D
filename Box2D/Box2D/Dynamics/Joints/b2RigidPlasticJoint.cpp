@@ -108,6 +108,14 @@ void b2RigidPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	}
 	else
 	{
+		if (wasOverLoaded(RZ)) {
+			m_dw0 = wB - wA;
+			//K.GetInverse22(&m_mass);
+			//float32 invM = iA + iB;
+			//m_mass.ez.z = invM != 0.0f ? 1.0f / invM : 0.0f;
+		}else{
+			m_dw0 = 0;
+		}
 		K.GetSymInverse33(&m_mass);
 		m_gamma = 0.0f;
 		m_bias = 0.0f;
@@ -156,35 +164,39 @@ void b2RigidPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 		debugListener->BeginVelocityIteration(this, data);
 	}
 	b2Vec2 Cdot1;
-	float32 Cdot2;
+	float32 Cdot2,impulse2;
+	b2Vec3 impulse;
 	if (isOverLoaded()) {
-		Cdot1.x = 0;
-		Cdot1.y = 0;
-		Cdot2 = 0;
+		Cdot.SetZero();
+		impulse.SetZero();
 	}
 	else {
 		Cdot1 = vB + b2Cross(wB, m_rB) - vA - b2Cross(wA, m_rA);
-		if (wasOverLoaded(RZ)) {
-			Cdot2 = 0;
+		if (false && wasOverLoaded(RZ)) {
+			impulse.SetZero();
+			Cdot2 = wB - wA-m_dw0;
+			impulse2 = -m_mass.ez.z*Cdot2;
+			impulse.z += impulse2;
+			b2Vec2 impulse1 = -b2Mul22(m_mass, Cdot1);
+			impulse.x += impulse1.x;
+			impulse.y += impulse1.y;
 		}
 		else {
-			Cdot2 = wB - wA;
+			Cdot2 = wB - wA-m_dw0;
+			Cdot = b2Vec3(Cdot1.x, Cdot1.y, Cdot2);
+			impulse = -b2Mul(m_mass, Cdot);
 		}
-	}
-	b2Vec3 Cdot(Cdot1.x, Cdot1.y, Cdot2);
-
-	b2Vec3 impulse = -b2Mul(m_mass, Cdot);
-	m_impulse += impulse;
+		m_impulse += impulse;
 #ifdef EP_LOG
-			if (epLogActive && epLogEnabled) {
-				epLog("J:VC:%d Cdot=%g %g %g\n", id,
-					Cdot.x, Cdot.y, Cdot.z);
-				epLog("J:VC:%d impulse=%g %g %g\n", id,
-					impulse.x, impulse.y, impulse.z);
-			}
+		if (epLogActive && epLogEnabled) {
+			epLog("J:VC:%d Cdot=%g %g %g\n", id,
+				Cdot.x, Cdot.y, Cdot.z);
+			epLog("J:VC:%d impulse=%g %g %g\n", id,
+				impulse.x, impulse.y, impulse.z);
+		}
 #endif
+	}
 	if (nullptr != debugListener) {
-		Cdot = b2Vec3(Cdot1.x, Cdot1.y, Cdot2);
 		debugListener->EndVelocityIteration(this, data);
 	}
 	velocityIteration++;
