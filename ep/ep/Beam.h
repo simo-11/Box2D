@@ -50,7 +50,8 @@ namespace {
 	float32 hy;
 	float fy; //MPa
 	float maxElasticRotation, maxRotation, maxStrain;
-	bool addSoft, addHard, addElasticPlastic, addRigidPlastic,
+	bool addSoft, addHard, addFriction,
+		addElasticPlastic, addRigidPlastic,
 		showElasticPlastic, firstIsHinge, horizontal;
 	float32 lastCx,lastCy;
 	bool openLists;
@@ -64,7 +65,11 @@ namespace bo {
 class Beam : public Test
 {
 public:
-	b2Vec2 noteWeld1, noteSoftWeld1, noteElasticPlastic1, noteRigidPlastic1;
+	b2Vec2 noteWeld1,
+		noteFriction1,
+		noteSoftWeld1, 
+		noteElasticPlastic1, 
+		noteRigidPlastic1;
 	virtual b2Body* getStaticBody(b2PolygonShape staticShape, float32 sy){
 		b2FixtureDef sfd;
 		sfd.shape = &staticShape;
@@ -145,6 +150,8 @@ public:
 					ImGui::Checkbox("Soft", &addSoft);
 					ImGui::SameLine();
 					ImGui::Checkbox("Hard", &addHard);
+					ImGui::SameLine();
+					ImGui::Checkbox("Friction", &addFriction);
 					ImGui::Checkbox("ElasticPlastic", &addElasticPlastic);
 					ImGui::SameLine();
 					ImGui::Checkbox("RigidPlastic", &addRigidPlastic);
@@ -233,6 +240,9 @@ public:
 		if (addHard){
 			g_debugDraw.DrawString(noteWeld1, "WeldJoint");
 		}
+		if (addFriction) {
+			g_debugDraw.DrawString(noteFriction1, "FrictionJoint");
+		}
 		if (addSoft){
 			g_debugDraw.DrawString(noteSoftWeld1, "Soft WeldJoint");
 		}
@@ -320,6 +330,7 @@ hx=3\n\
 			horizontal = true;
 			addSoft = false;
 			addHard = false;
+			addFriction = false;
 			addElasticPlastic = true;
 			firstIsHinge = false;
 			openLists = true;
@@ -348,6 +359,7 @@ hx=1\n\
 			horizontal = true;
 			addSoft = false;
 			addHard = false;
+			addFriction = false;
 			addElasticPlastic = true;
 			firstIsHinge = false;
 			openLists = true;
@@ -408,6 +420,7 @@ epDebug and log not active\n\
 			horizontal = true;
 			addSoft = false;
 			addHard = false;
+			addFriction = false;
 			switch (bo::b3) {
 			case 11:
 				addElasticPlastic = true;
@@ -438,6 +451,7 @@ void Beam::reset(){
 	maxStrain = 0.2f;
 	addSoft = false;
 	addHard = false;
+	addFriction = false;
 	addElasticPlastic = true;
 	firstIsHinge = false;
 	horizontal = false;
@@ -503,6 +517,49 @@ void Beam::build(){
 				m_world->CreateJoint(&hd);
 			}
 			else{
+				jd.Initialize(prevBody, body, anchor);
+				m_world->CreateJoint(&jd);
+			}
+			prevBody = body;
+		}
+	}
+	if (addFriction)
+	{
+		sy += 5 + totalLength;
+		b2Body* sbody = getStaticBody(staticShape, sy);
+
+		b2PolygonShape shape;
+		shape.SetAsBox(hx, hy);
+
+		b2FixtureDef fd;
+		fd.shape = &shape;
+		fd.density = density;
+
+		b2FrictionJointDef jd;
+		// select smaller, either axial or cutting
+		if (horizontal) {
+			jd.maxForce = b2Min(2 * hy, hx)*fy*1e6f;
+		}
+		else {
+			jd.maxForce = b2Min(2 * hx, hy)*fy*1e6f;
+		}
+		jd.maxTorque = hy * hy* fy*1e6f;
+
+		b2Body* prevBody = sbody;
+		noteFriction1.Set(-hy, sy + 2 + hy);
+		for (int32 i = 0; i < so_count; ++i)
+		{
+			b2BodyDef bd;
+			bd.type = b2_dynamicBody;
+			bd.position.Set((2 * i + 1)*hx, sy);
+			b2Body* body = m_world->CreateBody(&bd);
+			body->CreateFixture(&fd);
+			b2Vec2 anchor((2 * i)*hx, sy);
+			if (i == 0 && firstIsHinge) {
+				hd.Initialize(prevBody, body, anchor);
+				m_world->CreateJoint(&hd);
+			}
+			else {
 				jd.Initialize(prevBody, body, anchor);
 				m_world->CreateJoint(&jd);
 			}
@@ -731,6 +788,9 @@ if (addRigidPlastic)
 	if (addHard) {
 		noteWeld1.y += noteMove;
 	}
+	if (addFriction) {
+		noteFriction1.y += noteMove;
+	}
 	if (addSoft) {
 		noteSoftWeld1.y += noteMove;
 	}
@@ -883,6 +943,7 @@ void EmptyBeam::reset()
 {
 	addElasticPlastic = false;
 	addHard = false;
+	addFriction = false;
 	addSoft = false;
 	showElasticPlastic = true;
 	openLists = true;

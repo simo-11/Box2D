@@ -32,6 +32,7 @@
 #include "Box2D/Collision/b2TimeOfImpact.h"
 #include "Box2D/Dynamics/Joints/b2ElasticPlasticJoint.h"
 #include "Box2D/Dynamics/Joints/b2MotorJoint.h"
+#include "Box2D/Dynamics/Joints/b2FrictionJoint.h"
 #include "Box2D/Common/b2Draw.h"
 #include "Box2D/Common/b2Timer.h"
 #include <new>
@@ -1182,6 +1183,17 @@ void b2World::DrawJointReaction(b2Joint* joint)
 	// draw limits in red for elasticPlastic
 	switch (joint->GetType())
 	{
+	case e_frictionJoint:
+	{
+		b2FrictionJoint* ep = (b2FrictionJoint*)joint;
+		b2Vec2 rf = b2Vec2(ep->GetMaxForce(), 0);
+		color.Set(1, 0, 0);
+		p2 = p1 + g_debugDraw->GetForceScale() / 1.e9f*rf;
+		g_debugDraw->DrawSegment(p1, p2, color);
+		cs = g_debugDraw->GetMomentScale() / 1.e9f*ep->GetMaxTorque();
+		g_debugDraw->DrawCircle(p1, cs, color);
+	}
+		break;
 	case e_elasticPlasticJoint:
 	case e_rigidPlasticJoint:
 		b2ElasticPlasticJoint* ep = (b2ElasticPlasticJoint*)joint;
