@@ -68,7 +68,7 @@ bool EpDebug::IsWanted(b2Body *b) {
 	return b->IsActive() && (b->GetType() == b2_dynamicBody);
 }
 void EpDebug::EndInitVelocityConstraints
-	(b2ElasticPlasticJoint * joint, const b2SolverData & data)
+	(b2ElasticPlasticJoint * joint, const b2SolverData & /* data */)
 {
 	if (settings == nullptr) {
 		vo = 0;

@@ -563,12 +563,10 @@ public:
 
 	bool ReportFixture(b2Fixture* fixture)
 	{
-		b2Body* body = fixture->GetBody();
 		bool inside = fixture->TestPoint(m_point);
 		if (inside)
 		{
 			m_fixture = fixture;
-
 			// We are done, terminate the query.
 			return false;
 		}
@@ -684,7 +682,7 @@ void Test::ShiftMouseDown(const b2Vec2& p)
 	SpawnBomb(p);
 }
 
-void Test::ControlMouseDown(const b2Vec2& p)
+void Test::ControlMouseDown(const b2Vec2& /* p */)
 {
 }
 void Test::AltMouseDown(const b2Vec2& p)
@@ -796,7 +794,7 @@ void Test::LaunchBomb(const b2Vec2& position, const b2Vec2& velocity)
 	m_bomb->SetLinearVelocity(velocity);
 	
 	b2FixtureDef fd;
-	float32 area;
+	float32 area=0;
 	float32 r = 0.5f*getBombWidth();
 	b2CircleShape circle;
 	b2PolygonShape rectangle;
@@ -1090,7 +1088,6 @@ void Test::Step()
 		g_debugDraw.DrawSegment(m_mouseWorld, m_bombSpawnPoint, c);
 		b2Vec2 p = 0.5*(m_mouseWorld + m_bombSpawnPoint) + b2Vec2(0, g_camera.m_zoom);
 		char buff[20];
-		const char* label = buff;
 		sprintf(buff, "(%6.2f,%6.2f)",m_bombVelocity.x,m_bombVelocity.y);
 		g_debugDraw.DrawString(p,buff);
 	}

@@ -123,28 +123,28 @@ public:
 				// joint at x,y
 				// fhx is half length of fixed horizontal part
 				// hx is half length of dynamic part of ramp
-				float32 x = 60.f,fhx=25.f;
+				float32 xb = 60.f,fhx=25.f;
 				float32 y = 5.f;
-				float32 hx = 9.f;
+				float32 hxb = 9.f;
 				// fixed horizontal part
-				b2BodyDef bd;
-				bd.position.Set(x+fhx, y);
-				b2FixtureDef fd;
-				b2PolygonShape shape;
-				shape.SetAsBox(fhx, 0.02f);
-				fd.shape = &shape;
-				fd.density = 0.f;
-				b2Body* rf = m_world->CreateBody(&bd);
-				rf->CreateFixture(&fd);
+				b2BodyDef bdf;
+				bdf.position.Set(xb+fhx, y);
+				b2FixtureDef fdb;
+				b2PolygonShape shapeb;
+				shapeb.SetAsBox(fhx, 0.02f);
+				fdb.shape = &shapeb;
+				fdb.density = 0.f;
+				b2Body* rf = m_world->CreateBody(&bdf);
+				rf->CreateFixture(&fdb);
 				// dynamic part of ramp
-				shape.SetAsBox(hx, 0.02f);
-				fd.shape = &shape;
-				fd.density = 3000.f;
-				fd.friction = epCar::groundFriction;
-				bd.type = b2_dynamicBody;
-				bd.position.Set(x-hx, y);
-				b2Body* body = m_world->CreateBody(&bd);
-				body->CreateFixture(&fd);
+				shapeb.SetAsBox(hxb, 0.02f);
+				fdb.shape = &shapeb;
+				fdb.density = 3000.f;
+				fdb.friction = epCar::groundFriction;
+				bdf.type = b2_dynamicBody;
+				bdf.position.Set(xb-hxb, y);
+				b2Body* body = m_world->CreateBody(&bdf);
+				body->CreateFixture(&fdb);
 				b2ElasticPlasticJointDef jd;
 				jd.maxForce = b2Vec2(0.02f*300.e6f,0.02*150e6f);
 				jd.maxElasticRotation = 0.12f;
@@ -420,15 +420,15 @@ public:
 
 			if (ImGui::CollapsingHeader("Joint forces MN/MNm"))
 			{
-				float locs[4] = { 40, 80, 120, 160 };
-				ImGui::Text(" x-f"); ImGui::SameLine(locs[0]);
-				ImGui::Text(" y-f"); ImGui::SameLine(locs[1]);
-				ImGui::Text(" z-m"); ImGui::SameLine(locs[2]);
-				ImGui::Text(" j-x"); ImGui::SameLine(locs[3]);
+				float locsb[4] = { 40, 80, 120, 160 };
+				ImGui::Text(" x-f"); ImGui::SameLine(locsb[0]);
+				ImGui::Text(" y-f"); ImGui::SameLine(locsb[1]);
+				ImGui::Text(" z-m"); ImGui::SameLine(locsb[2]);
+				ImGui::Text(" j-x"); ImGui::SameLine(locsb[3]);
 				ImGui::Text(" j-y");
 				for (b2Joint* j = m_world->GetJointList(); j; j = j->GetNext())
 				{
-					LogJoint(j, 1e-6f, 1e-6f, locs, "%4.2f",(float32)FLT_MAX,0.09999f);
+					LogJoint(j, 1e-6f, 1e-6f, locsb, "%4.2f",(float32)FLT_MAX,0.09999f);
 				}
 			}
 			else {
@@ -458,13 +458,13 @@ public:
 
 			if (ImGui::CollapsingHeader("Contact forces N"))
 			{
-				float locs[] = { 50, 100, 150};
-				ImGui::Text(" x-f"); ImGui::SameLine(locs[0]);
-				ImGui::Text(" y-f"); ImGui::SameLine(locs[1]);
-				ImGui::Text(" c-x"); ImGui::SameLine(locs[2]);
+				float locsb[] = { 50, 100, 150};
+				ImGui::Text(" x-f"); ImGui::SameLine(locsb[0]);
+				ImGui::Text(" y-f"); ImGui::SameLine(locsb[1]);
+				ImGui::Text(" c-x"); ImGui::SameLine(locsb[2]);
 				ImGui::Text(" c-y");
 				for (int i = 0; i < m_pointCount; i++) {
-					LogContact(m_points+i, 1.0f, locs, "%5.0f");
+					LogContact(m_points+i, 1.0f, locsb, "%5.0f");
 				}
 			}
 			ImGui::End();

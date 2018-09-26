@@ -180,13 +180,13 @@ public:
 				}
 				if (ImGui::CollapsingHeader("Contact forces MN"))
 				{
-					float locs[] = { 60, 120, 160 };
-					ImGui::Text(" x-f"); ImGui::SameLine(locs[0]);
-					ImGui::Text(" y-f"); ImGui::SameLine(locs[1]);
-					ImGui::Text(" c-x"); ImGui::SameLine(locs[2]);
+					float slocs[] = { 60, 120, 160 };
+					ImGui::Text(" x-f"); ImGui::SameLine(slocs[0]);
+					ImGui::Text(" y-f"); ImGui::SameLine(slocs[1]);
+					ImGui::Text(" c-x"); ImGui::SameLine(slocs[2]);
 					ImGui::Text(" c-y");
 					for (int i = 0; i < m_pointCount; i++) {
-						LogContact(m_points + i, 1e-6f, locs, "%.2f");
+						LogContact(m_points + i, 1e-6f, slocs, "%.2f");
 					}
 				}
 				if (showElasticPlastic && ImGui::CollapsingHeader
@@ -892,9 +892,9 @@ public:
 	void createDynamicItems() {
 		if (ebo::cs1) {
 			EPBeam *epb = GetLastEPBeam();
-			float32 hx = settings->epbX / 2;
+			float32 hxb = settings->epbX / 2;
 			if (NULL == epb->body) {
-				b2Vec2 p = b2Vec2(hx + 0.01f, 0);
+				b2Vec2 p = b2Vec2(hxb + 0.01f, 0);
 				epb=AddEPBeam(p);
 			}
 			loggedBody = epb->body;
@@ -906,8 +906,8 @@ public:
 			settings->pause = true;
 			settings->gravityRampUpTime = 0.f;
 			float32 br = 0.5f*settings->bombWidth;
-			if (hx>0.7f*br) {
-				epb->translate(b2Vec2(0, -hx));
+			if (hxb>0.7f*br) {
+				epb->translate(b2Vec2(0, -hxb));
 			}
 			settings->addMassSize = 5 * br;
 			b2Vec2 p = b2Vec2(-(1.5f * settings->bombWidth + settings->addMassSize),

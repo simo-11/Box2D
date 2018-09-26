@@ -19,7 +19,7 @@
 #ifndef DEBUGDRAW_H
 #define DEBUGDRAW_H
 
-#include "Box2D/Box2D.h"
+#include <Box2D/Box2D.h>
 
 struct b2AABB;
 struct GLRenderPoints;

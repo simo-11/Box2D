@@ -24,7 +24,7 @@ project "Box2D"
 	kind "StaticLib"
 	language "C++"
 	files { "../Box2D/**" }
-	includedirs { "../Box2D", "." }
+	includedirs { ".."}
 	
 		 
 local glfw_common = {
@@ -44,6 +44,7 @@ project "GLFW"
 	language "C"
 	configuration { "windows" }
 		local f = {
+			'../Testbed/glad/*',
 			"../Testbed/glfw/win32_platform.h",
 			"../Testbed/glfw/win32_joystick.h",
 			"../Testbed/glfw/wgl_context.h",
@@ -66,7 +67,7 @@ project "IMGUI"
 	kind "StaticLib"
 	language "C++"
 	files { "../Testbed/imgui/*.h", "../Testbed/imgui/*.cpp" }
-	includedirs { "../Box2D" }
+	includedirs { ".." }
 
 project "ep"
 	kind "ConsoleApp"
@@ -74,7 +75,7 @@ project "ep"
 	files { "ep/**.h", 
 	"ep/**.cpp",
 	}
-	includedirs { ".","../Box2D","../../Testbed" }
+	includedirs { ".","..","../Testbed" }
 	links { "Box2D", "GLFW", "IMGUI"}
 	configuration { "windows" }
 		links { "glu32", "opengl32", "winmm" }

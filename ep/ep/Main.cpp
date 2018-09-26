@@ -17,11 +17,11 @@
 *
 * Simo Nikula modified starting 2017/02
 */
-
-#if defined(__APPLE__)
+#if defined(__APPLE_CC__)
+#define GLFW_INCLUDE_GLCOREARB
 #include <OpenGL/gl3.h>
 #else
-#include <glew/glew.h>
+#include "Testbed/glad/glad.h"
 #endif
 
 #include <imgui/imgui.h>
@@ -80,7 +80,7 @@ static void sCreateUI(GLFWwindow* window)
 
 	// Init UI
 	const char* fontName = "DroidSans.ttf";
-	char* dirs[] = { "../Data/", "", NULL };
+	char* dirs[] = { "../../Testbed/Data/", "", NULL };
 	const int blen = 50;
 	char buff[blen];
 	for (int i = 0; dirs[i]; i++){
@@ -668,14 +668,14 @@ static void sInterface()
 					ImGui::TextDisabled("%.3f", p.y);
 				}
 				else{
-					char buff[20];
-					const char* label = buff;
-					sprintf(buff, "X##drt-%d", rt->label);
+					char bufa[20];
+					const char* label = bufa;
+					sprintf(bufa, "X##drt-%d", rt->label);
 					if (ImGui::SmallButton(label)){
 						labelForDelete = rt->label;
 					}
 					ImGui::SameLine();
-					valueChanged = ImGui::InputFloat2(buff, rt->position, decimals);
+					valueChanged = ImGui::InputFloat2(bufa, rt->position, decimals);
 				}
 				float32 zoom = g_camera.m_zoom;
 				p.x -= 1.5f*zoom;
@@ -711,7 +711,7 @@ static void sInterface()
 			ImGui::SameLine();
 			ImGui::SliderFloat
 			("size [m]", &settings.addMassSize, 0.1f, 100);
-			bool valueChanged = ImGui::InputFloat
+			ImGui::InputFloat
 				("Mass [kg]", &settings.addMass, 1000,100000,0);
 		}
 		else {
@@ -866,7 +866,11 @@ static void sInterface()
 	test->Ui();
 	//ImGui::ShowTestWindow(NULL);
 }
-
+//
+void glfwErrorCallback(int error, const char *description)
+{
+	fprintf(stderr, "GLFW error occured. Code: %d. Description: %s\n", error, description);
+}
 //
 int main(int, char**)
 {
@@ -874,7 +878,7 @@ int main(int, char**)
 	// Enable memory-leak reports
 	_CrtSetDbgFlag(_CRTDBG_LEAK_CHECK_DF | _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG));
 #endif
-
+	glfwSetErrorCallback(glfwErrorCallback);
 	g_camera.m_width = 1280;
 	g_camera.m_height = 840;
 
@@ -887,13 +891,10 @@ int main(int, char**)
 	char title[64];
 	sprintf(title, "Box2D ElasticPlastic Version 0.2.0");
 
-#if defined(__APPLE__)
-	// Not sure why, but these settings cause glewInit below to crash.
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#endif
 
 	mainWindow = glfwCreateWindow(g_camera.m_width, g_camera.m_height, title, NULL, NULL);
 	if (mainWindow == NULL)
@@ -904,6 +905,16 @@ int main(int, char**)
 	}
 
 	glfwMakeContextCurrent(mainWindow);
+
+#if defined(__APPLE__) == FALSE
+	// Load OpenGL functions using glad
+	if (gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) == 0)
+	{
+		printf("Failed to initialize OpenGL context\n");
+		return -1;
+	}
+#endif
+
 	printf("OpenGL %s, GLSL %s\n", 
 		glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
 
@@ -914,16 +925,6 @@ int main(int, char**)
 	glfwSetMouseButtonCallback(mainWindow, sMouseButton);
 	glfwSetCursorPosCallback(mainWindow, sMouseMotion);
 	glfwSetScrollCallback(mainWindow, sScrollCallback);
-
-#if defined(__APPLE__) == FALSE
-	//glewExperimental = GL_TRUE;
-	GLenum err = glewInit();
-	if (GLEW_OK != err)
-	{
-		fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
-		exit(EXIT_FAILURE);
-	}
-#endif
 
 	g_debugDraw.Create();
 
