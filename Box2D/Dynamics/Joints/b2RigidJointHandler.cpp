@@ -58,7 +58,7 @@ void b2RigidJointHandler::handleForce()
 */
 void b2RigidJointHandler::handleMoment()
 {
-	/* velocities from beginng of step are used */
+	/* velocities from beginning of step are used */
 	b2Body* b = masterJoint->m_bodyB;
 	b2Vec2 v = b->GetLinearVelocity();
 	float32 w = b->GetAngularVelocity();

@@ -61,6 +61,10 @@ protected:
 	void InitVelocityConstraints(const b2SolverData& data);
 	void SolveVelocityConstraints(const b2SolverData& data);
 	bool SolvePositionConstraints(const b2SolverData& data);
+	b2Mat22 m_linearMass;
+	float32 m_angularMass;
+	b2Vec2 m_linearImpulse;
+	float32 m_angularImpulse;
 };
 
 

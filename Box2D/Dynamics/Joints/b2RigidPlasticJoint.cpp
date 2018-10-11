@@ -44,6 +44,8 @@ void b2RigidPlasticJointDef::Initialize(b2Body* bA, b2Body* bB, const b2Vec2& an
 b2RigidPlasticJoint::b2RigidPlasticJoint(const b2RigidPlasticJointDef* def)
 : b2ElasticPlasticJoint(def)
 {
+	m_linearImpulse.SetZero();
+	m_angularImpulse = 0.0f;
 }
 
 void b2RigidPlasticJoint::Dump()
@@ -90,35 +92,25 @@ void b2RigidPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	m_rB = b2Mul(qB, m_localAnchorB - m_localCenterB);
 	float32 mA = m_invMassA, mB = m_invMassB;
 	float32 iA = m_invIA, iB = m_invIB;
-	b2Mat33 K;
-	K.ex.x = mA + mB + m_rA.y * m_rA.y * iA + m_rB.y * m_rB.y * iB;
-	K.ey.x = -m_rA.y * m_rA.x * iA - m_rB.y * m_rB.x * iB;
-	K.ez.x = -m_rA.y * iA - m_rB.y * iB;
-	K.ex.y = K.ey.x;
-	K.ey.y = mA + mB + m_rA.x * m_rA.x * iA + m_rB.x * m_rB.x * iB;
-	K.ez.y = m_rA.x * iA + m_rB.x * iB;
-	K.ex.z = K.ez.x;
-	K.ey.z = K.ez.y;
-	K.ez.z = iA + iB;
-	if (K.ez.z == 0.0f)
+	b2Mat22 K;
+	K.ex.x = mA + mB + iA * m_rA.y * m_rA.y + iB * m_rB.y * m_rB.y;
+	K.ex.y = -iA * m_rA.x * m_rA.y - iB * m_rB.x * m_rB.y;
+	K.ey.x = K.ex.y;
+	K.ey.y = mA + mB + iA * m_rA.x * m_rA.x + iB * m_rB.x * m_rB.x;
+	m_linearMass = K.GetInverse();
+	m_angularMass = iA + iB;
+	if (m_angularMass > 0.0f)
 	{
-		K.GetInverse22(&m_mass);
-		m_gamma = 0.0f;
-		m_bias = 0.0f;
+		m_angularMass = 1.0f / m_angularMass;
 	}
-	else
-	{
-		if (wasOverLoaded(RZ)) {
-			m_dw0 = wB - wA;
-			//K.GetInverse22(&m_mass);
-			//float32 invM = iA + iB;
-			//m_mass.ez.z = invM != 0.0f ? 1.0f / invM : 0.0f;
-		}else{
-			m_dw0 = 0;
-		}
-		K.GetSymInverse33(&m_mass);
-		m_gamma = 0.0f;
-		m_bias = 0.0f;
+
+	if (wasOverLoaded(RZ)) {
+		m_dw0 = wB - wA;
+		//K.GetInverse22(&m_mass);
+		//float32 invM = iA + iB;
+		//m_mass.ez.z = invM != 0.0f ? 1.0f / invM : 0.0f;
+	}else{
+		m_dw0 = 0;
 	}
 	if (!initImpulseDone) {
 		m_impulse.SetZero();
@@ -132,8 +124,9 @@ void b2RigidPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	}
 }
 
-bool b2RigidPlasticJoint::SolvePositionConstraints(const b2SolverData& /* data */)
+bool b2RigidPlasticJoint::SolvePositionConstraints(const b2SolverData& data)
 {
+	B2_NOT_USED(data);
 	return true;
 }
 
@@ -164,27 +157,40 @@ void b2RigidPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 		debugListener->BeginVelocityIteration(this, data);
 	}
 	b2Vec2 Cdot1;
-	float32 Cdot2,impulse2;
 	b2Vec3 impulse;
+	float32 h = data.step.dt;
 	if (isOverLoaded()) {
 		Cdot.SetZero();
 		impulse.SetZero();
 	}
 	else {
-		Cdot1 = vB + b2Cross(wB, m_rB) - vA - b2Cross(wA, m_rA);
-		if (false /* && wasOverLoaded(RZ)*/) {
-			impulse.SetZero();
-			Cdot2 = wB - wA-m_dw0;
-			impulse2 = -m_mass.ez.z*Cdot2;
-			impulse.z += impulse2;
-			b2Vec2 impulse1 = -b2Mul22(m_mass, Cdot1);
-			impulse.x += impulse1.x;
-			impulse.y += impulse1.y;
+		// from b2Friction.cpp
+		// Solve angular part
+		{
+			float32 aCdot = wB - wA-m_dw0;
+			float32 aImpulse = -m_angularMass * aCdot;
+			float32 oldImpulse = m_angularImpulse;
+			float32 maxImpulse = h * m_maxTorque;
+			m_angularImpulse = b2Clamp(m_angularImpulse + aImpulse, -maxImpulse, maxImpulse);
+			aImpulse = m_angularImpulse - oldImpulse;
+			impulse.z = aImpulse;
+			Cdot.z = aCdot;
 		}
-		else {
-			Cdot2 = wB - wA-m_dw0;
-			Cdot = b2Vec3(Cdot1.x, Cdot1.y, Cdot2);
-			impulse = -b2Mul(m_mass, Cdot);
+		// Solve linear part
+		{
+			b2Vec2 lCdot = vB + b2Cross(wB, m_rB) - vA - b2Cross(wA, m_rA);
+			b2Vec2 lImpulse = -b2Mul(m_linearMass, lCdot);
+			b2Vec2 oldImpulse = m_linearImpulse;
+			m_linearImpulse += lImpulse;
+			if (m_linearImpulse.LengthSquared() > m_maxForce.LengthSquared())
+			{
+				m_linearImpulse.Normalize();
+				m_linearImpulse *= m_maxForce.Length();
+			}
+			impulse.x = m_linearImpulse.x - oldImpulse.x;
+			impulse.y= m_linearImpulse.y - oldImpulse.y;
+			Cdot.x = lCdot.x;
+			Cdot.y = lCdot.y;
 		}
 		m_impulse += impulse;
 #ifdef EP_LOG
