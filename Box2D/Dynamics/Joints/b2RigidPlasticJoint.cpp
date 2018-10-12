@@ -171,7 +171,8 @@ void b2RigidPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 			float32 aImpulse = -m_angularMass * aCdot;
 			float32 oldImpulse = m_angularImpulse;
 			float32 maxImpulse = h * m_maxTorque;
-			m_angularImpulse = b2Clamp(m_angularImpulse + aImpulse, -maxImpulse, maxImpulse);
+			m_angularImpulse = b2Clamp
+				(m_angularImpulse + aImpulse, -maxImpulse, maxImpulse);
 			aImpulse = m_angularImpulse - oldImpulse;
 			impulse.z = aImpulse;
 			Cdot.z = aCdot;
