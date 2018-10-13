@@ -44,8 +44,6 @@ void b2RigidPlasticJointDef::Initialize(b2Body* bA, b2Body* bB, const b2Vec2& an
 b2RigidPlasticJoint::b2RigidPlasticJoint(const b2RigidPlasticJointDef* def)
 : b2ElasticPlasticJoint(def)
 {
-	m_linearImpulse.SetZero();
-	m_angularImpulse = 0.0f;
 }
 
 void b2RigidPlasticJoint::Dump()
@@ -92,18 +90,15 @@ void b2RigidPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	m_rB = b2Mul(qB, m_localAnchorB - m_localCenterB);
 	float32 mA = m_invMassA, mB = m_invMassB;
 	float32 iA = m_invIA, iB = m_invIB;
-	b2Mat22 K;
-	K.ex.x = mA + mB + iA * m_rA.y * m_rA.y + iB * m_rB.y * m_rB.y;
-	K.ex.y = -iA * m_rA.x * m_rA.y - iB * m_rB.x * m_rB.y;
-	K.ey.x = K.ex.y;
-	K.ey.y = mA + mB + iA * m_rA.x * m_rA.x + iB * m_rB.x * m_rB.x;
-	m_linearMass = K.GetInverse();
+	float32 iM = mA + mB;
+	m_linearMass.SetZero();
+	m_linearMass.ex.x = iM != 0.f ? 1.f / iM : 0.f;
+	m_linearMass.ey.y = m_linearMass.ex.x;
 	m_angularMass = iA + iB;
 	if (m_angularMass > 0.0f)
 	{
 		m_angularMass = 1.0f / m_angularMass;
 	}
-
 	if (wasOverLoaded(RZ)) {
 		m_dw0 = wB - wA;
 		//K.GetInverse22(&m_mass);
@@ -113,6 +108,8 @@ void b2RigidPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 		m_dw0 = 0;
 	}
 	if (!initImpulseDone) {
+		m_linearImpulse.SetZero();
+		m_angularImpulse = 0.0f;
 		m_impulse.SetZero();
 	}
 	// ep
@@ -142,64 +139,67 @@ void b2RigidPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 #ifdef EP_LOG
 	if (epLogActive && epLogEnabled) {
 		if (mA != 0) {
-			epLog("J:VC:%d vA1=%g %g %g\n", id,
+			epLog("RPJ:VC:%d vA1=%g %g %g\n", id,
 				vA.x, vA.y, wA);
 		}
 		if (mB != 0) {
-			epLog("J:VC:%d vB1=%g %g %g\n", id,
+			epLog("RPJ:VC:%d vB1=%g %g %g\n", id,
 				vB.x, vB.y, wB);
 		}
-		epLog("J:VC:%d m_impulse=%g %g %g\n", id,
+		epLog("RPJ:VC:%d m_impulse=%g %g %g\n", id,
 			m_impulse.x, m_impulse.y, m_impulse.z);
 	}
 #endif
 	if (nullptr != debugListener) {
 		debugListener->BeginVelocityIteration(this, data);
 	}
-	b2Vec2 Cdot1;
 	b2Vec3 impulse;
+	Cdot.SetZero();
+	impulse.SetZero();
 	float32 h = data.step.dt;
-	if (isOverLoaded()) {
-		Cdot.SetZero();
-		impulse.SetZero();
-	}
-	else {
-		// from b2Friction.cpp
-		// Solve angular part
-		{
-			float32 aCdot = wB - wA-m_dw0;
-			float32 aImpulse = -m_angularMass * aCdot;
-			float32 oldImpulse = m_angularImpulse;
-			float32 maxImpulse = h * m_maxTorque;
-			m_angularImpulse = b2Clamp
-				(m_angularImpulse + aImpulse, -maxImpulse, maxImpulse);
-			aImpulse = m_angularImpulse - oldImpulse;
-			impulse.z = aImpulse;
-			Cdot.z = aCdot;
-		}
+	if (!isOverLoaded()) {
+		/** Adapted from b2Friction.cpp
+		* 
+		*/
 		// Solve linear part
-		{
-			b2Vec2 lCdot = vB + b2Cross(wB, m_rB) - vA - b2Cross(wA, m_rA);
+		b2Vec2 lCdot = vB + b2Cross(wB, m_rB) - vA - b2Cross(wA, m_rA);
+		if (lCdot.LengthSquared() > 0.f) {
 			b2Vec2 lImpulse = -b2Mul(m_linearMass, lCdot);
-			b2Vec2 oldImpulse = m_linearImpulse;
+			b2Vec2 oldLImpulse = m_linearImpulse;
 			m_linearImpulse += lImpulse;
 			if (m_linearImpulse.LengthSquared() > m_maxForce.LengthSquared())
 			{
 				m_linearImpulse.Normalize();
 				m_linearImpulse *= m_maxForce.Length();
 			}
-			impulse.x = m_linearImpulse.x - oldImpulse.x;
-			impulse.y= m_linearImpulse.y - oldImpulse.y;
+			impulse.x = m_linearImpulse.x - oldLImpulse.x;
+			impulse.y = m_linearImpulse.y - oldLImpulse.y;
 			Cdot.x = lCdot.x;
 			Cdot.y = lCdot.y;
+			wA += m_invIA * b2Cross(m_rA, lImpulse);
+			wB += m_invIB * b2Cross(m_rB, lImpulse);
 		}
+		// Solve angular part
+		float32 aCdot = wB - wA - m_dw0;
+		if (b2Abs(aCdot) > 0.f) {
+			float32 aImpulse = -m_angularMass * aCdot;
+			float32 oldAImpulse = m_angularImpulse;
+			float32 maxImpulse = h * m_maxTorque;
+			m_angularImpulse = b2Clamp
+			(m_angularImpulse + aImpulse, -maxImpulse, maxImpulse);
+			aImpulse = m_angularImpulse - oldAImpulse;
+			impulse.z = aImpulse;
+		}
+		Cdot.z = aCdot;
 		m_impulse += impulse;
 #ifdef EP_LOG
 		if (epLogActive && epLogEnabled) {
-			epLog("J:VC:%d Cdot=%g %g %g\n", id,
-				Cdot.x, Cdot.y, Cdot.z);
-			epLog("J:VC:%d impulse=%g %g %g\n", id,
-				impulse.x, impulse.y, impulse.z);
+			if (b2Dot(Cdot, Cdot) > 0.f) {
+				epLog("RPJ:VC:%d Cdot=%g %g %g\n", id,
+					Cdot.x, Cdot.y, Cdot.z);
+				epLog("RPJ:VC:%d impulse=%g %g %g\n", id,
+					impulse.x, impulse.y, impulse.z);
+			}
 		}
 #endif
 	}
