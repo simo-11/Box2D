@@ -122,6 +122,7 @@ struct Settings
 		bombMultiplier = 10;
 		bombVelocity = b2Vec2(5, 0);
 		bombSpawnPoint = b2Vec2(-0.5f*bombWidth, 0.5f*bombWidth);
+		addMassPoint = b2Vec2(0, 0);
 	}
 	float32 hz;
 	float32 mouseJointForceScale; 
@@ -148,6 +149,7 @@ struct Settings
 	float32 targetTime = 60;
 	bool singleStep;
 	bool addRigidTriangles, addMasses, addEPBeams,selectEPJoint; // using ALT-MB1 if active
+	b2Vec2 addMassPoint;
 	float32 addMass = 1000000, addMassSize=2;
 	bool initImpulses;
 	float32 forceScale, momentScale;
@@ -230,6 +232,7 @@ public:
 		B2_NOT_USED(impulse);
 	};
 	void ShiftOrigin(const b2Vec2& newOrigin);
+	b2Vec2 GetMouseWorld() { return m_mouseWorld; }
 	// ep-start
 	virtual void Ui(){};
 	virtual void UpdateCamera() {};
@@ -323,7 +326,7 @@ protected:
 	b2Vec2 m_bombSpawnPoint;
 	bool m_bombSpawning;
 	b2Vec2 m_bombVelocity;
-	b2Vec2 m_mouseWorld;
+	b2Vec2 m_mouseWorld=b2Vec2(0,0);
 	int32 m_stepCount;
 
 	b2Profile m_maxProfile;

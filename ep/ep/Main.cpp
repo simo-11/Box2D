@@ -704,6 +704,18 @@ static void sInterface()
 				settings.addRigidTriangles = false;
 				settings.addEPBeams = false;
 			}
+			if (ImGui::Button("Add at @")) {
+				b2Vec2 p;
+				test->AddMass(settings.addMassPoint);
+			}
+			ImGui::SameLine();
+			float mv[2];
+			mv[0] = settings.addMassPoint.x;
+			mv[1] = settings.addMassPoint.y;
+			if (ImGui::InputFloat2("", mv,3)) {
+				settings.addMassPoint.x = mv[0];
+				settings.addMassPoint.y = mv[1];
+			}
 			if (ImGui::IsItemHovered() && settings.addMasses) {
 				ImGui::SetTooltip("Use ALT-MB1");
 			}
@@ -962,7 +974,9 @@ int main(int, char**)
 			ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
 		if (opened){
 			ImGui::SetCursorPos(ImVec2(5, (float)g_camera.m_height - 20));
-			ImGui::Text("%.1f ms, steppedTime=%.4f s", 1000.0 * frameTime, test->steppedTime);
+			b2Vec2 mp = test->GetMouseWorld();
+			ImGui::Text("%.1f ms, steppedTime=%.4f s mouse @(%.3f,%.3f)", 
+				1000.0 * frameTime, test->steppedTime, mp.x,mp.y);
 		}
 		ImGui::End();
 		sSimulate();

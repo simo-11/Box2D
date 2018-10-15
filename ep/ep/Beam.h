@@ -58,7 +58,10 @@ namespace {
 }
 
 namespace bo {
-	int b1,b2,b3;
+	int b1,b2,b3,b4;
+	void reset() {
+		b1 =b2=b3=b4= 0;
+	}
 }
 
 
@@ -104,6 +107,9 @@ public:
 		if (bo::b1) {
 			m_bombSpawnPoint = settings->bombSpawnPoint;
 			LaunchBomb();
+		}
+		if (bo::b4) {
+			AddMass(settings->addMassPoint);
 		}
 	}
 	bool showMenu = true;
@@ -276,13 +282,11 @@ void Beam::BeamExtraUi()
 	if (ImGui::CollapsingHeader("BeamOptions", 0, true, openLists)) {
 		float32 uihx=0.f,by=0.f;
 		if (ImGui::Button("None")) {
-			bo::b1 = 0;
-			bo::b2 = 0;
-			bo::b3 = 0;
+			bo::reset();
 		}
 		if (ImGui::RadioButton("B1-1", &bo::b1,1)) {
-			bo::b2 = 0;
-			bo::b3 = 0;
+			bo::reset();
+			bo::b1 = 1;
 			uihx = 10;
 			by = 27.01f;
 			settings->epDebugSteps = 10;
@@ -297,8 +301,8 @@ hx=10\n\
 		}
 		ImGui::SameLine();
 		if (ImGui::RadioButton("B1-2", &bo::b1,2)) {
-			bo::b2 = 0;
-			bo::b3 = 0;
+			bo::reset();
+			bo::b1 = 2;
 			uihx = 3;
 			by = 13.01f;
 			settings->epDebugSteps = 10;
@@ -337,8 +341,8 @@ hx=3\n\
 			restartPending = true;
 		}
 		if (ImGui::RadioButton("B2-1", &bo::b2, 1)) {
-			bo::b1 = 0;
-			bo::b3 = 0;
+			bo::reset();
+			bo::b2 = 1;
 			uihx = 1.f;
 			epLogEnabled = true;
 		}
@@ -366,8 +370,8 @@ hx=1\n\
 			restartPending = true;
 		}
 		if (ImGui::RadioButton("B3-1", &bo::b3, 1)) {
-			bo::b1 = 0;
-			bo::b2 = 0;
+			bo::reset();
+			bo::b3 = 1;
 			uihx = 40.f;
 			epLogEnabled = true;
 		}
@@ -382,8 +386,8 @@ epDebug and log active\n\
 		}
 		ImGui::SameLine();
 		if (ImGui::RadioButton("B3-11", &bo::b3, 11)) {
-			bo::b1 = 0;
-			bo::b2 = 0;
+			bo::reset();
+			bo::b3 =11;
 			uihx = 40.f;
 			epLogEnabled = true;
 		}
@@ -398,8 +402,8 @@ epDebug and log active\n\
 		}
 		ImGui::SameLine();
 		if (ImGui::RadioButton("B3-2", &bo::b3, 2)) {
-			bo::b1 = 0;
-			bo::b2 = 0;
+			bo::reset();
+			bo::b3 = 2;
 			uihx = 10.f;
 			epLogEnabled = false;
 		}
@@ -434,6 +438,38 @@ epDebug and log not active\n\
 			firstIsHinge = false;
 			openLists = true;
 			restartPending = true;
+		}
+		if (ImGui::RadioButton("B4-1", &bo::b4, 1)) {
+			bo::reset();
+			bo::b4 = 1;
+			uihx = 10.f;
+			epLogEnabled = true;
+		}
+		if (ImGui::IsItemHovered()) {
+			ImGui::SetTooltip("Horizontal\n\
+rigidPlastic\n\
+hx=10\n\
+1 10 m body\n\
+epLog active\n\
+addMass=500 000\n\
+addMassPoint=(10,29)\n\
+");
+		}
+		if (bo::b4 && uihx != 0.f) {
+			settings->pause = true;
+			hx = uihx;
+			so_count =1;
+			horizontal = true;
+			addSoft = false;
+			addHard = false;
+			addFriction = false;
+			addElasticPlastic = false;
+			addRigidPlastic = true;
+			firstIsHinge = false;
+			openLists = true;
+			restartPending = true;
+			settings->addMassPoint = b2Vec2(10, 29);
+			settings->addMass = 500000;
 		}
 	}
 }

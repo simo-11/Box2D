@@ -157,52 +157,50 @@ void b2RigidPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 	Cdot.SetZero();
 	impulse.SetZero();
 	float32 h = data.step.dt;
-	if (!isOverLoaded()) {
-		/** Adapted from b2Friction.cpp
-		* 
-		*/
-		// Solve linear part
-		b2Vec2 lCdot = vB + b2Cross(wB, m_rB) - vA - b2Cross(wA, m_rA);
-		if (lCdot.LengthSquared() > 0.f) {
-			b2Vec2 lImpulse = -b2Mul(m_linearMass, lCdot);
-			b2Vec2 oldLImpulse = m_linearImpulse;
-			m_linearImpulse += lImpulse;
-			if (m_linearImpulse.LengthSquared() > m_maxForce.LengthSquared())
-			{
-				m_linearImpulse.Normalize();
-				m_linearImpulse *= m_maxForce.Length();
-			}
-			impulse.x = m_linearImpulse.x - oldLImpulse.x;
-			impulse.y = m_linearImpulse.y - oldLImpulse.y;
-			Cdot.x = lCdot.x;
-			Cdot.y = lCdot.y;
-			wA += m_invIA * b2Cross(m_rA, lImpulse);
-			wB += m_invIB * b2Cross(m_rB, lImpulse);
+	/** Adapted from b2Friction.cpp
+	*
+	*/
+	// Solve linear part
+	b2Vec2 lCdot = vB + b2Cross(wB, m_rB) - vA - b2Cross(wA, m_rA);
+	if (lCdot.LengthSquared() > 0.f) {
+		b2Vec2 lImpulse = -b2Mul(m_linearMass, lCdot);
+		b2Vec2 oldLImpulse = m_linearImpulse;
+		m_linearImpulse += lImpulse;
+		if (m_linearImpulse.LengthSquared() > m_maxForce.LengthSquared())
+		{
+			m_linearImpulse.Normalize();
+			m_linearImpulse *= m_maxForce.Length();
 		}
-		// Solve angular part
-		float32 aCdot = wB - wA - m_dw0;
-		if (b2Abs(aCdot) > 0.f) {
-			float32 aImpulse = -m_angularMass * aCdot;
-			float32 oldAImpulse = m_angularImpulse;
-			float32 maxImpulse = h * m_maxTorque;
-			m_angularImpulse = b2Clamp
-			(m_angularImpulse + aImpulse, -maxImpulse, maxImpulse);
-			aImpulse = m_angularImpulse - oldAImpulse;
-			impulse.z = aImpulse;
-		}
-		Cdot.z = aCdot;
-		m_impulse += impulse;
-#ifdef EP_LOG
-		if (epLogActive && epLogEnabled) {
-			if (b2Dot(Cdot, Cdot) > 0.f) {
-				epLog("RPJ:VC:%d Cdot=%g %g %g\n", id,
-					Cdot.x, Cdot.y, Cdot.z);
-				epLog("RPJ:VC:%d impulse=%g %g %g\n", id,
-					impulse.x, impulse.y, impulse.z);
-			}
-		}
-#endif
+		impulse.x = m_linearImpulse.x - oldLImpulse.x;
+		impulse.y = m_linearImpulse.y - oldLImpulse.y;
+		Cdot.x = lCdot.x;
+		Cdot.y = lCdot.y;
+		wA += m_invIA * b2Cross(m_rA, lImpulse);
+		wB += m_invIB * b2Cross(m_rB, lImpulse);
 	}
+	// Solve angular part
+	float32 aCdot = wB - wA - m_dw0;
+	if (b2Abs(aCdot) > 0.f) {
+		float32 aImpulse = -m_angularMass * aCdot;
+		float32 oldAImpulse = m_angularImpulse;
+		float32 maxImpulse = h * m_maxTorque;
+		m_angularImpulse = b2Clamp
+		(m_angularImpulse + aImpulse, -maxImpulse, maxImpulse);
+		aImpulse = m_angularImpulse - oldAImpulse;
+		impulse.z = aImpulse;
+	}
+	Cdot.z = aCdot;
+	m_impulse += impulse;
+#ifdef EP_LOG
+	if (epLogActive && epLogEnabled) {
+		if (b2Dot(Cdot, Cdot) > 0.f) {
+			epLog("RPJ:VC:%d Cdot=%g %g %g\n", id,
+				Cdot.x, Cdot.y, Cdot.z);
+			epLog("RPJ:VC:%d impulse=%g %g %g\n", id,
+				impulse.x, impulse.y, impulse.z);
+		}
+	}
+#endif
 	if (nullptr != debugListener) {
 		debugListener->EndVelocityIteration(this, data);
 	}
