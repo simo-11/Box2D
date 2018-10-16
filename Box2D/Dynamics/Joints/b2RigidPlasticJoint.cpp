@@ -175,7 +175,7 @@ void b2RigidPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 		impulse.y = m_linearImpulse.y - oldLImpulse.y;
 		Cdot.x = lCdot.x;
 		Cdot.y = lCdot.y;
-		wA += m_invIA * b2Cross(m_rA, lImpulse);
+		wA -= m_invIA * b2Cross(m_rA, lImpulse);
 		wB += m_invIB * b2Cross(m_rB, lImpulse);
 	}
 	// Solve angular part
