@@ -123,7 +123,15 @@ void b2RigidPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 
 bool b2RigidPlasticJoint::SolvePositionConstraints(const b2SolverData& data)
 {
-	B2_NOT_USED(data);
+	if (isOverLoaded()) {
+		return true;
+	}
+	b2Vec2 cA = data.positions[m_indexA].c;
+	float32 aA = data.positions[m_indexA].a;
+	b2Rot qA(aA);
+	b2Vec2 rA = b2Mul(qA, m_localAnchorA - m_localAnchorB);
+	data.positions[m_indexB].c = cA+rA;
+	data.positions[m_indexB].a = aA;
 	return true;
 }
 
