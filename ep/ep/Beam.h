@@ -109,6 +109,7 @@ public:
 			LaunchBomb();
 		}
 		if (bo::b4) {
+			settings->addMassPoint = b2Vec2(so_count*hx, so_count*hx*2+4*hy+5);
 			AddMass(settings->addMassPoint);
 		}
 	}
@@ -468,7 +469,6 @@ addMassPoint=(10,29)\n\
 			firstIsHinge = false;
 			openLists = true;
 			restartPending = true;
-			settings->addMassPoint = b2Vec2(10, 29);
 			settings->addMass = 500000;
 		}
 	}
