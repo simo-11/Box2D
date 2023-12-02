@@ -1,3 +1,8 @@
-Build/
+build/
 imgui.ini
 /ep/ep/ep-log.txt
+settings.ini
+.vscode/
+CMakeSettings.json
+out/
+.vs/
