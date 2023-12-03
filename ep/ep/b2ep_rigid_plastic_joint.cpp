@@ -21,12 +21,11 @@
 * Main focus is on bending.
 */
 
-#include "Box2D/Dynamics/Joints/b2RigidPlasticJoint.h"
-#include "Box2D/Dynamics/b2Body.h"
-#include "Box2D/Dynamics/b2World.h"
-#include "Box2D/Common/b2BlockAllocator.h"
-#include "Box2D/Dynamics/b2Fixture.h"
-#include "Box2D/Dynamics/b2TimeStep.h"
+#include "b2ep_rigid_plastic_joint.h"
+#include "dynamics/b2_body.h"
+#include "dynamics/b2_world.h"
+#include "common/b2_block_allocator.h"
+#include "dynamics/b2_fixture.h"
 
 /**
 bA is currently assumed to be master body which is possibly connected to multiple
@@ -79,18 +78,18 @@ void b2RigidPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	m_invMassB = m_bodyB->m_invMass;
 	m_invIA = m_bodyA->m_invI;
 	m_invIB = m_bodyB->m_invI;
-	float32 aA = data.positions[m_indexA].a;
+	float aA = data.positions[m_indexA].a;
 	b2Vec2 vA = data.velocities[m_indexA].v;
-	float32 wA = data.velocities[m_indexA].w;
-	float32 aB = data.positions[m_indexB].a;
+	float wA = data.velocities[m_indexA].w;
+	float aB = data.positions[m_indexB].a;
 	b2Vec2 vB = data.velocities[m_indexB].v;
-	float32 wB = data.velocities[m_indexB].w;
+	float wB = data.velocities[m_indexB].w;
 	b2Rot qA(aA), qB(aB);
 	m_rA = b2Mul(qA, m_localAnchorA - m_localCenterA);
 	m_rB = b2Mul(qB, m_localAnchorB - m_localCenterB);
-	float32 mA = m_invMassA, mB = m_invMassB;
-	float32 iA = m_invIA, iB = m_invIB;
-	float32 iM = mA + mB;
+	float mA = m_invMassA, mB = m_invMassB;
+	float iA = m_invIA, iB = m_invIB;
+	float iM = mA + mB;
 	m_linearMass.SetZero();
 	m_linearMass.ex.x = iM != 0.f ? 1.f / iM : 0.f;
 	m_linearMass.ey.y = m_linearMass.ex.x;
@@ -102,7 +101,7 @@ void b2RigidPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	if (wasOverLoaded(RZ)) {
 		m_dw0 = wB - wA;
 		//K.GetInverse22(&m_mass);
-		//float32 invM = iA + iB;
+		//float invM = iA + iB;
 		//m_mass.ez.z = invM != 0.0f ? 1.0f / invM : 0.0f;
 	}else{
 		m_dw0 = 0;
@@ -127,7 +126,7 @@ bool b2RigidPlasticJoint::SolvePositionConstraints(const b2SolverData& data)
 		return true;
 	}
 	b2Vec2 cA = data.positions[m_indexA].c;
-	float32 aA = data.positions[m_indexA].a;
+	float aA = data.positions[m_indexA].a;
 	b2Rot qA(aA);
 	b2Vec2 rA = b2Mul(qA, m_localAnchorA - m_localAnchorB);
 	data.positions[m_indexB].c = cA+rA;
@@ -138,12 +137,12 @@ bool b2RigidPlasticJoint::SolvePositionConstraints(const b2SolverData& data)
 void b2RigidPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 {
 	b2Vec2 vA = data.velocities[m_indexA].v;
-	float32 wA = data.velocities[m_indexA].w;
+	float wA = data.velocities[m_indexA].w;
 	b2Vec2 vB = data.velocities[m_indexB].v;
-	float32 wB = data.velocities[m_indexB].w;
+	float wB = data.velocities[m_indexB].w;
 
-	float32 mA = m_invMassA, mB = m_invMassB;
-//	float32 iA = m_invIA, iB = m_invIB;
+	float mA = m_invMassA, mB = m_invMassB;
+//	float iA = m_invIA, iB = m_invIB;
 #ifdef EP_LOG
 	if (epLogActive && epLogEnabled) {
 		if (mA != 0) {
@@ -164,7 +163,7 @@ void b2RigidPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 	b2Vec3 impulse;
 	Cdot.SetZero();
 	impulse.SetZero();
-	float32 h = data.step.dt;
+	float h = data.step.dt;
 	/** Adapted from b2Friction.cpp
 	*
 	*/
@@ -187,11 +186,11 @@ void b2RigidPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 		wB += m_invIB * b2Cross(m_rB, lImpulse);
 	}
 	// Solve angular part
-	float32 aCdot = wB - wA - m_dw0;
+	float aCdot = wB - wA - m_dw0;
 	if (b2Abs(aCdot) > 0.f) {
-		float32 aImpulse = -m_angularMass * aCdot;
-		float32 oldAImpulse = m_angularImpulse;
-		float32 maxImpulse = h * m_maxTorque;
+		float aImpulse = -m_angularMass * aCdot;
+		float oldAImpulse = m_angularImpulse;
+		float maxImpulse = h * m_maxTorque;
 		m_angularImpulse = b2Clamp
 		(m_angularImpulse + aImpulse, -maxImpulse, maxImpulse);
 		aImpulse = m_angularImpulse - oldAImpulse;
@@ -215,13 +214,13 @@ void b2RigidPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 	velocityIteration++;
 }
 
-b2Vec2 b2RigidPlasticJoint::GetReactionForce(float32 inv_dt) const
+b2Vec2 b2RigidPlasticJoint::GetReactionForce(float inv_dt) const
 {
 	b2Vec2 P(m_jim.x, m_jim.y);
 	return inv_dt * P;
 }
 
-float32 b2RigidPlasticJoint::GetReactionTorque(float32 inv_dt) const
+float b2RigidPlasticJoint::GetReactionTorque(float inv_dt) const
 {
 	return inv_dt * m_jim.z;
 }
@@ -236,14 +235,14 @@ void b2RigidPlasticJoint::UpdatePlasticity(const b2SolverData & data)
 	}
 	b2Vec2 cA = data.positions[m_indexA].c;
 	b2Vec2 cB = data.positions[m_indexB].c;
-	float32 newDistance = (cA - cB).Length();
-	float32 origDistance = m_localAnchorA.Length() + m_localAnchorB.Length();
+	float newDistance = (cA - cB).Length();
+	float origDistance = m_localAnchorA.Length() + m_localAnchorB.Length();
 	// this needs more analysis
 	// current implementation is based on idea
 	// that tearing joint up joint should be more meaningful
 	// than pushing
 	if ((isOverLoaded(X) || isOverLoaded(Y)) && origDistance < newDistance) {
-		float32 sf = newDistance / origDistance;
+		float sf = newDistance / origDistance;
 		m_localAnchorA *= sf;
 		m_localAnchorB *= sf;
 		m_currentStrain += b2Abs(newDistance - origDistance);

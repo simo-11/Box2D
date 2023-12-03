@@ -22,12 +22,11 @@
 * Actual code is based on WeldJoint.
 */
 
-#include "Box2D/Dynamics/Joints/b2ElasticPlasticJoint.h"
-#include "Box2D/Dynamics/b2Body.h"
-#include "Box2D/Dynamics/b2World.h"
-#include "Box2D/Common/b2BlockAllocator.h"
-#include "Box2D/Dynamics/b2Fixture.h"
-#include "Box2D/Dynamics/b2TimeStep.h"
+#include "b2ep_joint.h"
+#include "dynamics/b2_body.h"
+#include "dynamics/b2_world.h"
+#include "common/b2_block_allocator.h"
+#include "dynamics/b2_fixture.h"
 
 /*
 These are smaller than normal b2 limits as
@@ -37,8 +36,8 @@ These can be tuned.
 */
 namespace
 {
-	float32 b2ep_linearSlop=0.0005f;
-	float32 b2ep_angularSlop=0.0005f;
+	float b2ep_linearSlop=0.0005f;
+	float b2ep_angularSlop=0.0005f;
 	int32 epId = 0;
 }
 
@@ -160,13 +159,13 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	m_invIA = m_bodyA->m_invI;
 	m_invIB = m_bodyB->m_invI;
 
-	float32 aA = data.positions[m_indexA].a;
+	float aA = data.positions[m_indexA].a;
 	b2Vec2 vA = data.velocities[m_indexA].v;
-	float32 wA = data.velocities[m_indexA].w;
+	float wA = data.velocities[m_indexA].w;
 
-	float32 aB = data.positions[m_indexB].a;
+	float aB = data.positions[m_indexB].a;
 	b2Vec2 vB = data.velocities[m_indexB].v;
-	float32 wB = data.velocities[m_indexB].w;
+	float wB = data.velocities[m_indexB].w;
 
 	b2Rot qA(aA), qB(aB);
 
@@ -182,8 +181,8 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	//     [  -r1y*iA*r1x-r2y*iB*r2x, mA+r1x^2*iA+mB+r2x^2*iB,           r1x*iA+r2x*iB]
 	//     [          -r1y*iA-r2y*iB,           r1x*iA+r2x*iB,                   iA+iB]
 
-	float32 mA = m_invMassA, mB = m_invMassB;
-	float32 iA = m_invIA, iB = m_invIB;
+	float mA = m_invMassA, mB = m_invMassB;
+	float iA = m_invIA, iB = m_invIB;
 
 	b2Mat33 K;
 	K.ez.z = iA + iB;
@@ -201,18 +200,18 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 	if (m_frequencyHz > 0.0f || K.ez.z != 0.0f)
 	{
 
-		float32 invM = iA + iB;
-		float32 m = invM > 0.0f ? 1.0f / invM : 0.0f;
+		float invM = iA + iB;
+		float m = invM > 0.0f ? 1.0f / invM : 0.0f;
 
 		if (m_frequencyHz > 0.0f) {
 			K.GetInverse22(&m_mass);
-			float32 h = data.step.dt;
+			float h = data.step.dt;
 			// Frequency
-			float32 omega = 2.0f * b2_pi * m_frequencyHz;
+			float omega = 2.0f * b2_pi * m_frequencyHz;
 			// Damping coefficient
-			float32 d = 2.0f * m * m_dampingRatio * omega;
+			float d = 2.0f * m * m_dampingRatio * omega;
 			// Spring stiffness
-			float32 k = m * omega * omega;
+			float k = m * omega * omega;
 			m_k = k; // save for possible reuse during UpdateAnchors
 	  		// magic formulas
 			m_gamma = h * (d + h * k);
@@ -221,14 +220,14 @@ void b2ElasticPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
 			if (m_maxElasticRotation != 0.f) {
 				m_maxTorque = m_k*m_maxElasticRotation;
 			}
-			float32 C = aB - aA - m_referenceAngle;
+			float C = aB - aA - m_referenceAngle;
 			m_bias = C * h * m_k * m_gamma;
 		}
 		else {
 			m_k = 0.f;
 			m_gamma = 0.f;
 			m_bias = 0.f;
-			float32 iM = mA + mB;
+			float iM = mA + mB;
 			m_mass.ex.SetZero();
 			m_mass.ey.SetZero();
 			m_mass.ez.SetZero();
@@ -285,21 +284,21 @@ void b2ElasticPlasticJoint::UpdateAnchors(const b2SolverData & data)
 	if (!m_forceExceeded && !m_torqueExceeded) {
 		return;
 	}
-	float32 elasticPart = 0.f;
+	float elasticPart = 0.f;
 	if (m_frequencyHz > 0.f) {
 		elasticPart = 0.f; // TODO, define better
 	}
 	b2Vec2 cA = data.positions[m_indexA].c;
 	b2Vec2 cB = data.positions[m_indexB].c;
 
-	float32 newDistance = (1.f - elasticPart)*(cA - cB).Length();
-	float32 origDistance = m_localAnchorA.Length() + m_localAnchorB.Length();
+	float newDistance = (1.f - elasticPart)*(cA - cB).Length();
+	float origDistance = m_localAnchorA.Length() + m_localAnchorB.Length();
 	// this needs more analysis
 	// current implementation is based on idea
 	// that tearing joint up joint should be more meaningful
 	// than pushing
 	if (m_forceExceeded && origDistance < newDistance) {
-		float32 sf = newDistance / origDistance;
+		float sf = newDistance / origDistance;
 		m_localAnchorA *= sf;
 		m_localAnchorB *= sf;
 		m_currentStrain += b2Abs(newDistance - origDistance);
@@ -312,8 +311,8 @@ void b2ElasticPlasticJoint::UpdateAnchors(const b2SolverData & data)
 		updateRotationalPlasticity(data, 0.f);
 	}
 	else {
-		float32 h = data.step.dt;
-		float32 elasticRotation = m_maxImpulse.z / h / m_k;
+		float h = data.step.dt;
+		float elasticRotation = m_maxImpulse.z / h / m_k;
 		updateRotationalPlasticity(data, elasticRotation);
 	}
 	m_torqueExceeded = false;
@@ -327,21 +326,21 @@ void b2ElasticPlasticJoint::UpdatePlasticity(const b2SolverData & data)
 	if (!m_forceExceeded && !m_torqueExceeded) {
 		return;
 	}
-	float32 elasticPart = 0.f;
+	float elasticPart = 0.f;
 	if (m_frequencyHz > 0.f) {
 		elasticPart = 0.f; // TODO, define better
 	}
 	b2Vec2 cA = data.positions[m_indexA].c;
 	b2Vec2 cB = data.positions[m_indexB].c;
 
-	float32 newDistance = (1.f - elasticPart)*(cA - cB).Length();
-	float32 origDistance = m_localAnchorA.Length() + m_localAnchorB.Length();
+	float newDistance = (1.f - elasticPart)*(cA - cB).Length();
+	float origDistance = m_localAnchorA.Length() + m_localAnchorB.Length();
 	// this needs more analysis
 	// current implementation is based on idea
 	// that tearing joint up joint should be more meaningful
 	// than pushing
 	if (m_forceExceeded && origDistance < newDistance) {
-		float32 sf = newDistance / origDistance;
+		float sf = newDistance / origDistance;
 		m_localAnchorA *= sf;
 		m_localAnchorB *= sf;
 		m_currentStrain += b2Abs(newDistance - origDistance);
@@ -354,8 +353,8 @@ void b2ElasticPlasticJoint::UpdatePlasticity(const b2SolverData & data)
 		updateRotationalPlasticity(data, 0.f);
 	}
 	else {
-		float32 h = data.step.dt;
-		float32 elasticRotation = m_maxImpulse.z / h / m_k;
+		float h = data.step.dt;
+		float elasticRotation = m_maxImpulse.z / h / m_k;
 		updateRotationalPlasticity(data, elasticRotation);
 	}
 	m_torqueExceeded = false;
@@ -365,12 +364,12 @@ void b2ElasticPlasticJoint::UpdatePlasticity(const b2SolverData & data)
 void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 {
 	b2Vec2 vA = data.velocities[m_indexA].v;
-	float32 wA = data.velocities[m_indexA].w;
+	float wA = data.velocities[m_indexA].w;
 	b2Vec2 vB = data.velocities[m_indexB].v;
-	float32 wB = data.velocities[m_indexB].w;
+	float wB = data.velocities[m_indexB].w;
 
-	float32 mA = m_invMassA, mB = m_invMassB;
-	float32 iA = m_invIA, iB = m_invIB;
+	float mA = m_invMassA, mB = m_invMassB;
+	float iA = m_invIA, iB = m_invIB;
 #ifdef EP_LOG
 	if (epLogActive && epLogEnabled) {
 		if (mA != 0) {
@@ -389,7 +388,7 @@ void b2ElasticPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
 		debugListener->BeginVelocityIteration(this, data);
 	}
 	b2Vec2 Cdot1;
-	float32 Cdot2=0,impulse2;
+	float Cdot2=0,impulse2;
 	for (int i = 0; i < 2; i++) {
 		switch (solveOrder[i]) {
 		case MOMENT:
@@ -462,7 +461,7 @@ bool b2ElasticPlasticJoint::WantsToBreak(){
 		b2Vec2 iv;
 		iv.x = m_impulse.x;
 		iv.y = m_impulse.y;
-		float32 dotv=b2Dot(m_localAnchorA,iv);
+		float dotv=b2Dot(m_localAnchorA,iv);
 		if (dotv<0){
 			return true;
 		}
@@ -502,12 +501,12 @@ b2Vec3 b2ElasticPlasticJoint::GetClampedMaxImpulse(b2Vec2 p_Cdot,
 	if (p_Cdot.LengthSquared() < b2ep_linearSlop) {
 		return m_maxImpulse;
 	}
-	float32 dt = data.step.dt;
+	float dt = data.step.dt;
 	b2Vec2 d = dt*p_Cdot;
-	float32 maxStrain = m_maxStrain - m_currentStrain;
-	float32 ssx = (d.x!=0?maxStrain / b2Abs(d.x):b2_maxFloat);
-	float32 ssy = (d.y!=0?maxStrain / b2Abs(d.y):b2_maxFloat);
-	float32 s =b2Min(ssx, ssy);
+	float maxStrain = m_maxStrain - m_currentStrain;
+	float ssx = (d.x!=0?maxStrain / b2Abs(d.x):b2_maxFloat);
+	float ssy = (d.y!=0?maxStrain / b2Abs(d.y):b2_maxFloat);
+	float s =b2Min(ssx, ssy);
 	if (s > 1) {
 		return m_maxImpulse;
 	}
@@ -517,19 +516,19 @@ b2Vec3 b2ElasticPlasticJoint::GetClampedMaxImpulse(b2Vec2 p_Cdot,
 }
 
 
-float32 b2ElasticPlasticJoint::GetClampedDeltaImpulse(float32 p_Cdot, 
+float b2ElasticPlasticJoint::GetClampedDeltaImpulse(float p_Cdot, 
 	const b2SolverData& data){
-	float32 impulse = -m_mass.ez.z * (p_Cdot + m_bias + m_gamma * m_impulse.z);
-	float32 clamped;
-	float32 maxImpulse;
+	float impulse = -m_mass.ez.z * (p_Cdot + m_bias + m_gamma * m_impulse.z);
+	float clamped;
+	float maxImpulse;
 	if (m_torqueExceeded) {
 		maxImpulse = GetClampedMaxImpulse(p_Cdot, data);
 	}
 	else {
 		maxImpulse = m_maxImpulse.z;
 	}
-	float32 high = maxImpulse - m_impulse.z;
-	float32 low = -maxImpulse - m_impulse.z;
+	float high = maxImpulse - m_impulse.z;
+	float low = -maxImpulse - m_impulse.z;
 	clamped = b2Clamp(impulse, low, high);
 	if (impulse != clamped){
 		m_torqueExceeded = true;
@@ -544,12 +543,12 @@ float32 b2ElasticPlasticJoint::GetClampedDeltaImpulse(float32 p_Cdot,
 /**
 * Clamp impulse in position correction
 */
-float32 b2ElasticPlasticJoint::Clamp(float32 M,
+float b2ElasticPlasticJoint::Clamp(float M,
 	const b2SolverData&  /* unused */) {
 #ifdef CLAMP_POS_CORRECTION_IMPULSE
-	float32 low = -m_maxImpulse.z - m_impulse.z;
-	float32 high = m_maxImpulse.z - m_impulse.z;
-	float32 clamped = b2Clamp(M,low, high);
+	float low = -m_maxImpulse.z - m_impulse.z;
+	float high = m_maxImpulse.z - m_impulse.z;
+	float clamped = b2Clamp(M,low, high);
 	if (clamped != M) {
 		{}
 	}
@@ -582,14 +581,14 @@ b2Vec2 b2ElasticPlasticJoint::Clamp(b2Vec2 P,
 * avoid processing of small velocities
 * as dividing by denormal numbers may trigger numerical issues
 */
-float32 b2ElasticPlasticJoint::GetClampedMaxImpulse(float32 p_Cdot, 
+float b2ElasticPlasticJoint::GetClampedMaxImpulse(float p_Cdot, 
 	const b2SolverData& data) {
-	float32 aCdot = b2Abs(p_Cdot);
+	float aCdot = b2Abs(p_Cdot);
 	if (aCdot>b2ep_angularSlop) {
-		float32 dt = data.step.dt;
-		float32 d = dt*aCdot;
-		float32 maxRotation = m_maxRotation - m_currentRotation;
-		float32 s = maxRotation/d;
+		float dt = data.step.dt;
+		float d = dt*aCdot;
+		float maxRotation = m_maxRotation - m_currentRotation;
+		float s = maxRotation/d;
 		if (s < 1) {
 			return s*m_maxImpulse.z;
 		}
@@ -599,16 +598,16 @@ float32 b2ElasticPlasticJoint::GetClampedMaxImpulse(float32 p_Cdot,
 }
 
 void b2ElasticPlasticJoint::updateRotationalPlasticity
-	(const b2SolverData& data, float32 elasticRotation)
+	(const b2SolverData& data, float elasticRotation)
 {
-	float32 aA = data.positions[m_indexA].a;
-	float32 aB = data.positions[m_indexB].a;
+	float aA = data.positions[m_indexA].a;
+	float aB = data.positions[m_indexB].a;
 
-	float32 currentAngleDiff = aB - aA;
+	float currentAngleDiff = aB - aA;
 	if (m_impulse.z < 0) {
 		elasticRotation =-elasticRotation;
 	}
-	float32 newReferenceAngle = currentAngleDiff + elasticRotation;
+	float newReferenceAngle = currentAngleDiff + elasticRotation;
 	m_currentRotation += b2Abs(newReferenceAngle - m_referenceAngle);
 	m_referenceAngle = newReferenceAngle;
 	m_torqueExceeded = false;
@@ -627,14 +626,14 @@ b2Vec2 b2ElasticPlasticJoint::GetRotatedMaxForce()
 bool b2ElasticPlasticJoint::SolvePositionConstraints(const b2SolverData& data)
 {
 	b2Vec2 cA = data.positions[m_indexA].c;
-	float32 aA = data.positions[m_indexA].a;
+	float aA = data.positions[m_indexA].a;
 	b2Vec2 cB = data.positions[m_indexB].c;
-	float32 aB = data.positions[m_indexB].a;
+	float aB = data.positions[m_indexB].a;
 
 	b2Rot qA(aA), qB(aB);
 
-	float32 mA = m_invMassA, mB = m_invMassB;
-	float32 iA = m_invIA, iB = m_invIB;
+	float mA = m_invMassA, mB = m_invMassB;
+	float iA = m_invIA, iB = m_invIB;
 
 	b2Vec2 rA = b2Mul(qA, m_localAnchorA - m_localCenterA);
 	b2Vec2 rB = b2Mul(qB, m_localAnchorB - m_localCenterB);
@@ -661,7 +660,7 @@ bool b2ElasticPlasticJoint::SolvePositionConstraints(const b2SolverData& data)
 		angularError = 0.0f;
 
 		b2Vec2 P = Clamp(-K.Solve22(C1),data);
-		float32 M = Clamp(b2Cross(rA, P),data);
+		float M = Clamp(b2Cross(rA, P),data);
 		cA -= mA * P;
 		aA -= iA * M;
 
@@ -672,7 +671,7 @@ bool b2ElasticPlasticJoint::SolvePositionConstraints(const b2SolverData& data)
 	else
 	{
 		b2Vec2 C1= cB + rB - cA - rA;
-		float32 C2=aB - aA - m_referenceAngle;
+		float C2=aB - aA - m_referenceAngle;
 
 		positionError = C1.Length();
 		angularError = b2Abs(C2);
@@ -697,7 +696,7 @@ bool b2ElasticPlasticJoint::SolvePositionConstraints(const b2SolverData& data)
 		b2Vec2 P=Clamp(b2Vec2(impulse.x, impulse.y),data);
 
 		cA -= mA * P;
-		float32 M = Clamp((b2Cross(rA, P) + impulse.z), data);
+		float M = Clamp((b2Cross(rA, P) + impulse.z), data);
 #ifdef EP_LOG
 		epLog("J:PC:%d P=%g %g, M1=%g",id,
 			P.x, P.y, M);
@@ -725,7 +724,7 @@ bool b2ElasticPlasticJoint::SolvePositionConstraints(const b2SolverData& data)
 	return jointOk;
 }
 
-b2Vec3 b2ElasticPlasticJoint::GetMaxImpulse(float32 dt)
+b2Vec3 b2ElasticPlasticJoint::GetMaxImpulse(float dt)
 {
 	b2Vec3 mi = b2Vec3();
 	mi.z = m_maxTorque*dt;
@@ -753,19 +752,19 @@ bool b2ElasticPlasticJoint::CanHandleInitialImpulse(const b2SolverData * data)
 	return true;
 }
 
-void b2ElasticPlasticJoint::SetLinearSlop(float32 value){
+void b2ElasticPlasticJoint::SetLinearSlop(float value){
 	b2ep_linearSlop = value;
 }
 
-float32 b2ElasticPlasticJoint::GetLinearSlop(){
+float b2ElasticPlasticJoint::GetLinearSlop(){
 	return b2ep_linearSlop;
 }
 
-void b2ElasticPlasticJoint::SetAngularSlop(float32 value){
+void b2ElasticPlasticJoint::SetAngularSlop(float value){
 	b2ep_angularSlop = value;
 }
 
-float32 b2ElasticPlasticJoint::GetAngularSlop(){
+float b2ElasticPlasticJoint::GetAngularSlop(){
 	return b2ep_angularSlop;
 }
 
@@ -779,13 +778,13 @@ b2Vec2 b2ElasticPlasticJoint::GetAnchorB() const
 	return m_bodyB->GetWorldPoint(m_localAnchorB);
 }
 
-b2Vec2 b2ElasticPlasticJoint::GetReactionForce(float32 inv_dt) const
+b2Vec2 b2ElasticPlasticJoint::GetReactionForce(float inv_dt) const
 {
 	b2Vec2 P(m_impulse.x, m_impulse.y);
 	return inv_dt * P;
 }
 
-float32 b2ElasticPlasticJoint::GetReactionTorque(float32 inv_dt) const
+float b2ElasticPlasticJoint::GetReactionTorque(float inv_dt) const
 {
 	return inv_dt * m_impulse.z;
 }
@@ -802,19 +801,19 @@ b2Vec2 b2ElasticPlasticJoint::GetMaxForce() const
 	return m_maxForce;
 }
 
-void b2ElasticPlasticJoint::SetMaxTorque(float32 torque)
+void b2ElasticPlasticJoint::SetMaxTorque(float torque)
 {
 	b2Assert(b2IsValid(torque) && torque >= 0.0f);
 	m_maxTorque = torque;
 }
 
-void b2ElasticPlasticJoint::SetMaxElasticRotation(float32 val)
+void b2ElasticPlasticJoint::SetMaxElasticRotation(float val)
 {
 	m_maxElasticRotation = val;
 }
 
 
-float32 b2ElasticPlasticJoint::GetMaxTorque() const
+float b2ElasticPlasticJoint::GetMaxTorque() const
 {
 	return m_maxTorque;
 }

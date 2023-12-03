@@ -46,8 +46,8 @@ struct b2RigidPlasticJointDef : public b2ElasticPlasticJointDef
 class b2RigidPlasticJoint  : public b2ElasticPlasticJoint
 {
 public:
-	b2Vec2 GetReactionForce(float32 inv_dt) const;
-	float32 GetReactionTorque(float32 inv_dt) const;
+	b2Vec2 GetReactionForce(float inv_dt) const;
+	float GetReactionTorque(float inv_dt) const;
 	void UpdatePlasticity(const b2SolverData & data);
 	virtual bool hasPositionIterations() {
 		return false;
@@ -62,9 +62,9 @@ protected:
 	void SolveVelocityConstraints(const b2SolverData& data);
 	bool SolvePositionConstraints(const b2SolverData& data);
 	b2Mat22 m_linearMass;
-	float32 m_angularMass;
+	float m_angularMass;
 	b2Vec2 m_linearImpulse;
-	float32 m_angularImpulse;
+	float m_angularImpulse;
 };
 
 

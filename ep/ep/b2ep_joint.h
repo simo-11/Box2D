@@ -21,8 +21,7 @@
 #ifndef B2_ELASTIC_PLASTIC_JOINT_H
 #define B2_ELASTIC_PLASTIC_JOINT_H
 
-#include "Box2D/Dynamics/Joints/b2Joint.h"
-#include "Box2D/Dynamics/b2ImpulseInitializer.h"
+#include "box2d/b2_joint.h"
 #include <bitset>
 
 enum SOLVE_ORDER {
@@ -37,7 +36,7 @@ enum OVERLOAD_DIRECTION {
 	ANY,
 };
 
-class epDebugListener;
+class EpDebugListener;
 /// Base on Weld joint definition. 
 struct b2ElasticPlasticJointDef : public b2JointDef
 {
@@ -62,26 +61,26 @@ struct b2ElasticPlasticJointDef : public b2JointDef
 	b2Vec2 localAnchorB;
 
 	/// The bodyB angle minus bodyA angle in the reference state (radians).
-	float32 referenceAngle;
+	float referenceAngle;
 
 	/// The mass-spring-damper frequency in Hertz. Rotation only.
 	/// Disable softness with a value of 0.
-	float32 frequencyHz;
+	float frequencyHz;
 
 	/// The damping ratio. 0 = no damping, 1 = critical damping.
-	float32 dampingRatio;
+	float dampingRatio;
 
 	/// maximum joint forced in N.
 	b2Vec2 maxForce;
 
 	/// The maximum joint torque in N-m.
-	float32 maxTorque;
+	float maxTorque;
 	// or max elastic rotation
-	float32 maxElasticRotation;
+	float maxElasticRotation;
 	// meters, typically less than about 10 % of joint distance
-	float32 maxStrain;
+	float maxStrain;
 	// radians, typically 1 - 6 
-	float32 maxRotation;
+	float maxRotation;
 
 };
 
@@ -91,8 +90,8 @@ public:
 	b2Vec2 GetAnchorA() const;
 	b2Vec2 GetAnchorB() const;
 
-	b2Vec2 GetReactionForce(float32 inv_dt) const;
-	float32 GetReactionTorque(float32 inv_dt) const;
+	b2Vec2 GetReactionForce(float inv_dt) const;
+	float GetReactionTorque(float inv_dt) const;
 
 	/// The local anchor point relative to bodyA's origin.
 	const b2Vec2& GetLocalAnchorA() const { return m_localAnchorA; }
@@ -101,7 +100,7 @@ public:
 	const b2Vec2& GetLocalAnchorB() const  { return m_localAnchorB; }
 
 	/// Get the reference angle.
-	float32 GetReferenceAngle() const { return m_referenceAngle; }
+	float GetReferenceAngle() const { return m_referenceAngle; }
 
 	/// Set the maximum plastic force in N.
 	void SetMaxForce(b2Vec2 force);
@@ -110,37 +109,37 @@ public:
 	b2Vec2 GetMaxForce() const;
 
 	/// Set the maximum plastic torque in N*m.
-	void SetMaxTorque(float32 torque);
+	void SetMaxTorque(float torque);
 	// or set maximum elastic rotation
-	void SetMaxElasticRotation(float32 val);
-	float32 getCurrentStrain(){ return m_currentStrain; }
-	float32 getCurrentRotation(){ return m_currentRotation; }
-	float32 getAngularError() { return angularError; }
-	float32 getPositionError() { return positionError; }
-	float32 getMaxStrain(){ return m_maxStrain; }
-	float32 getMaxRotation(){ return m_maxRotation; }
+	void SetMaxElasticRotation(float val);
+	float getCurrentStrain(){ return m_currentStrain; }
+	float getCurrentRotation(){ return m_currentRotation; }
+	float getAngularError() { return angularError; }
+	float getPositionError() { return positionError; }
+	float getMaxStrain(){ return m_maxStrain; }
+	float getMaxRotation(){ return m_maxRotation; }
 	b2Vec2 GetRotatedMaxForce();
 	int32 GetIslandIndexForA() { return m_indexA; }
 	int32 GetIslandIndexForB() { return m_indexB; }
 	/// Get the maximum friction torque in N*m.
-	float32 GetMaxTorque() const;
+	float GetMaxTorque() const;
 	bool WantsToBreak();
 	/// Dump to b2Log
 	void Dump();
-	static void SetLinearSlop(float32 value);
-	static float32 GetLinearSlop();
-	static void SetAngularSlop(float32 value);
-	static float32 GetAngularSlop();
+	static void SetLinearSlop(float value);
+	static float GetLinearSlop();
+	static void SetAngularSlop(float value);
+	static float GetAngularSlop();
 	static void resetEpId();
 	int32 GetId() { return id; }
-	epDebugListener* GetDebugListener() { return debugListener; }
+	EpDebugListener* GetDebugListener() { return debugListener; }
 	b2ImpulseInitializer* GetImpulseInitializer();
-	void SetDebugListener(epDebugListener* listener) { debugListener = listener; }
+	void SetDebugListener(EpDebugListener* listener) { debugListener = listener; }
 	virtual bool hasPositionIterations() { return true; }
 	int velocityIteration,positionIteration;
 	b2Vec3 Cdot;
-	float32 m_bias;
-	float32 m_gamma,m_dw0;
+	float m_bias;
+	float m_gamma,m_dw0;
 	bool initImpulseDone;
 	SOLVE_ORDER *solveOrder;
 	static SOLVE_ORDER* getMomentFirst();
@@ -152,7 +151,7 @@ public:
 	void setOverLoaded(OVERLOAD_DIRECTION, bool value=true);
 	int32 id;
 protected:
-	epDebugListener* debugListener;
+	EpDebugListener* debugListener;
 	b2ImpulseInitializer *impulseInitializer;
 	friend class b2Joint;
 	friend class b2ImpulseInitializer;
@@ -166,32 +165,32 @@ protected:
 	void UpdatePlasticity(const b2SolverData& data);
 	void SolveVelocityConstraints(const b2SolverData& data);
 	bool SolvePositionConstraints(const b2SolverData& data);
-	b2Vec3 GetMaxImpulse(float32 dt);
+	b2Vec3 GetMaxImpulse(float dt);
 	bool CanHandleInitialImpulse(const b2SolverData* data);
 
-	float32 m_frequencyHz; 
-	float32 m_dampingRatio;
+	float m_frequencyHz; 
+	float m_dampingRatio;
 
 	// Solver shared
 	b2Vec2 m_localAnchorA;
 	b2Vec2 m_localAnchorB;
-	float32 m_referenceAngle;
+	float m_referenceAngle;
 	b2Vec3 m_impulse;
 	// ep
-	float32 m_k;
+	float m_k;
 	b2Vec3 m_maxImpulse;
 	b2Vec2 GetClampedDeltaImpulse(b2Vec2 Cdot, const b2SolverData& data);
-	float32 GetClampedDeltaImpulse(float32 Cdot, const b2SolverData& data);
+	float GetClampedDeltaImpulse(float Cdot, const b2SolverData& data);
 	b2Vec3 GetClampedMaxImpulse(b2Vec2 Cdot, const b2SolverData& data);
-	float32 GetClampedMaxImpulse(float32 Cdot, const b2SolverData& data);
+	float GetClampedMaxImpulse(float Cdot, const b2SolverData& data);
 	b2Vec2 Clamp(b2Vec2 P, const b2SolverData& data);
-	float32 Clamp(float32 M, const b2SolverData& data);
-	void updateRotationalPlasticity(const b2SolverData& data, float32 elasticRotation);
+	float Clamp(float M, const b2SolverData& data);
+	void updateRotationalPlasticity(const b2SolverData& data, float elasticRotation);
 	b2Vec2 m_maxForce;
-	float32 m_maxTorque;
-	float32 m_maxElasticRotation;
-	float32 m_maxStrain, m_maxRotation, m_currentStrain, m_currentRotation;
-	float32 positionError, angularError;
+	float m_maxTorque;
+	float m_maxElasticRotation;
+	float m_maxStrain, m_maxRotation, m_currentStrain, m_currentRotation;
+	float positionError, angularError;
 	bool m_forceExceeded, m_torqueExceeded;
 	// Impulse initialization
 	bool aInitialized, bInitialized;
@@ -204,18 +203,18 @@ protected:
 	b2Vec2 m_rB;
 	b2Vec2 m_localCenterA;
 	b2Vec2 m_localCenterB;
-	float32 m_invMassA;
-	float32 m_invMassB;
-	float32 m_invIA;
-	float32 m_invIB;
+	float m_invMassA;
+	float m_invMassB;
+	float m_invIA;
+	float m_invIB;
 	b2Mat33 m_mass;
 	bool jointOk;
 };
 
-class epDebugListener
+class EpDebugListener
 {
 public:
-	virtual ~epDebugListener() {}
+	virtual ~EpDebugListener() {}
 
 	virtual void EndInitVelocityConstraints
 	(b2ElasticPlasticJoint* joint, const b2SolverData& data)
