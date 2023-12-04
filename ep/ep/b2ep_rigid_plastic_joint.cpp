@@ -22,10 +22,10 @@
 */
 
 #include "b2ep_rigid_plastic_joint.h"
-#include "dynamics/b2_body.h"
-#include "dynamics/b2_world.h"
-#include "common/b2_block_allocator.h"
-#include "dynamics/b2_fixture.h"
+#include "box2d/b2_body.h"
+#include "box2d/b2_world.h"
+#include "box2d/b2_block_allocator.h"
+#include "box2d/b2_fixture.h"
 
 /**
 bA is currently assumed to be master body which is possibly connected to multiple

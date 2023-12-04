@@ -1,19 +1,19 @@
 set(EP_SOURCE_FILES
 	ep_joint.cpp
-)
-set(MORE_EP_SOURCE_FILE	
 	main.cpp
 	test_entries.cpp
 	test.cpp
 	b2ep_joint.cpp
 	b2ep_rigid_joint_handler.cpp
 	b2ep_rigid_plastic_joint.cpp
+	b2ep_impulse_initializer.cpp
 	)
 
 set(EP_HEADER_FILES
 	b2ep_joint.h
 	b2ep_rigid_joint_handler.h
 	b2ep_rigid_plastic_joint.h
+	b2ep_impulse_initializer.h
 	beam.h
 	draw.h
 	ep_car.h
@@ -60,11 +60,14 @@ set(EP_HEADER_FILES
 	../../include/box2d/b2_wheel_joint.h
 	../../include/box2d/b2_world.h
 	../../include/box2d/b2_world_callbacks.h
-	../../include/box2d/box2d.h)
+	../../include/box2d/box2d.h
+	../../src/dynamics/b2_island.h
+	)
 
 add_executable(ep ${EP_SOURCE_FILES})
 target_include_directories(ep PRIVATE 
 	../../include 
+	../../src
 	../../extern/glad/include 
 	../../extern/glfw/include 
 	../../extern

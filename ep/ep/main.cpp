@@ -17,9 +17,9 @@
 *
 * Simo Nikula modified starting 2017/02
 */
-
+#define _CRT_SECURE_NO_WARNINGS
 #include <imgui/imgui.h>
-#include <imgui/imgui_impl_glfw_gl3.h>
+
 #include "draw.h"
 #include "test.h"
 #include "ep_joint.h"
@@ -35,6 +35,8 @@
 #ifdef _WIN32
 #include <crtdbg.h>
 #endif
+#include "../../testbed/imgui_impl_glfw.h"
+#include "../../testbed/imgui_impl_opengl3.h"
 
 //
 struct UIState
@@ -89,7 +91,7 @@ static void sCreateUI(GLFWwindow* window)
 		}
 	}
 	fontSearchDone:
-	if (ImGui_ImplGlfwGL3_Init(window, false) == false)
+	if (ImGui_ImplGlfw_InitForOpenGL(window, false) == false)
 	{
 		fprintf(stderr, "Could not init GUI renderer.\n");
 		assert(false);
@@ -113,7 +115,7 @@ static void sResizeWindow(GLFWwindow*, int width, int height)
 //
 static void sKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	ImGui_ImplGlfwGL3_KeyCallback(window, key, scancode, action, mods);
+	ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
 	bool keys_for_ui = ImGui::GetIO().WantCaptureKeyboard;
 	if (keys_for_ui)
 		return;
@@ -255,13 +257,13 @@ static void sKeyCallback(GLFWwindow* window, int key, int scancode, int action, 
 //
 static void sCharCallback(GLFWwindow* window, unsigned int c)
 {
-	ImGui_ImplGlfwGL3_CharCallback(window, c);
+	ImGui_ImplGlfw_CharCallback(window, c);
 }
 
 //
 static void sMouseButton(GLFWwindow* window, int32 button, int32 action, int32 mods)
 {
-	ImGui_ImplGlfwGL3_MouseButtonCallback(window, button, action, mods);
+	ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
 
 	double xd, yd;
 	glfwGetCursorPos(mainWindow, &xd, &yd);
@@ -331,7 +333,7 @@ static void sMouseMotion(GLFWwindow*, double xd, double yd)
 //
 static void sScrollCallback(GLFWwindow* window, double dx, double dy)
 {
-	ImGui_ImplGlfwGL3_ScrollCallback(window, dx, dy);
+	ImGui_ImplGlfw_ScrollCallback(window, dx, dy);
 	bool mouse_for_ui = ImGui::GetIO().WantCaptureMouse;
 
 	if (!mouse_for_ui)
@@ -509,7 +511,7 @@ static void sInterface()
 			}
 		}
 		if (ImGui::CollapsingHeader("ElasticPlastic Joints",
-				NULL,true,test->OpenEPJoints())) {
+				test->OpenEPJoints())) {
 			ImGui::BeginGroup();
 			ImGui::Text("Epd steps");
 			ImGui::SameLine();
@@ -674,7 +676,7 @@ static void sInterface()
 				float zoom = g_camera.m_zoom;
 				p.x -= 1.5f*zoom;
 				p.y += 1.f*zoom;
-				g_draw.DrawString(p, "%s", buff);
+				g_debugDraw.DrawString(p, "%s", buff);
 				b2Vec2 np;
 				if (valueChanged){
 					np.x = rt->position[0];
@@ -828,7 +830,7 @@ static void sInterface()
 				b2Vec2 lp = p;
 				lp.x -= 1.5f*zoom;
 				lp.y += 1.f*zoom;
-				g_draw.DrawString(lp, "%s", lbuff);
+				g_debugDraw.DrawString(lp, "%s", lbuff);
 				b2Vec2 np;
 				if (valueChanged) {
 					np.x = rt->position[0];
@@ -911,16 +913,9 @@ int main(int, char**)
 	}
 
 	glfwMakeContextCurrent(mainWindow);
-
-#if defined(__APPLE__) == FALSE
 	// Load OpenGL functions using glad
-	if (gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) == 0)
-	{
-		printf("Failed to initialize OpenGL context\n");
-		return -1;
-	}
-#endif
-
+	int version = gladLoadGL(glfwGetProcAddress);
+	printf("GL %d.%d\n", GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
 	printf("OpenGL %s, GLSL %s\n", 
 		glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
 
@@ -932,7 +927,7 @@ int main(int, char**)
 	glfwSetCursorPosCallback(mainWindow, sMouseMotion);
 	glfwSetScrollCallback(mainWindow, sScrollCallback);
 
-	g_draw.Create();
+	g_debugDraw.Create();
 
 	sCreateUI(mainWindow);
 
@@ -960,7 +955,8 @@ int main(int, char**)
 		glfwGetWindowSize(mainWindow, &g_camera.m_width, &g_camera.m_height);
 		glViewport(0, 0, g_camera.m_width, g_camera.m_height);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		ImGui_ImplGlfwGL3_NewFrame();
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
 		ImGui::SetNextWindowPos(ImVec2(0, 0));
 		ImGui::SetNextWindowSize(ImVec2((float)g_camera.m_width, (float)g_camera.m_height));
 		opened = ImGui::Begin("Overlay", NULL, ImVec2(0, 0), 0.0f,
@@ -993,9 +989,9 @@ int main(int, char**)
 	}
 	Test::DeleteRigidTriangles();
 	Test::DeleteEPBeams();
-	g_draw.Destroy();
-	ImGui_ImplGlfwGL3_Shutdown();
+	g_debugDraw.Destroy();
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
 	glfwTerminate();
-
 	return 0;
 }

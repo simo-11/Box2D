@@ -32,6 +32,7 @@ struct B2_API b2Profile
 	float collide;
 	float solve;
 	float solveInit;
+	float initImpulse; // ep
 	float solveVelocity;
 	float solvePosition;
 	float broadphase;

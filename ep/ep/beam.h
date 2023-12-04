@@ -22,6 +22,7 @@
 #define BEAM_H
 #include <imgui/imgui.h>
 #include "Test.h"
+#include <b2ep_rigid_plastic_joint.h>
 // It is difficult to make a cantilever made of links completely rigid with weld joints.
 // You will have to use a high number of iterations to make them stiff.
 // So why not go ahead and use soft weld joints? They behave like a revolute
@@ -122,7 +123,7 @@ public:
 			ImGui::SetNextWindowSize(ImVec2((float)menuWidth, (float)g_camera.m_height - 20));
 			if (ImGui::Begin("Beam Controls##Bean", &showMenu,
 				ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize)){
-				if (showControls() && ImGui::CollapsingHeader("Settings", "BeamSettings"))
+				if (showControls() && ImGui::CollapsingHeader("Settings", 0))
 				{
 					ImGui::Text("sub body count");
 					ImGui::SliderInt("##sub body count", &so_count, 1, 50);
@@ -170,7 +171,7 @@ public:
 					}
 				}
 				float locs[4] = { 40, 80, 120, 160 };
-				if (ImGui::CollapsingHeader("Joint forces MN/MNm", 0, true, openLists))
+				if (ImGui::CollapsingHeader("Joint forces MN/MNm", true))
 				{
 					ImGui::Text(" x-f"); ImGui::SameLine(locs[0]);
 					ImGui::Text(" y-f"); ImGui::SameLine(locs[1]);
@@ -197,7 +198,7 @@ public:
 					}
 				}
 				if (showElasticPlastic && ImGui::CollapsingHeader
-					("Capacity usage [%]", 0, true, openLists))
+					("Capacity usage [%]", 0, true))
 				{
 					ImGui::Text(" x"); ImGui::SameLine(locs[0]);
 					ImGui::Text(" y"); ImGui::SameLine(locs[1]);
@@ -218,7 +219,7 @@ public:
 					LogEpCapasityForSelectedJoints(locs);
 				}
 				float jelocs[] = { 100 };
-				if (ImGui::CollapsingHeader("Joint errors", 0, true, openLists))
+				if (ImGui::CollapsingHeader("Joint errors", 0, true))
 				{
 					ImGui::Text(" p"); ImGui::SameLine(jelocs[0]);
 					ImGui::Text(" a");
@@ -245,19 +246,19 @@ public:
 	}
 	virtual void drawNotes(){
 		if (addHard){
-			g_draw.DrawString(noteWeld1, "WeldJoint");
+			g_debugDraw.DrawString(noteWeld1, "WeldJoint");
 		}
 		if (addFriction) {
-			g_draw.DrawString(noteFriction1, "FrictionJoint");
+			g_debugDraw.DrawString(noteFriction1, "FrictionJoint");
 		}
 		if (addSoft){
-			g_draw.DrawString(noteSoftWeld1, "Soft WeldJoint");
+			g_debugDraw.DrawString(noteSoftWeld1, "Soft WeldJoint");
 		}
 		if (addElasticPlastic){
-			g_draw.DrawString(noteElasticPlastic1, "ElasticPlasticJoint");
+			g_debugDraw.DrawString(noteElasticPlastic1, "ElasticPlasticJoint");
 		}
 		if (addRigidPlastic) {
-			g_draw.DrawString(noteRigidPlastic1, "RigidPlasticJoint");
+			g_debugDraw.DrawString(noteRigidPlastic1, "RigidPlasticJoint");
 		}
 	}
 	static Test* Create(Settings *settings)
@@ -280,7 +281,7 @@ bool Beam::isMyType(){
 
 void Beam::BeamExtraUi()
 {
-	if (ImGui::CollapsingHeader("BeamOptions", 0, true, openLists)) {
+	if (ImGui::CollapsingHeader("BeamOptions", 0, true)) {
 		float uihx=0.f,by=0.f;
 		if (ImGui::Button("None")) {
 			bo::reset();
@@ -516,7 +517,7 @@ void Beam::build(){
 
 		b2EdgeShape shape;
 		float floorLevel = 0;
-		shape.Set(b2Vec2(getFloorMinX(), floorLevel),
+		shape.SetTwoSided(b2Vec2(getFloorMinX(), floorLevel),
 			b2Vec2(getFloorMaxX(), floorLevel));
 		ground->CreateFixture(&shape, 0.0f);
 	}
@@ -615,8 +616,6 @@ void Beam::build(){
 		fd.density = density;
 
 		b2WeldJointDef jd;
-		jd.frequencyHz = baseHz;
-		jd.dampingRatio = baseDampingRatio;
 
 		b2Body* prevBody = sbody;
 		noteSoftWeld1.Set(-hy, sy + 2 + hy);
@@ -995,7 +994,7 @@ inline bool EmptyBeam::isMyType()
 
 void EmptyBeam::BeamExtraUi()
 {
-	if (ImGui::CollapsingHeader("EmptyBeamOptions",0,true,openLists)) {
+	if (ImGui::CollapsingHeader("EmptyBeamOptions",0,true)) {
 		if (ImGui::Checkbox("CS1", &ebo::cs1)) {
 			settings->bombShape = CIRCLE;
 			settings->bombVelocity = b2Vec2(5, 0);

@@ -18,11 +18,11 @@
 * Modifications for ep by Simo Nikula
 */
 
-#include "Test.h"
-#include "Beam.h"
-#include "Frame.h"
-#include "EPCar.h"
-#include "ImGuiDemo.h"
+#include "test.h"
+#include "beam.h"
+#include "frame.h"
+#include "ep_car.h"
+#include "im_gui_demo.h"
 
 
 TestEntry g_testEntries[] =

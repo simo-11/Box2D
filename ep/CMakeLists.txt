@@ -16,10 +16,12 @@ set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bin")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bin")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bin")
+set(BOX2D_BIN_DIR "../../build")
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 add_subdirectory(ep)
+add_subdirectory(.. "${BOX2D_BIN_DIR}")
 
 # default startup project for Visual Studio
 if (MSVC)

@@ -63,7 +63,7 @@ public:
 			ImGui::SetNextWindowSize(ImVec2((float)menuWidth, (float)g_camera.m_height - 20));
 			if (ImGui::Begin("Frame Controls##Bean", &showMenu,
 				ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize)) {
-				if (ImGui::CollapsingHeader("Settings", "FrameSettings"))
+				if (ImGui::CollapsingHeader("Settings"))
 				{
 					ImGui::Text("sub body count");
 					ImGui::SliderInt("##sub body count", &b2Frame::so_count, 1, 50);
@@ -205,7 +205,7 @@ void Frame::build() {
 
 		b2EdgeShape shape;
 		float floorLevel = 0;
-		shape.Set(b2Vec2(-totalLength, floorLevel),
+		shape.SetTwoSided(b2Vec2(-totalLength, floorLevel),
 			b2Vec2(2*totalLength, floorLevel));
 		ground->CreateFixture(&shape, 0.0f);
 	}

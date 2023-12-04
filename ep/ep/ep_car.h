@@ -82,7 +82,7 @@ public:
 			fd.density = 0.0f;
 			fd.friction = epCar::groundFriction;
 
-			shape.Set(b2Vec2(-50.0f, 0.0f), b2Vec2(20.0f, 0.0f));
+			shape.SetTwoSided(b2Vec2(-50.0f, 0.0f), b2Vec2(20.0f, 0.0f));
 			ground->CreateFixture(&fd);
 
 			float hs[10] = { 0.25f, 1.0f, 4.0f, 0.0f, 0.0f, -1.0f, -2.0f, -2.0f, -1.25f, 0.0f };
@@ -92,29 +92,29 @@ public:
 			for (int32 i = 0; i < 10; ++i)
 			{
 				float y2 = hs[i];
-				shape.Set(b2Vec2(x, y1), b2Vec2(x + dx, y2));
+				shape.SetTwoSided(b2Vec2(x, y1), b2Vec2(x + dx, y2));
 				ground->CreateFixture(&fd);
 				y1 = y2;
 				x += dx;
 			}
 
-			shape.Set(b2Vec2(x, 0.0f), b2Vec2(x + 40.0f, 0.0f));
+			shape.SetTwoSided(b2Vec2(x, 0.0f), b2Vec2(x + 40.0f, 0.0f));
 			ground->CreateFixture(&fd);
 
 			x += 40.0f;
-			shape.Set(b2Vec2(x, 0.0f), b2Vec2(x + 40.0f, 0.0f));
+			shape.SetTwoSided(b2Vec2(x, 0.0f), b2Vec2(x + 40.0f, 0.0f));
 			ground->CreateFixture(&fd);
 
 			x += 40.0f;
-			shape.Set(b2Vec2(x, 0.0f), b2Vec2(x + 20.0f, 5.0f));
+			shape.SetTwoSided(b2Vec2(x, 0.0f), b2Vec2(x + 20.0f, 5.0f));
 			ground->CreateFixture(&fd);
 
 			x += 20.0f;
-			shape.Set(b2Vec2(x, 5.0f), b2Vec2(x + 40.0f, 0.0f));
+			shape.SetTwoSided(b2Vec2(x, 5.0f), b2Vec2(x + 40.0f, 0.0f));
 			ground->CreateFixture(&fd);
 
 			x += 40.0f;
-			shape.Set(b2Vec2(x, 0.0f), b2Vec2(x+100.f, 0.0f));
+			shape.SetTwoSided(b2Vec2(x, 0.0f), b2Vec2(x+100.f, 0.0f));
 			ground->CreateFixture(&fd);
 
 			{
@@ -204,16 +204,12 @@ public:
 			jd.motorSpeed = 0.0f;
 			jd.maxMotorTorque = epCar::wheelFrictionTorque;
 			jd.enableMotor = true;
-			jd.frequencyHz = epCar::hz;
-			jd.dampingRatio = epCar::zeta;
 			m_spring1 = (b2WheelJoint*)m_world->CreateJoint(&jd);
 
 			jd.Initialize(m_Car, m_wheel2, m_wheel2->GetPosition(), axis);
 			jd.motorSpeed = 0.0f;
 			jd.maxMotorTorque = epCar::wheelFrictionTorque;
 			jd.enableMotor = true;
-			jd.frequencyHz = epCar::hz;
-			jd.dampingRatio = epCar::zeta;
 			m_spring2 = (b2WheelJoint*)m_world->CreateJoint(&jd);
 		}
 	}
@@ -327,11 +323,11 @@ public:
 		}
 		int32 tx = (g_camera.m_width - 200) / 2;
 		int32 ty = g_camera.m_height / 2;
-		g_draw.DrawString(tx,ty,"Keys: left = a, brake = s, right = d");
+		g_debugDraw.DrawString(tx,ty,"Keys: left = a, brake = s, right = d");
 		ty += DRAW_STRING_NEW_LINE;
-		g_draw.DrawString(tx, ty, "  cruise control = c, currently %s", (cruiseControl?"on":"off"));
+		g_debugDraw.DrawString(tx, ty, "  cruise control = c, currently %s", (cruiseControl?"on":"off"));
 		ty += DRAW_STRING_NEW_LINE;
-		g_draw.DrawString(tx,ty,
+		g_debugDraw.DrawString(tx,ty,
 			"%s %.0f rad/s, %.0f rad/s, %.0f m/s, %0.f km/h",
 			tc,rs1,rs2,s,3.6f*s);
 	}
@@ -343,18 +339,8 @@ public:
 			ImGui::SetNextWindowSize(ImVec2((float)menuWidth, (float)g_camera.m_height - 20));
 			if (ImGui::Begin("Car Controls##EPCar", &showMenu,
 				ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize)) {
-				if (ImGui::CollapsingHeader("Settings", "CarSettings"))
+				if (ImGui::CollapsingHeader("Settings"))
 				{
-					ImGui::Text("Frequency for car suspension");
-					if (ImGui::SliderFloat("Hz##Hertz", &epCar::hz, 0.f, 10.f, "%.1f")) {
-						m_spring1->SetSpringFrequencyHz(epCar::hz);
-						m_spring2->SetSpringFrequencyHz(epCar::hz);
-					}
-					ImGui::Text("DampingRatio for car suspension");
-					if (ImGui::SliderFloat("##dratio", &epCar::zeta, 0.f, 1.0f, "%.2f")) {
-						m_spring1->SetSpringDampingRatio(epCar::zeta);
-						m_spring2->SetSpringDampingRatio(epCar::zeta);
-					}
 					ImGui::Text("Length");
 					ImGui::SliderFloat("##length", &epCar::length, 3.f, 10.0f, "%.1f");
 					ImGui::Text("Density");

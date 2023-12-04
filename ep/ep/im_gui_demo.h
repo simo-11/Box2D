@@ -22,7 +22,7 @@ public:
 		if (open)
 		{
 			ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiSetCond_FirstUseEver);
-			ImGui::ShowTestWindow(&open);
+			ImGui::ShowTestWindow();
 		}
 	}
 	virtual bool WantRigidTriangles(){

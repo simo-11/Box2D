@@ -22,9 +22,9 @@
 #ifndef B2_RIGID_PLASTIC_JOINT_H
 #define B2_RIGID_PLASTIC_JOINT_H
 
-#include "Box2D/Dynamics/Joints/b2Joint.h"
-#include "Box2D/Dynamics/Joints/b2ElasticPlasticJoint.h"
-#include "Box2D/Dynamics/b2ImpulseInitializer.h"
+#include "box2d/b2_joint.h"
+#include "b2ep_joint.h"
+#include "b2ep_Impulse_Initializer.h"
 
 struct b2RigidPlasticJointDef : public b2ElasticPlasticJointDef
 {
