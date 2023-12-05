@@ -23,10 +23,11 @@
 */
 
 #include "b2ep_joint.h"
-#include "dynamics/b2_body.h"
-#include "dynamics/b2_world.h"
-#include "common/b2_block_allocator.h"
-#include "dynamics/b2_fixture.h"
+#include "box2d/b2_body.h"
+#include "box2d/b2_world.h"
+#include "box2d/b2_block_allocator.h"
+#include "box2d/b2_fixture.h"
+#include "b2ep_impulse_initializer.h"
 
 /*
 These are smaller than normal b2 limits as

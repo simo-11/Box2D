@@ -22,6 +22,7 @@
 #define B2_ELASTIC_PLASTIC_JOINT_H
 
 #include "box2d/b2_joint.h"
+#include "b2ep_impulse_initializer.h"
 #include <bitset>
 
 enum SOLVE_ORDER {

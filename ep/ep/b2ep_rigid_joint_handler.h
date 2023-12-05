@@ -35,7 +35,7 @@ For other scenarios work is needed.
 #ifndef B2_RIGID_JOINT_HANDLER_H
 #define B2_RIGID_JOINT_HANDLER_H
 
-#include "dynamics/joints/b2_joint.h"
+#include "box2d/b2_joint.h"
 #include "b2ep_joint.h"
 #include "b2ep_impulse_initializer.h"
 

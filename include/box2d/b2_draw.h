@@ -94,9 +94,20 @@ public:
 
 	/// Draw a point.
 	virtual void DrawPoint(const b2Vec2& p, float size, const b2Color& color) = 0;
+	// ep
+	void SetInvDt(float val) { m_inv_dt = val; }
+	float GetInvDt() { return m_inv_dt; }
+	// forceScale should be set so that maximum force is visually helpful
+	void SetForceScale(float scale) { m_forceScale = scale; }
+	float GetForceScale() { return m_forceScale; }
+	void SetMomentScale(float scale) { m_momentScale = scale; }
+	float GetMomentScale() { return m_momentScale; }
 
 protected:
 	uint32 m_drawFlags;
+	// ep
+	float m_inv_dt;
+	float m_forceScale, m_momentScale;
 };
 
 #endif

@@ -19,14 +19,14 @@
 */
 
 #include "box2d/b2_Distance.h"
-#include "box2d/dynamics/b2_Island.h"
+#include "dynamics/b2_Island.h"
 #include "b2ep_Impulse_Initializer.h"
 #include "b2ep_joint.h"
 #include "box2d/b2_Body.h"
 #include "box2d/b2_Fixture.h"
 #include "box2d/b2_World.h"
 #include "box2d/b2_Contact.h"
-#include "box2d/b2_ContactSolver.h"
+#include "dynamics/b2_Contact_Solver.h"
 #include "box2d/b2_Joint.h"
 #include "Box2d/b2_Stack_Allocator.h"
 #include "Box2d/b2_Timer.h"
@@ -59,7 +59,7 @@ than current one.
 Currently start point is assumed to be connected to rigid body.
 */
 b2Vec3 b2ImpulseInitializer::addImpulses(b2ElasticPlasticJoint* startJoint){
-	float32 h = solverData->step.dt;
+	float h = solverData->step.dt;
 	b2Body* b = startJoint->GetBodyA();
 	b2Vec2 jointPoint = startJoint->GetAnchorA();
 	b2Vec2 d,sp;
@@ -75,9 +75,9 @@ b2Vec3 b2ImpulseInitializer::addImpulses(b2ElasticPlasticJoint* startJoint){
 		startJoint->bInitialized = true;
 	}
 	b2Vec3 p;
-	float32 sm = b->GetMass()*b->m_gravityScale;
+	float sm = b->GetMass()*b->m_gravityScale;
 	b2Vec2 f = sm* (*gravity) + b->m_force;
-	float32 m = b->m_torque - b2Cross(d, f);
+	float m = b->m_torque - b2Cross(d, f);
 	p.Set(f.x, f.y, m);
 	p = h*p;
 	// add impulses from contacts
@@ -177,18 +177,17 @@ b2Vec3 b2ImpulseInitializer::getContactImpulses(b2Body * b)
 		else {
 			continue;
 		}
-		b2MassData massData;
-		bO->GetMassData(&massData);
-		float32 mO = bO->m_mass;
+		b2MassData massData=bO->GetMassData();
+		float mO = bO->m_mass;
 		if (mO == 0.f) {
 			continue;
 		}
-		float32 iO = bO->m_I;
+		float iO = bO->m_I;
 		int32  bi = bO->m_islandIndex;
-		// float32 aO = solverData->positions[bi].a;
+		// float aO = solverData->positions[bi].a;
 		b2Vec2 pO = solverData->positions[bi].c;
 		b2Vec2 vO = solverData->velocities[bi].v;
-		float32 wO = solverData->velocities[bi].w;
+		float wO = solverData->velocities[bi].w;
 		cv.x += mO*vO.x;
 		cv.y += mO*vO.y;
 		b2Vec2 f(cv.x,cv.y);
@@ -252,13 +251,13 @@ b2ElasticPlasticJoint* b2ImpulseInitializer::getNextJoint
 bool b2ImpulseInitializer::isNearEnough
 (b2ElasticPlasticJoint* joint){
 	b2Vec2 jp = joint->GetAnchorA();
-	float32 d = (currentStartJoint->GetAnchorA()-jp).LengthSquared();
+	float d = (currentStartJoint->GetAnchorA()-jp).LengthSquared();
 	for (int32 i = 0; i < startJointCount; i++){
 		b2ElasticPlasticJoint* startJoint = sjStack[i];
 		if (startJoint == joint){
 			continue;
 		}
-		float32 dc = (startJoint->GetAnchorA() - jp).LengthSquared();
+		float dc = (startJoint->GetAnchorA() - jp).LengthSquared();
 		if (dc < d){
 			return false;
 		}

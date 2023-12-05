@@ -72,3 +72,51 @@ void b2CloseDump()
 	fclose(b2_dumpFile);
 	b2_dumpFile = nullptr;
 }
+
+// ep
+FILE* fout = NULL;
+int epLogBytes;
+int maxEpLogBytes = 1 << 23;
+void epLogClose() {
+    if (fout != NULL && fout != stdout) {
+        fclose(fout);
+        fout = NULL;
+    }
+    epLogActive = true;
+}
+void epLog(const char* string, ...) {
+    if (!epLogActive || !epLogEnabled) {
+        return;
+    }
+    if (!fout) {
+        const char* fn = "ep-log.txt";
+        fout = fopen(fn, "w");
+        if (fout) {
+            b2Log("ep-logging to %s, maxEpLogBytes=%d\n", fn, maxEpLogBytes);
+            epLogBytes = 0;
+        }
+        else {
+            b2Log("Could not open %s, ep-logging to stdout", fn);
+            fout = stdout;
+        }
+    }
+    va_list args;
+    va_start(args, string);
+    int bytes = vfprintf(fout, string, args);
+    if (bytes < 0) {
+        b2Log("epLog failed\n");
+        b2Log("epLog failed\n");
+        perror(string);
+    }
+    va_end(args);
+    fflush(fout);
+    epLogBytes += bytes;
+    if (epLogBytes > maxEpLogBytes) {
+        epLogEnabled = false;
+        b2Log("ep-logging stopped after %d bytes\n", epLogBytes);
+        epLogClose();
+    }
+}
+
+bool epLogActive = true;
+bool epLogEnabled = false;

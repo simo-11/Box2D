@@ -1250,7 +1250,7 @@ void Test::LogJoint(b2Joint* j, float fScale, float mScale, float* locs,
 }
 
 void Test::StartTextHighLight(){
-	ImGui::PushStyleColor(ImGuiCol_Text, ImColor(1.f, 0.6f, 0.6f));
+	ImGui::PushStyleColor(ImGuiCol_Text, ImColor(1.f, 0.6f, 0.6f).Value);
 }
 
 void Test::EndTextHighLight() {
