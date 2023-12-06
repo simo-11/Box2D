@@ -7,20 +7,19 @@ set(EP_SOURCE_FILES
 	b2ep_rigid_joint_handler.cpp
 	b2ep_rigid_plastic_joint.cpp
 	b2ep_impulse_initializer.cpp
+	imgui_impl_glfw.cpp
+	imgui_impl_opengl3.cpp
+	draw.cpp
 	)
 
 set(EP_HEADER_FILES
-	b2ep_joint.h
-	b2ep_rigid_joint_handler.h
-	b2ep_rigid_plastic_joint.h
-	b2ep_impulse_initializer.h
 	beam.h
 	draw.h
 	ep_car.h
-	ep_joint.h
 	frame.h
 	im_gui_demo.h
 	test.h
+	../../include/box2d/b2ep_joint.h
 	../../include/box2d/b2_api.h
 	../../include/box2d/b2_block_allocator.h
 	../../include/box2d/b2_body.h

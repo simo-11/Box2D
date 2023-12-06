@@ -22,7 +22,9 @@
 #define B2_ELASTIC_PLASTIC_JOINT_H
 
 #include "box2d/b2_joint.h"
-#include "b2ep_impulse_initializer.h"
+#include "box2d/b2_math.h"
+#include "box2d/b2_body.h"
+#include "box2d/b2_time_step.h"
 #include <bitset>
 
 enum SOLVE_ORDER {
@@ -247,6 +249,106 @@ public:
 		B2_NOT_USED(joint);
 		B2_NOT_USED(data);
 	}
+};
+
+struct b2RigidPlasticJointDef : public b2ElasticPlasticJointDef
+{
+	b2RigidPlasticJointDef()
+	{
+		type = e_rigidPlasticJoint;
+		localAnchorA.Set(0.0f, 0.0f);
+		localAnchorB.Set(0.0f, 0.0f);
+		referenceAngle = 0.0f;
+		dampingRatio = 0.0f;
+		maxElasticRotation = 0.f;
+		maxTorque = 0.f;
+	}
+
+	/// Initialize the bodies and offsets using the current transforms.
+	void Initialize(b2Body* bodyA, b2Body* bodyB, const b2Vec2& anchor);
+};
+
+class b2RigidPlasticJoint  : public b2ElasticPlasticJoint
+{
+public:
+	b2Vec2 GetReactionForce(float inv_dt) const;
+	float GetReactionTorque(float inv_dt) const;
+	void UpdatePlasticity(const b2SolverData & data);
+	virtual bool hasPositionIterations() {
+		return false;
+	}
+	void Dump();
+protected:
+	friend class b2Joint;
+	friend class b2ImpulseInitializer;
+	friend class b2Island;
+	b2RigidPlasticJoint(const b2RigidPlasticJointDef* def);
+	void InitVelocityConstraints(const b2SolverData& data);
+	void SolveVelocityConstraints(const b2SolverData& data);
+	bool SolvePositionConstraints(const b2SolverData& data);
+	b2Mat22 m_linearMass;
+	float m_angularMass;
+	b2Vec2 m_linearImpulse;
+	float m_angularImpulse;
+};
+
+class b2Contact;
+class b2Joint;
+class b2StackAllocator;
+class b2ContactListener;
+struct b2ContactVelocityConstraint;
+struct b2Profile;
+
+/// This is an internal class.
+class b2ImpulseInitializer
+{
+public:
+	b2ImpulseInitializer(){};
+	~b2ImpulseInitializer(){};
+
+	void InitImpulses();
+	b2Vec3 addImpulses(b2ElasticPlasticJoint*);
+	void checkImpulses(b2ElasticPlasticJoint*);
+	b2Vec3 getContactImpulses(b2Body *b);
+	b2ElasticPlasticJoint* getNextJoint(b2ElasticPlasticJoint*);
+	bool isNearEnough(b2ElasticPlasticJoint*);
+	const b2Vec2* gravity;
+	b2Island* island;
+	b2SolverData* solverData;
+	int32 nonDynamicBodyCount = 0, startJointCount = 0, epCount = 0;
+	b2Body** ndbStack = NULL; // non dynamic bodies
+	b2ElasticPlasticJoint** sjStack = NULL; // corresponding starting joints
+	b2ElasticPlasticJoint* currentStartJoint;
+	b2ElasticPlasticJoint** epStack = NULL; // all ep joints
+	int32 bodyCount=0, jointCount=0, contactCount=0;
+	bool IsInitImpulsesNeeded(b2Island*);
+};
+
+/**
+If joined impulse components in m_jim are not too high
+sync other bodies (mB:s in ejStack) to match mA using rigid body statistics
+and add required impulses.
+If limits are exceeded during process restart is needed.
+To avoid restarts mA should be picked well.
+Currently it is done manually.
+
+For simple moment limited cases (cantilever beam) nearest mB can be used as master body
+if moment is exceeded.
+
+For other scenarios work is needed.
+*/
+class b2RigidJointHandler
+{
+public:
+	b2RigidJointHandler();
+	b2ElasticPlasticJoint* masterJoint;
+	int32 mbi; // master body index
+	int32 ejCount;
+	b2ElasticPlasticJoint** ejStack;
+	b2SolverData* data;
+	void handle(),reset(),handleLoads(),updateBodies();
+	void handleMoment(), handleForce();
+	void checkLimits();
 };
 
 #endif

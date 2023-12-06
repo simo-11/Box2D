@@ -185,6 +185,18 @@ b2Island::~b2Island()
 	m_allocator->Free(m_bodies);
 }
 
+// ep
+namespace {
+	bool doInitImpulses = false;
+}
+bool b2Island::IsInitImpulses() {
+	return doInitImpulses;
+}
+void b2Island::SetInitImpulses(bool value) {
+	doInitImpulses = value;
+}
+// end ep
+
 void b2Island::Solve(b2Profile* profile, const b2TimeStep& step, const b2Vec2& gravity, bool allowSleep)
 {
 	b2Timer timer;

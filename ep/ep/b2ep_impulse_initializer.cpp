@@ -20,8 +20,7 @@
 
 #include "box2d/b2_Distance.h"
 #include "dynamics/b2_Island.h"
-#include "b2ep_Impulse_Initializer.h"
-#include "b2ep_joint.h"
+#include "box2d/b2ep_joint.h"
 #include "box2d/b2_Body.h"
 #include "box2d/b2_Fixture.h"
 #include "box2d/b2_World.h"

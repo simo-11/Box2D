@@ -33,6 +33,7 @@
 #include "box2d/b2_revolute_joint.h"
 #include "box2d/b2_weld_joint.h"
 #include "box2d/b2_wheel_joint.h"
+#include "box2d/b2ep_joint.h"
 #include "box2d/b2_world.h"
 
 #include <new>
@@ -162,6 +163,22 @@ b2Joint* b2Joint::Create(const b2JointDef* def, b2BlockAllocator* allocator)
 			joint = new (mem) b2MotorJoint(static_cast<const b2MotorJointDef*>(def));
 		}
 		break;
+		// ep
+	case e_elasticPlasticJoint:
+	{
+		void* mem = allocator->Allocate(sizeof(b2ElasticPlasticJoint));
+		joint = new (mem)b2ElasticPlasticJoint
+		(static_cast<const b2ElasticPlasticJointDef*>(def));
+	}
+	break;
+
+	case e_rigidPlasticJoint:
+	{
+		void* mem = allocator->Allocate(sizeof(b2RigidPlasticJoint));
+		joint = new (mem)b2RigidPlasticJoint
+		(static_cast<const b2RigidPlasticJointDef*>(def));
+	}
+	break;
 
 	default:
 		b2Assert(false);
@@ -214,6 +231,13 @@ void b2Joint::Destroy(b2Joint* joint, b2BlockAllocator* allocator)
 
 	case e_motorJoint:
 		allocator->Free(joint, sizeof(b2MotorJoint));
+		break;
+		//ep
+	case e_elasticPlasticJoint:
+		allocator->Free(joint, sizeof(b2ElasticPlasticJoint));
+		break;
+	case e_rigidPlasticJoint:
+		allocator->Free(joint, sizeof(b2RigidPlasticJoint));
 		break;
 
 	default:

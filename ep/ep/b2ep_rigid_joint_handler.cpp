@@ -1,4 +1,4 @@
-#include "b2ep_rigid_joint_handler.h"
+#include "box2d/b2ep_joint.h"
 
 b2RigidJointHandler::b2RigidJointHandler()
 {

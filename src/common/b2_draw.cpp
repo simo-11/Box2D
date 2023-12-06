@@ -24,6 +24,11 @@
 b2Draw::b2Draw()
 {
 	m_drawFlags = 0;
+	// ep
+	m_inv_dt=0;
+	m_forceScale = 0;
+	m_momentScale=0;
+
 }
 
 void b2Draw::SetFlags(uint32 flags)

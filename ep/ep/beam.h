@@ -22,7 +22,7 @@
 #define BEAM_H
 #include <imgui/imgui.h>
 #include "Test.h"
-#include <b2ep_rigid_plastic_joint.h>
+#include <box2d/b2ep_joint.h>
 // It is difficult to make a cantilever made of links completely rigid with weld joints.
 // You will have to use a high number of iterations to make them stiff.
 // So why not go ahead and use soft weld joints? They behave like a revolute

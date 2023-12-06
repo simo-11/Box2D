@@ -21,7 +21,7 @@
 * Main focus is on bending.
 */
 
-#include "b2ep_rigid_plastic_joint.h"
+#include "box2d/b2ep_joint.h"
 #include "box2d/b2_body.h"
 #include "box2d/b2_world.h"
 #include "box2d/b2_block_allocator.h"

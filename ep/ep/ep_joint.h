@@ -25,7 +25,7 @@
 
 #include <box2d/box2d.h>
 #include "draw.h"
-#include "b2ep_joint.h"
+#include "box2d/b2ep_joint.h"
 #include "test.h"
 #include <stdlib.h>
 struct Settings;
@@ -74,6 +74,10 @@ struct EPBeam
 		label = 1;
 		next = nullptr;
 		body = nullptr;
+		joint = nullptr;
+		sBody = nullptr;
+		position[0] = 0;
+		position[1] = 0;
 	}
 	void translate(b2Vec2 t);
 };
@@ -100,7 +104,7 @@ struct SelectedEPJoint
 struct RigidTriangle
 {
 	unsigned char label;
-	float position[2];
+	float position[2] = {};
 	b2Body * body;
 	RigidTriangle* next;
 	RigidTriangle() {

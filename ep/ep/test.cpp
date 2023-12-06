@@ -16,6 +16,7 @@
 * 3. This notice may not be removed or altered from any source distribution.
 */
 #define DEFINE_EPTEST_NS
+#define _CRT_SECURE_NO_WARNINGS
 #include "test.h"
 #include "ep_joint.h"
 #include <stdio.h>

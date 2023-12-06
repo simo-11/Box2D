@@ -75,8 +75,10 @@ static void sCreateUI(GLFWwindow* window)
 	ui.showMenu = true;
 
 	// Init UI
-	const char* fontName = "DroidSans.ttf";
-	char* dirs[] = { "../../Testbed/Data/", "", NULL };
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	const char* fontName = "droid_sans.ttf";
+	char* dirs[] = { "../../testbed/data/", "", NULL };
 	const int blen = 50;
 	char buff[blen];
 	for (int i = 0; dirs[i]; i++){
@@ -90,7 +92,7 @@ static void sCreateUI(GLFWwindow* window)
 			fprintf(stdout, "font file %s is not available\n",buff);
 		}
 	}
-	fontSearchDone:
+fontSearchDone:
 	if (ImGui_ImplGlfw_InitForOpenGL(window, false) == false)
 	{
 		fprintf(stderr, "Could not init GUI renderer.\n");
@@ -701,7 +703,6 @@ static void sInterface()
 				settings.addEPBeams = false;
 			}
 			if (ImGui::Button("Add at @")) {
-				b2Vec2 p;
 				test->AddMass(settings.addMassPoint);
 			}
 			ImGui::SameLine();
@@ -957,6 +958,7 @@ int main(int, char**)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
 		ImGui::SetNextWindowPos(ImVec2(0, 0));
 		ImGui::SetNextWindowSize(ImVec2((float)g_camera.m_width, (float)g_camera.m_height));
 		opened = ImGui::Begin("Overlay", NULL, ImVec2(0, 0), 0.0f,
