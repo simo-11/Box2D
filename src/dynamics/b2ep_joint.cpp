@@ -841,3 +841,637 @@ void b2ElasticPlasticJoint::Dump()
 	b2Log("  jd.dampingRatio = %.15lef;\n", m_dampingRatio);
 	b2Log("  joints[%d] = m_world->CreateJoint(&jd);\n", m_index);
 }
+#include "box2d/b2ep_joint.h"
+
+b2RigidJointHandler::b2RigidJointHandler()
+{
+}
+
+void b2RigidJointHandler::handle()
+{
+	reset();
+	checkLimits();
+	handleLoads();
+	updateBodies();
+}
+
+void b2RigidJointHandler::reset()
+{
+	mbi = masterJoint->m_mbi;
+}
+
+void b2RigidJointHandler::handleLoads()
+{
+	handleMoment();
+	handleForce();
+}
+
+void b2RigidJointHandler::updateBodies()
+{
+	b2Vec2 cA= data->positions[mbi].c;
+	// float aA = data->positions[mbi].a;
+	b2Vec2 vA = data->velocities[mbi].v;
+	float wA = data->velocities[mbi].w;
+	b2Rot r;
+	r.SetIdentity();
+	for (int32 i = 0; i < ejCount; i++) {
+		b2ElasticPlasticJoint* joint = ejStack[i];
+		int ib = joint->m_indexB;
+		if (ib == mbi) {
+			continue;
+		}
+		b2Vec2 cB = data->positions[ib].c;
+		b2Vec2 vB= vA + b2Cross(wA, cB - cA);
+		float wB=wA;
+		data->velocities[ib].v = vB;
+		data->velocities[ib].w = wB;
+	}
+}
+
+void b2RigidJointHandler::handleForce()
+{
+}
+
+/**
+* for non overload
+* reset to state at beginning of step
+* for overload
+* get joint inertia of b-bodies
+* and update velocities 
+*/
+void b2RigidJointHandler::handleMoment()
+{
+	/* velocities from beginning of step are used */
+	b2Body* b = masterJoint->m_bodyB;
+	b2Vec2 v = b->GetLinearVelocity();
+	float w = b->GetAngularVelocity();
+	if (!masterJoint->isOverLoaded(RZ)) {
+		int32 mba = masterJoint->m_indexA;
+		mbi = mba;
+		int32 mbb = masterJoint->m_indexB;
+		data->velocities[mbb].v = v;
+		data->velocities[mbb].w = w ;
+		return;
+	}
+	float jm = 0.f;
+	float ji = 0.f;
+	for (int32 i = 0; i < ejCount; i++) {
+		b2ElasticPlasticJoint* joint = ejStack[i];
+		b2Body* bb = joint->m_bodyB;
+		float m = bb->GetMass();
+		jm += m;
+		float mr2 = m * joint->m_rB.LengthSquared();
+		ji += mr2;
+		joint->setOverLoaded(RZ);
+	}
+	mbi = masterJoint->m_indexB;
+	if (masterJoint->m_mbi != mbi) {
+		masterJoint->m_mbi = mbi;
+		data->velocities[mbi].w = w;
+		data->velocities[mbi].v = v + b2Cross(w, masterJoint->m_rB);
+	}
+	float m = masterJoint->m_jim.z;
+	float mm = masterJoint->m_maxImpulse.z;
+	float em;
+	if (m > mm) {
+		em = m - mm;
+	}
+	else if(m<-mm) {
+		em = m + mm;
+	}
+	else {
+		em = m;
+	}
+	float dw = -em / ji;
+	b2Vec2 dv = -b2Cross(dw, masterJoint->m_rB);
+	data->velocities[mbi].v = v+dv;
+	data->velocities[mbi].w = w+dw;
+}
+
+void b2RigidJointHandler::checkLimits()
+{
+	bool v = b2Abs(masterJoint->m_jim.z) >= masterJoint->m_maxImpulse.z;
+	masterJoint->setOverLoaded(RZ, v);
+	v = b2Abs(masterJoint->m_jim.x) >= masterJoint->m_maxImpulse.x;
+	masterJoint->setOverLoaded(X, v);
+	v = b2Abs(masterJoint->m_jim.y) >= masterJoint->m_maxImpulse.y;
+	masterJoint->setOverLoaded(Y, v);
+}
+/*
+* Copyright (c) 2006-2012 Erin Catto http://www.box2d.org
+*
+* This software is provided 'as-is', without any express or implied
+* warranty.  In no event will the authors be held liable for any damages
+* arising from the use of this software.
+* Permission is granted to anyone to use this software for any purpose,
+* including commercial applications, and to alter it and redistribute it
+* freely, subject to the following restrictions:
+* 1. The origin of this software must not be misrepresented; you must not
+* claim that you wrote the original software. If you use this software
+* in a product, an acknowledgment in the product documentation would be
+* appreciated but is not required.
+* 2. Altered source versions must be plainly marked as such, and must not be
+* misrepresented as being the original software.
+* 3. This notice may not be removed or altered from any source distribution.
+* 
+* Simo Nikula started 2018
+* This constraint is designed to simulate ductile materials like
+* steel when elastic part cannot be taken into account due to high natural frequencies
+* Main focus is on bending.
+*/
+
+#include "box2d/b2ep_joint.h"
+#include "box2d/b2_body.h"
+#include "box2d/b2_world.h"
+#include "box2d/b2_block_allocator.h"
+#include "box2d/b2_fixture.h"
+
+/**
+bA is currently assumed to be master body which is possibly connected to multiple
+bodies
+*/
+void b2RigidPlasticJointDef::Initialize(b2Body* bA, b2Body* bB, const b2Vec2& anchor)
+{
+	bodyA = bA;
+	bodyB = bB;
+	localAnchorA = bodyA->GetLocalPoint(anchor);
+	localAnchorB = bodyB->GetLocalPoint(anchor);
+	referenceAngle = bodyB->GetAngle() - bodyA->GetAngle();
+}
+
+b2RigidPlasticJoint::b2RigidPlasticJoint(const b2RigidPlasticJointDef* def)
+: b2ElasticPlasticJoint(def)
+{
+}
+
+void b2RigidPlasticJoint::Dump()
+{
+	int32 indexA = m_bodyA->m_islandIndex;
+	int32 indexB = m_bodyB->m_islandIndex;
+
+	b2Log("  b2RigidPlasticJointDef jd;\n");
+	b2Log("  jd.bodyA = bodies[%d];\n", indexA);
+	b2Log("  jd.bodyB = bodies[%d];\n", indexB);
+	b2Log("  jd.collideConnected = bool(%d);\n", m_collideConnected);
+	b2Log("  jd.localAnchorA.Set(%.15lef, %.15lef);\n", m_localAnchorA.x, m_localAnchorA.y);
+	b2Log("  jd.localAnchorB.Set(%.15lef, %.15lef);\n", m_localAnchorB.x, m_localAnchorB.y);
+	b2Log("  jd.referenceAngle = %.15lef;\n", m_referenceAngle);
+	b2Log("  jd.maxForce = (%.15lef, %.15lef);\n", m_maxForce.x, m_maxForce.y);
+	b2Log("  jd.maxTorque = %.15lef;\n", m_maxTorque);
+	b2Log("  jd.maxStrain = %.15lef;\n", m_maxStrain);
+	b2Log("  jd.maxRotation = %.15lef;\n", m_maxRotation);
+	b2Log("  jd.dampingRatio = %.15lef;\n", m_dampingRatio);
+	b2Log("  joints[%d] = m_world->CreateJoint(&jd);\n", m_index);
+}
+
+void b2RigidPlasticJoint::InitVelocityConstraints(const b2SolverData& data)
+{
+	m_indexA = m_bodyA->m_islandIndex;
+	m_indexB = m_bodyB->m_islandIndex;
+	m_mbi = m_indexA;
+	savedOverLoads=overLoads;
+	overLoads.reset();
+	m_localCenterA = m_bodyA->m_sweep.localCenter;
+	m_localCenterB = m_bodyB->m_sweep.localCenter;
+	m_invMassA = m_bodyA->m_invMass;
+	m_invMassB = m_bodyB->m_invMass;
+	m_invIA = m_bodyA->m_invI;
+	m_invIB = m_bodyB->m_invI;
+	float aA = data.positions[m_indexA].a;
+	b2Vec2 vA = data.velocities[m_indexA].v;
+	float wA = data.velocities[m_indexA].w;
+	float aB = data.positions[m_indexB].a;
+	b2Vec2 vB = data.velocities[m_indexB].v;
+	float wB = data.velocities[m_indexB].w;
+	b2Rot qA(aA), qB(aB);
+	m_rA = b2Mul(qA, m_localAnchorA - m_localCenterA);
+	m_rB = b2Mul(qB, m_localAnchorB - m_localCenterB);
+	float mA = m_invMassA, mB = m_invMassB;
+	float iA = m_invIA, iB = m_invIB;
+	float iM = mA + mB;
+	m_linearMass.SetZero();
+	m_linearMass.ex.x = iM != 0.f ? 1.f / iM : 0.f;
+	m_linearMass.ey.y = m_linearMass.ex.x;
+	m_angularMass = iA + iB;
+	if (m_angularMass > 0.0f)
+	{
+		m_angularMass = 1.0f / m_angularMass;
+	}
+	if (wasOverLoaded(RZ)) {
+		m_dw0 = wB - wA;
+		//K.GetInverse22(&m_mass);
+		//float invM = iA + iB;
+		//m_mass.ez.z = invM != 0.0f ? 1.0f / invM : 0.0f;
+	}else{
+		m_dw0 = 0;
+	}
+	if (!initImpulseDone) {
+		m_linearImpulse.SetZero();
+		m_angularImpulse = 0.0f;
+		m_impulse.SetZero();
+	}
+	// ep
+	m_maxImpulse = GetMaxImpulse(data.step.dt);
+	velocityIteration = 0;
+	positionIteration = 0;
+	if (nullptr != debugListener) {
+		debugListener->EndInitVelocityConstraints(this, data);
+	}
+}
+
+bool b2RigidPlasticJoint::SolvePositionConstraints(const b2SolverData& data)
+{
+	if (isOverLoaded()) {
+		return true;
+	}
+	b2Vec2 cA = data.positions[m_indexA].c;
+	float aA = data.positions[m_indexA].a;
+	b2Rot qA(aA);
+	b2Vec2 rA = b2Mul(qA, m_localAnchorA - m_localAnchorB);
+	data.positions[m_indexB].c = cA+rA;
+	data.positions[m_indexB].a = aA;
+	return true;
+}
+
+void b2RigidPlasticJoint::SolveVelocityConstraints(const b2SolverData& data)
+{
+	b2Vec2 vA = data.velocities[m_indexA].v;
+	float wA = data.velocities[m_indexA].w;
+	b2Vec2 vB = data.velocities[m_indexB].v;
+	float wB = data.velocities[m_indexB].w;
+
+	float mA = m_invMassA, mB = m_invMassB;
+//	float iA = m_invIA, iB = m_invIB;
+#ifdef EP_LOG
+	if (epLogActive && epLogEnabled) {
+		if (mA != 0) {
+			epLog("RPJ:VC:%d vA1=%g %g %g\n", id,
+				vA.x, vA.y, wA);
+		}
+		if (mB != 0) {
+			epLog("RPJ:VC:%d vB1=%g %g %g\n", id,
+				vB.x, vB.y, wB);
+		}
+		epLog("RPJ:VC:%d m_impulse=%g %g %g\n", id,
+			m_impulse.x, m_impulse.y, m_impulse.z);
+	}
+#endif
+	if (nullptr != debugListener) {
+		debugListener->BeginVelocityIteration(this, data);
+	}
+	b2Vec3 impulse;
+	Cdot.SetZero();
+	impulse.SetZero();
+	float h = data.step.dt;
+	/** Adapted from b2Friction.cpp
+	*
+	*/
+	// Solve linear part
+	b2Vec2 lCdot = vB + b2Cross(wB, m_rB) - vA - b2Cross(wA, m_rA);
+	if (lCdot.LengthSquared() > 0.f) {
+		b2Vec2 lImpulse = -b2Mul(m_linearMass, lCdot);
+		b2Vec2 oldLImpulse = m_linearImpulse;
+		m_linearImpulse += lImpulse;
+		if (m_linearImpulse.LengthSquared() > m_maxForce.LengthSquared())
+		{
+			m_linearImpulse.Normalize();
+			m_linearImpulse *= m_maxForce.Length();
+		}
+		impulse.x = m_linearImpulse.x - oldLImpulse.x;
+		impulse.y = m_linearImpulse.y - oldLImpulse.y;
+		Cdot.x = lCdot.x;
+		Cdot.y = lCdot.y;
+		wA -= m_invIA * b2Cross(m_rA, lImpulse);
+		wB += m_invIB * b2Cross(m_rB, lImpulse);
+	}
+	// Solve angular part
+	float aCdot = wB - wA - m_dw0;
+	if (b2Abs(aCdot) > 0.f) {
+		float aImpulse = -m_angularMass * aCdot;
+		float oldAImpulse = m_angularImpulse;
+		float maxImpulse = h * m_maxTorque;
+		m_angularImpulse = b2Clamp
+		(m_angularImpulse + aImpulse, -maxImpulse, maxImpulse);
+		aImpulse = m_angularImpulse - oldAImpulse;
+		impulse.z = aImpulse;
+	}
+	Cdot.z = aCdot;
+	m_impulse += impulse;
+#ifdef EP_LOG
+	if (epLogActive && epLogEnabled) {
+		if (b2Dot(Cdot, Cdot) > 0.f) {
+			epLog("RPJ:VC:%d Cdot=%g %g %g\n", id,
+				Cdot.x, Cdot.y, Cdot.z);
+			epLog("RPJ:VC:%d impulse=%g %g %g\n", id,
+				impulse.x, impulse.y, impulse.z);
+		}
+	}
+#endif
+	if (nullptr != debugListener) {
+		debugListener->EndVelocityIteration(this, data);
+	}
+	velocityIteration++;
+}
+
+b2Vec2 b2RigidPlasticJoint::GetReactionForce(float inv_dt) const
+{
+	b2Vec2 P(m_jim.x, m_jim.y);
+	return inv_dt * P;
+}
+
+float b2RigidPlasticJoint::GetReactionTorque(float inv_dt) const
+{
+	return inv_dt * m_jim.z;
+}
+
+/**
+* After velocity iterations
+*/
+void b2RigidPlasticJoint::UpdatePlasticity(const b2SolverData & data)
+{
+	if (!isOverLoaded()) {
+		return;
+	}
+	b2Vec2 cA = data.positions[m_indexA].c;
+	b2Vec2 cB = data.positions[m_indexB].c;
+	float newDistance = (cA - cB).Length();
+	float origDistance = m_localAnchorA.Length() + m_localAnchorB.Length();
+	// this needs more analysis
+	// current implementation is based on idea
+	// that tearing joint up joint should be more meaningful
+	// than pushing
+	if ((isOverLoaded(X) || isOverLoaded(Y)) && origDistance < newDistance) {
+		float sf = newDistance / origDistance;
+		m_localAnchorA *= sf;
+		m_localAnchorB *= sf;
+		m_currentStrain += b2Abs(newDistance - origDistance);
+	}
+	if (!isOverLoaded(RZ)) {
+		return;
+	}
+	updateRotationalPlasticity(data, 0.f);
+}/*
+* Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
+*
+* This software is provided 'as-is', without any express or implied
+* warranty.  In no event will the authors be held liable for any damages
+* arising from the use of this software.
+* Permission is granted to anyone to use this software for any purpose,
+* including commercial applications, and to alter it and redistribute it
+* freely, subject to the following restrictions:
+* 1. The origin of this software must not be misrepresented; you must not
+* claim that you wrote the original software. If you use this software
+* in a product, an acknowledgment in the product documentation would be
+* appreciated but is not required.
+* 2. Altered source versions must be plainly marked as such, and must not be
+* misrepresented as being the original software.
+* 3. This notice may not be removed or altered from any source distribution.
+* 
+* Simo Nikula 4/2017 
+*/
+
+#include "box2d/b2_Distance.h"
+#include "dynamics/b2_Island.h"
+#include "box2d/b2ep_joint.h"
+#include "box2d/b2_Body.h"
+#include "box2d/b2_Fixture.h"
+#include "box2d/b2_World.h"
+#include "box2d/b2_Contact.h"
+#include "dynamics/b2_Contact_Solver.h"
+#include "box2d/b2_Joint.h"
+#include "Box2d/b2_Stack_Allocator.h"
+#include "Box2d/b2_Timer.h"
+
+bool b2ImpulseInitializer::IsInitImpulsesNeeded(b2Island *ic)
+{
+	return bodyCount!=ic->m_bodyCount 
+		|| jointCount!=ic->m_jointCount
+		|| contactCount!=ic->m_contactCount;
+}
+
+void b2ImpulseInitializer::InitImpulses(){
+	for (int32 i = 0; i < epCount; i++){
+		b2ElasticPlasticJoint* joint = epStack[i];
+		joint->m_impulse.SetZero();
+		joint->aInitialized = false;
+		joint->bInitialized = false;
+	}
+	for (int32 i = 0; i < startJointCount; i++){
+		currentStartJoint = sjStack[i];
+		addImpulses(currentStartJoint);
+		//checkImpulses(currentStartJoint);
+	}
+}
+
+/**
+Loop over all bodies that are connected to startJoint with 
+b2ElasticPlasticJoints until some other startJoint is nearer 
+than current one.
+Currently start point is assumed to be connected to rigid body.
+*/
+b2Vec3 b2ImpulseInitializer::addImpulses(b2ElasticPlasticJoint* startJoint){
+	float h = solverData->step.dt;
+	b2Body* b = startJoint->GetBodyA();
+	b2Vec2 jointPoint = startJoint->GetAnchorA();
+	b2Vec2 d,sp;
+	if (b->GetType() == b2_dynamicBody && !startJoint->aInitialized){
+		d = startJoint->GetLocalAnchorA();
+		sp = startJoint->GetAnchorA();
+		startJoint->aInitialized = true;
+	}
+	else{
+		b = startJoint->GetBodyB();
+		d = startJoint->GetLocalAnchorB();
+		sp = startJoint->GetAnchorB();
+		startJoint->bInitialized = true;
+	}
+	b2Vec3 p;
+	float sm = b->GetMass()*b->m_gravityScale;
+	b2Vec2 f = sm* (*gravity) + b->m_force;
+	float m = b->m_torque - b2Cross(d, f);
+	p.Set(f.x, f.y, m);
+	p = h*p;
+	// add impulses from contacts
+	b2Vec3 ci=getContactImpulses(b);
+	p.x += ci.x;
+	p.y += ci.y;
+	b2Vec2 cf;
+	cf.x = ci.x;
+	cf.y = ci.y;
+	p.z += ci.z - b2Cross(d, cf);
+	startJoint->m_impulse -= p;
+	b2ElasticPlasticJoint* nextJoint;
+	while ((nextJoint = getNextJoint(startJoint)) != NULL){
+		b2Vec3 np = addImpulses(nextJoint);
+		b2Vec2 njf(np.x,np.y);
+		// for rigidPlastic both anchors are at same point
+		b2Vec2 jd = nextJoint->GetAnchorA()-sp; 
+		np.z += b2Cross(jd, njf);
+		startJoint->m_impulse += np;
+	}
+	startJoint->initImpulseDone = true;
+	return startJoint->m_impulse;
+}
+/** check if joint can handle impulse and stop bodies
+ if impulse can be handled
+ TODO partial
+*/
+void b2ImpulseInitializer::checkImpulses
+	(b2ElasticPlasticJoint * startJoint)
+{
+	for (b2ElasticPlasticJoint* j = startJoint; 
+		j != NULL; 
+		j = getNextJoint(j)) {
+		if (!j->CanHandleInitialImpulse(solverData)) {
+			return;
+		}
+	}
+
+	for (b2ElasticPlasticJoint* j = startJoint;
+		j != NULL;
+		j = getNextJoint(j)) {
+		b2Body* ba = j->m_bodyA;
+		b2Body* bb = j->m_bodyB;
+		solverData->velocities[ba->m_islandIndex].v=b2Vec2(0.f,0.f);
+		solverData->velocities[ba->m_islandIndex].w = 0.f;
+		solverData->velocities[bb->m_islandIndex].v = b2Vec2(0.f, 0.f);
+		solverData->velocities[bb->m_islandIndex].w = 0.f;
+		for (int32 i = 0; i < island->m_contactCount; ++i)
+		{
+			b2Contact* c = island->m_contacts[i];
+			b2Fixture* fA = c->GetFixtureA();
+			b2Fixture* fB = c->GetFixtureB();
+			// Skip sensors
+			if (fA->IsSensor() || fB->IsSensor())
+			{
+				continue;
+			}
+			b2Body* bA = fA->GetBody();
+			b2Body* bB = fB->GetBody();
+			if (bA == ba || bA==bb) {
+				solverData->velocities[bB->m_islandIndex].v= b2Vec2(0.f, 0.f);
+				solverData->velocities[bB->m_islandIndex].w = 0.f;
+			}
+			if(bB == ba || bB ==bb) {
+				solverData->velocities[bA->m_islandIndex].v = b2Vec2(0.f, 0.f);
+				solverData->velocities[bA->m_islandIndex].w = 0.f;
+			}
+		}
+	}
+}
+/**
+* These impulses will stop other body
+*/
+b2Vec3 b2ImpulseInitializer::getContactImpulses(b2Body * b)
+{
+	b2Vec3 cv=b2Vec3();
+	cv.SetZero();
+	for (int32 i = 0; i < island->m_contactCount; ++i)
+	{
+		b2Contact* c = island->m_contacts[i];
+		b2Fixture* fA = c->GetFixtureA();
+		b2Fixture* fB = c->GetFixtureB();
+		// Skip sensors
+		if (fA->IsSensor() || fB->IsSensor())
+		{
+			continue;
+		}
+		b2Body* bA = fA->GetBody();
+		b2Body* bB = fB->GetBody();
+		b2Body *bO;
+		if (bA == b) {
+			bO = bB;
+		}
+		else if (bB == b) {
+			bO = bA;
+		}
+		else {
+			continue;
+		}
+		b2MassData massData=bO->GetMassData();
+		float mO = bO->m_mass;
+		if (mO == 0.f) {
+			continue;
+		}
+		float iO = bO->m_I;
+		int32  bi = bO->m_islandIndex;
+		// float aO = solverData->positions[bi].a;
+		b2Vec2 pO = solverData->positions[bi].c;
+		b2Vec2 vO = solverData->velocities[bi].v;
+		float wO = solverData->velocities[bi].w;
+		cv.x += mO*vO.x;
+		cv.y += mO*vO.y;
+		b2Vec2 f(cv.x,cv.y);
+		b2Vec2 d;
+		d = b->GetWorldCenter() - bO->GetWorldCenter();
+		cv.z += iO*wO- b2Cross(d, f);
+	}
+	return cv;
+}
+b2ElasticPlasticJoint* b2ImpulseInitializer::getNextJoint
+	(b2ElasticPlasticJoint* startJoint){
+	b2Body* bA = startJoint->GetBodyA();
+	b2Body* bB = startJoint->GetBodyB();
+	for (int32 i = 0; i < epCount; i++){
+		b2ElasticPlasticJoint* joint = epStack[i];
+		if (joint == startJoint){
+			continue;
+		}
+		bool foundNext = false;
+		b2Body* nA = joint->GetBodyA();
+		b2Body* nB = joint->GetBodyB();
+		if ((nA == bA || nB==bA) && bA->GetType() == b2_dynamicBody){
+			foundNext = true;
+			if (startJoint->aInitialized){
+				if (nA == bA){
+					joint->aInitialized = true;
+				}
+				else{
+					joint->bInitialized = true;
+				}
+			}
+		}
+		if ((nA == bB || nB == bB) && bB->GetType() == b2_dynamicBody){
+			foundNext = true;
+			if (startJoint->bInitialized){
+				if (nA == bB){
+					joint->aInitialized = true;
+				}
+				else{
+					joint->bInitialized = true;
+				}
+			}
+		}
+		if (!foundNext){
+			continue;
+		}
+		if ((joint->aInitialized || nA->GetType() != b2_dynamicBody) &&
+			(joint->bInitialized || nB->GetType() != b2_dynamicBody)){
+			continue;
+		}
+		if (isNearEnough(joint)){
+			return joint;
+		}
+	}
+	return NULL;
+}
+
+/**
+@return true if there no other starting point nearer
+*/
+bool b2ImpulseInitializer::isNearEnough
+(b2ElasticPlasticJoint* joint){
+	b2Vec2 jp = joint->GetAnchorA();
+	float d = (currentStartJoint->GetAnchorA()-jp).LengthSquared();
+	for (int32 i = 0; i < startJointCount; i++){
+		b2ElasticPlasticJoint* startJoint = sjStack[i];
+		if (startJoint == joint){
+			continue;
+		}
+		float dc = (startJoint->GetAnchorA() - jp).LengthSquared();
+		if (dc < d){
+			return false;
+		}
+	}
+	return true;
+}

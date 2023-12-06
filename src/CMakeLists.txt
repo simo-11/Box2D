@@ -39,6 +39,7 @@ set(BOX2D_SOURCE_FILES
 	dynamics/b2_island.cpp
 	dynamics/b2_island.h
 	dynamics/b2_joint.cpp
+	dynamics/b2ep_joint.cpp
 	dynamics/b2_motor_joint.cpp
 	dynamics/b2_mouse_joint.cpp
 	dynamics/b2_polygon_circle_contact.cpp

@@ -4,4 +4,4 @@ mkdir build
 cd build
 cmake ..
 cmake --build .
-rem start ep.sln
+start ep.sln

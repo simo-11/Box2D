@@ -3,10 +3,6 @@ set(EP_SOURCE_FILES
 	main.cpp
 	test_entries.cpp
 	test.cpp
-	b2ep_joint.cpp
-	b2ep_rigid_joint_handler.cpp
-	b2ep_rigid_plastic_joint.cpp
-	b2ep_impulse_initializer.cpp
 	imgui_impl_glfw.cpp
 	imgui_impl_opengl3.cpp
 	draw.cpp
