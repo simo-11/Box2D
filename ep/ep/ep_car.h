@@ -161,7 +161,7 @@ public:
 		// EPCar
 		{
 			b2PolygonShape chassis;
-			b2Vec2 vertices[8];
+			b2Vec2 vertices[8]{};
 			vertices[0].Set(-0.5f*epCar::length, -0.5f);
 			vertices[1].Set(0.5f*epCar::length, -0.5f);
 			vertices[2].Set(0.5f*epCar::length, 0.0f);
@@ -199,17 +199,32 @@ public:
 
 			b2WheelJointDef jd;
 			b2Vec2 axis(0.0f, 1.0f);
+			float mass1 = m_wheel1->GetMass();
+			float mass2 = m_wheel2->GetMass();
 
+			float hertz = 4.0f;
+			float dampingRatio = 0.7f;
+			float omega = 2.0f * b2_pi * hertz;
 			jd.Initialize(m_Car, m_wheel1, m_wheel1->GetPosition(), axis);
 			jd.motorSpeed = 0.0f;
 			jd.maxMotorTorque = epCar::wheelFrictionTorque;
 			jd.enableMotor = true;
+			jd.stiffness = mass1 * omega * omega;
+			jd.damping = 2.0f * mass1 * dampingRatio * omega;
+			jd.lowerTranslation = -0.25f;
+			jd.upperTranslation = 0.25f;
+			jd.enableLimit = true;
 			m_spring1 = (b2WheelJoint*)m_world->CreateJoint(&jd);
 
 			jd.Initialize(m_Car, m_wheel2, m_wheel2->GetPosition(), axis);
 			jd.motorSpeed = 0.0f;
 			jd.maxMotorTorque = epCar::wheelFrictionTorque;
 			jd.enableMotor = true;
+			jd.stiffness = mass2 * omega * omega;
+			jd.damping = 2.0f * mass2 * dampingRatio * omega;
+			jd.lowerTranslation = -0.25f;
+			jd.upperTranslation = 0.25f;
+			jd.enableLimit = true;
 			m_spring2 = (b2WheelJoint*)m_world->CreateJoint(&jd);
 		}
 	}
