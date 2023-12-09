@@ -231,6 +231,10 @@ static void sKeyCallback(GLFWwindow* window, int key, int scancode, int action, 
 		case GLFW_KEY_P:
 			settings.pause = !settings.pause;
 			break;
+		case GLFW_KEY_F5:
+			settings.targetTime *= 1.1;
+			settings.pause = false;
+			break;
 
 		case GLFW_KEY_LEFT_BRACKET:
 			// Switch to previous test
@@ -428,7 +432,8 @@ static void sInterface()
 		if (ImGui::CollapsingHeader("General Settings")){
 			ImGui::Text("TargetTime");
 			ImGui::SameLine();
-			ImGui::SliderFloat("##TargetTime", &settings.targetTime, 0.0f, 100.0f, "%.3f s", 2.0f);
+			ImGui::SliderFloat("##TargetTime", 
+				&settings.targetTime, 0.0f, 1200.0f, "%.0f s", 2.0f);
 			ImGui::Text("Vel Iters");
 			ImGui::SameLine();
 			ImGui::SliderInt("##Vel Iters", &settings.velocityIterations, 0, 50);
@@ -958,7 +963,9 @@ const char* glslVersion = NULL;
 	testSelection = testIndex;
 
 	entry = g_testEntries + testIndex;
-	test = entry->createFcn(&settings);
+	if (entry->createFcn) {
+		test = entry->createFcn(&settings);
+	}
 	const ImVec4 bgc=ImVec4(0.0f,0.0f,0.0f,0.7f);
 	// ImGui::PushStyleColor(ImGuiCol_WindowBg,bgc);
 	// Control the frame rate. One draw per monitor refresh.

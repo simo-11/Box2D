@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.8)
 
 # https://cmake.org/cmake/help/latest/command/project.html
-project(ep VERSION 0.1.0)
+project(ep VERSION 0.2.0)
 
 # set(CMAKE_CONFIGURATION_TYPES "Debug;RelWithDebInfo" CACHE STRING "" FORCE)
 
@@ -27,4 +27,5 @@ add_subdirectory(.. "${BOX2D_BIN_DIR}")
 if (MSVC)
 	set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ep)
 	set_property(TARGET ep PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/ep")
+	add_compile_options("/ZI")
 endif()

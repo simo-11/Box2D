@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include <imgui/imgui.h>
 #include "dynamics/b2_island.h"
-
+#include <sstream>
 namespace {
 	b2World* rtWorld=NULL;
 	bool allowAddRigidTriangle = false;
@@ -827,8 +827,8 @@ float Test::getBombWidth()
 void Test::Step()
 {
 	float timeStep = settings->hz > 0.0f ? 1.0f / settings->hz : float(0.0f);
-	if (!settings->pause &&
-		settings->targetTime <= steppedTime + timeStep) {
+	bool targetTimeReached = (settings->targetTime <= steppedTime + timeStep);
+	if (!settings->pause && targetTimeReached) {
 		settings->pause = true;
 	}
 	if (settings->pause)
@@ -841,8 +841,16 @@ void Test::Step()
 		{
 			timeStep = 0.0f;
 		}
-
-		g_debugDraw.DrawString(5, m_textLine, "****PAUSED****");
+		std::stringstream ss;
+		//put arbitrary formatted data into the stream
+		ss << "Paused, ";
+		if (targetTimeReached) {
+			ss << "target time reached, press F5 to increase target time";
+		}
+		else {
+			ss << "press p to continue";
+		}
+		g_debugDraw.DrawString(5, m_textLine, ss.str().c_str());
 		m_textLine += DRAW_STRING_NEW_LINE;
 	}
 

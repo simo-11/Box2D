@@ -52,6 +52,10 @@ struct b2ElasticPlasticJointDef : public b2JointDef
 		dampingRatio = 0.0f;
 		maxElasticRotation = 0.f;
 		maxTorque = 0.f;
+		frequencyHz = 0;
+		maxForce = b2Vec2(0,0);
+		maxRotation = 0;
+		maxStrain = 0;
 	}
 
 	/// Initialize the bodies and offsets using the current transforms.
@@ -312,13 +316,13 @@ public:
 	b2Vec3 getContactImpulses(b2Body *b);
 	b2ElasticPlasticJoint* getNextJoint(b2ElasticPlasticJoint*);
 	bool isNearEnough(b2ElasticPlasticJoint*);
-	const b2Vec2* gravity;
-	b2Island* island;
-	b2SolverData* solverData;
+	const b2Vec2* gravity=NULL;
+	b2Island* island = NULL;
+	b2SolverData* solverData = NULL;
 	int32 nonDynamicBodyCount = 0, startJointCount = 0, epCount = 0;
 	b2Body** ndbStack = NULL; // non dynamic bodies
 	b2ElasticPlasticJoint** sjStack = NULL; // corresponding starting joints
-	b2ElasticPlasticJoint* currentStartJoint;
+	b2ElasticPlasticJoint* currentStartJoint=NULL;
 	b2ElasticPlasticJoint** epStack = NULL; // all ep joints
 	int32 bodyCount=0, jointCount=0, contactCount=0;
 	bool IsInitImpulsesNeeded(b2Island*);
