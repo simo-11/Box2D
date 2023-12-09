@@ -467,7 +467,6 @@ EPBeam* Test::AddEPBeam(const b2Vec2& p) {
 
 void Test::AddEPBeamBody(EPBeam* rt) {
 	b2FixtureDef fd;
-	b2Vec2 vertices[3];
 	b2PolygonShape epBeam, epBeamHolder;
 	float hx = settings->epbX / 2;
 	float hy = settings->epbY/2;
@@ -617,7 +616,6 @@ void Test::MouseDown(const b2Vec2& p, int32 mods)
 			}
 			else{
 				m_movingBody = body;
-				b2Vec2 np;
 				m_localPointForMovingBody=body->GetLocalPoint(p);
 			}
 		}

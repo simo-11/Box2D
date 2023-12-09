@@ -3,11 +3,16 @@ set(EP_SOURCE_FILES
 	main.cpp
 	test_entries.cpp
 	test.cpp
-	imgui_impl_glfw.cpp
-	imgui_impl_opengl3.cpp
-	draw.cpp
 	)
 
+set(SHARED_TESTBED_SOURCE_FILES
+	../../testbed/draw.cpp
+	../../testbed/draw.h
+	../../testbed/imgui_impl_glfw.cpp
+	../../testbed/imgui_impl_glfw.h
+	../../testbed/imgui_impl_opengl3.cpp
+	../../testbed/imgui_impl_opengl3.h
+)
 set(EP_HEADER_FILES
 	beam.h
 	draw.h
@@ -59,14 +64,21 @@ set(EP_HEADER_FILES
 	../../src/dynamics/b2_island.h
 	)
 
-add_executable(ep ${EP_SOURCE_FILES})
+add_executable(ep)
 target_include_directories(ep PRIVATE 
 	../../include 
 	../../src
+	../../testbed
 	../../extern/glad/include 
 	../../extern/glfw/include 
 	../../extern
 	${CMAKE_CURRENT_SOURCE_DIR})
+#	 TYPE CXX_MODULES
+target_sources(ep 
+ PRIVATE
+ ${EP_SOURCE_FILES}
+ ${SHARED_TESTBED_SOURCE_FILES}
+)	
 target_link_libraries(ep PUBLIC box2d glfw imgui sajson glad)
 set_target_properties(ep PROPERTIES
 	CXX_STANDARD 11

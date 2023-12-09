@@ -18,14 +18,19 @@
 * Simo Nikula modified starting 2017/02
 */
 #define _CRT_SECURE_NO_WARNINGS
-#include <imgui/imgui.h>
-
+#include "imgui/imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
 #include "draw.h"
 #include "test.h"
 #include "ep_joint.h"
 
-#include <glfw/glfw3.h>
+#include <algorithm>
 #include <stdio.h>
+#include <stdio.h>
+#include <thread>
+#include <chrono>
+
 
 #ifdef _MSC_VER
 #define snprintf _snprintf
@@ -35,8 +40,6 @@
 #ifdef _WIN32
 #include <crtdbg.h>
 #endif
-#include "../../testbed/imgui_impl_glfw.h"
-#include "../../testbed/imgui_impl_opengl3.h"
 
 //
 struct UIState
@@ -70,7 +73,7 @@ static bool canRead(const char* path){
 }
 
 //
-static void sCreateUI(GLFWwindow* window)
+static void sCreateUI(GLFWwindow* window, const char* glslVersion = NULL)
 {
 	ui.showMenu = true;
 
@@ -93,11 +96,19 @@ static void sCreateUI(GLFWwindow* window)
 		}
 	}
 fontSearchDone:
-	if (ImGui_ImplGlfw_InitForOpenGL(window, false) == false)
+	bool success;
+	success = ImGui_ImplGlfw_InitForOpenGL(window, false);
+	if (success == false)
 	{
-		fprintf(stderr, "Could not init GUI renderer.\n");
+		printf("ImGui_ImplGlfw_InitForOpenGL failed\n");
 		assert(false);
-		return;
+	}
+
+	success = ImGui_ImplOpenGL3_Init(glslVersion);
+	if (success == false)
+	{
+		printf("ImGui_ImplOpenGL3_Init failed\n");
+		assert(false);
 	}
 
 	ImGuiStyle& style = ImGui::GetStyle();
@@ -896,6 +907,11 @@ int main(int, char**)
 		fprintf(stderr, "Failed to initialize GLFW\n");
 		return -1;
 	}
+#if __APPLE__
+		const char* glslVersion = "#version 150";
+#else
+const char* glslVersion = NULL;
+#endif
 
 	char title[64];
 	sprintf(title, "Box2D ElasticPlastic Version 0.2.0");
@@ -930,7 +946,7 @@ int main(int, char**)
 
 	g_debugDraw.Create();
 
-	sCreateUI(mainWindow);
+	sCreateUI(mainWindow,glslVersion);
 
 	testCount = 0;
 	while (g_testEntries[testCount].createFcn != NULL)
