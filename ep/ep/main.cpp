@@ -995,6 +995,7 @@ const char* glslVersion = NULL;
 		frameTime = alpha * frameTime + (1.0 - alpha) * (time2 - time1);
 		time1 = time2;
 		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 		glfwSwapBuffers(mainWindow);
 		glfwPollEvents();
 	}
