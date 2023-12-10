@@ -1099,7 +1099,15 @@ void Test::Step()
 	{
 		const float k_impulseScale = 0.1f;
 		const float k_axisScale = 0.3f;
-
+		struct ledend_info {
+			bool add_point=false;
+			bool persist_point=false;
+		} li;
+		float legend_x = 500;
+		b2Vec2& shift = g_camera.ConvertScreenToWorld
+			(b2Vec2(DRAW_STRING_NEW_LINE, DRAW_STRING_NEW_LINE));
+		b2Vec2& pos = g_camera.ConvertScreenToWorld(b2Vec2(legend_x, 0));
+		float legend_wx = pos.x;
 		for (int32 i = 0; i < m_pointCount; ++i)
 		{
 			ContactPoint* point = m_points + i;
@@ -1108,11 +1116,27 @@ void Test::Step()
 			{
 				// Add
 				g_debugDraw.DrawPoint(point->position, 10.0f, b2Color(0.3f, 0.95f, 0.3f));
+				if (!li.add_point) {
+					pos.x = legend_wx;
+					pos.y += shift.y;
+					g_debugDraw.DrawPoint(pos, 10.0f, b2Color(0.3f, 0.95f, 0.3f));
+					pos.x += shift.x;
+					g_debugDraw.DrawString(pos, "ContactPoint.state==b2_addState");
+					li.add_point = true;
+				}
 			}
 			else if (point->state == b2_persistState)
 			{
 				// Persist
 				g_debugDraw.DrawPoint(point->position, 5.0f, b2Color(0.3f, 0.3f, 0.95f));
+				if (!li.persist_point) {
+					pos.x = legend_wx;
+					pos.y += shift.y;
+					g_debugDraw.DrawPoint(pos, 5.0f, b2Color(0.3f, 0.3f, 0.95f));
+					pos.x += shift.x;
+					g_debugDraw.DrawString(pos, "ContactPoint.state==b2_persistState");
+					li.persist_point = true;
+				}
 			}
 
 			if (settings->drawContactNormals == 1)
