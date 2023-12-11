@@ -232,7 +232,7 @@ static void sKeyCallback(GLFWwindow* window, int key, int scancode, int action, 
 			settings.pause = !settings.pause;
 			break;
 		case GLFW_KEY_F5:
-			settings.targetTime *= 1.1;
+			settings.targetTime *= 2;
 			settings.pause = false;
 			break;
 

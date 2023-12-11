@@ -845,7 +845,7 @@ void Test::Step()
 		//put arbitrary formatted data into the stream
 		ss << "Paused, ";
 		if (targetTimeReached) {
-			ss << "target time reached, press F5 to increase target time";
+			ss << "target time reached, press F5 to double target time";
 		}
 		else {
 			ss << "press p to continue";
@@ -1105,7 +1105,8 @@ void Test::Step()
 		} li;
 		float legend_x = 500;
 		b2Vec2& shift = g_camera.ConvertScreenToWorld
-			(b2Vec2(DRAW_STRING_NEW_LINE, DRAW_STRING_NEW_LINE));
+			(b2Vec2(DRAW_STRING_NEW_LINE, DRAW_STRING_NEW_LINE))
+			-g_camera.ConvertScreenToWorld(b2Vec2(0, 0));
 		b2Vec2& pos = g_camera.ConvertScreenToWorld(b2Vec2(legend_x, 0));
 		float legend_wx = pos.x;
 		for (int32 i = 0; i < m_pointCount; ++i)
@@ -1121,6 +1122,7 @@ void Test::Step()
 					pos.y += shift.y;
 					g_debugDraw.DrawPoint(pos, 10.0f, b2Color(0.3f, 0.95f, 0.3f));
 					pos.x += shift.x;
+					pos.y -= 0.42f*shift.y;
 					g_debugDraw.DrawString(pos, "ContactPoint.state==b2_addState");
 					li.add_point = true;
 				}
@@ -1134,6 +1136,7 @@ void Test::Step()
 					pos.y += shift.y;
 					g_debugDraw.DrawPoint(pos, 5.0f, b2Color(0.3f, 0.3f, 0.95f));
 					pos.x += shift.x;
+					pos.y -= 0.42f*shift.y;
 					g_debugDraw.DrawString(pos, "ContactPoint.state==b2_persistState");
 					li.persist_point = true;
 				}
