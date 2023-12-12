@@ -50,6 +50,9 @@ public:
 	virtual void build();
 	Frame(Settings* sp) :Test(sp)
 	{
+		bodies = nullptr;
+		bodyCount = 0;
+		m_middle = nullptr;
 	}
 	~Frame() {
 		free(bodies);
@@ -172,8 +175,8 @@ inline bool Frame::isMyType()
 }
 
 void Frame::reset() {
-	b2Frame::so_count = 4;
-	b2Frame::baseHz = 0;
+	b2Frame::so_count = 2;
+	b2Frame::baseHz = 6;
 	b2Frame::baseDampingRatio = 0.2f;
 	b2Frame::density = 7800;
 	b2Frame::fh = 10.f;
