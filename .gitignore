@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 build/
 imgui.ini
 /ep/ep/ep-log.txt
@@ -6,3 +7,14 @@ settings.ini
 CMakeSettings.json
 out/
 .vs/
+=======
+build/
+imgui.ini
+settings.ini
+.vscode/
+.vs/
+.cap
+.DS_Store
+CMakeUserPresets.json
+.cache/
+>>>>>>> upstream/main
