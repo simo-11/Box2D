@@ -18,3 +18,4 @@ settings.ini
 CMakeUserPresets.json
 .cache/
 >>>>>>> upstream/main
+box2d_memory.txt
