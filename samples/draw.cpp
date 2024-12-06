@@ -185,6 +185,8 @@ struct GLBackground
 		glUseProgram( m_programId );
 
 		float time = (float)glfwGetTime();
+		time = fmodf(time, 100.0f);
+		
 		glUniform1f( m_timeUniform, time );
 		glUniform2f( m_resolutionUniform, (float)g_camera.m_width, (float)g_camera.m_height );
 
@@ -633,11 +635,6 @@ struct GLTriangles
 	GLint m_projectionUniform;
 };
 
-struct Transform
-{
-	float x, y, c, s;
-};
-
 struct CircleData
 {
 	b2Vec2 position;
@@ -781,7 +778,7 @@ struct GLCircles
 
 struct SolidCircleData
 {
-	Transform transform;
+	b2Transform transform;
 	float radius;
 	RGBA8 rgba;
 };
@@ -926,7 +923,7 @@ struct GLSolidCircles
 
 struct CapsuleData
 {
-	Transform transform;
+	b2Transform transform;
 	float radius;
 	float length;
 	RGBA8 rgba;
@@ -1328,6 +1325,9 @@ Draw::Draw()
 	m_solidCapsules = nullptr;
 	m_solidPolygons = nullptr;
 	m_debugDraw = {};
+	m_smallFont = nullptr;
+	m_mediumFont = nullptr;
+	m_largeFont = nullptr;
 }
 
 Draw::~Draw()
@@ -1487,8 +1487,10 @@ void Draw::DrawString( int x, int y, const char* string, ... )
 	ImGui::Begin( "Overlay", nullptr,
 				  ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize |
 					  ImGuiWindowFlags_NoScrollbar );
+	ImGui::PushFont( g_draw.m_regularFont );
 	ImGui::SetCursorPos( ImVec2( float( x ), float( y ) ) );
 	ImGui::TextColoredV( ImColor( 230, 153, 153, 255 ), string, arg );
+	ImGui::PopFont();
 	ImGui::End();
 	va_end( arg );
 }

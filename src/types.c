@@ -3,6 +3,7 @@
 
 #include "box2d/types.h"
 
+#include "constants.h"
 #include "core.h"
 
 b2WorldDef b2DefaultWorldDef( void )
@@ -60,7 +61,6 @@ b2ShapeDef b2DefaultShapeDef( void )
 	def.density = 1.0f;
 	def.filter = b2DefaultFilter();
 	def.enableSensorEvents = true;
-	def.enableContactEvents = true;
 	def.updateBodyMass = true;
 	def.internalValue = B2_SECRET_COOKIE;
 	return def;

@@ -2,6 +2,7 @@
 // SPDX-FileCopyrightText: 2023 Erin Catto
 // SPDX-License-Identifier: MIT
 
+#include "constants.h"
 #include "core.h"
 
 #include "box2d/collision.h"
@@ -1018,6 +1019,8 @@ b2TOIOutput b2TimeOfImpact( const b2TOIInput* input )
 	float tMax = input->tMax;
 
 	float totalRadius = proxyA->radius + proxyB->radius;
+	// todo_erin consider different target
+	// float target = b2MaxFloat( b2_linearSlop, totalRadius );
 	float target = b2MaxFloat( b2_linearSlop, totalRadius - b2_linearSlop );
 	float tolerance = 0.25f * b2_linearSlop;
 	B2_ASSERT( target > tolerance );

@@ -249,17 +249,17 @@ B2_API bool b2PointInCapsule( b2Vec2 point, const b2Capsule* shape );
 /// Test a point for overlap with a convex polygon in local space
 B2_API bool b2PointInPolygon( b2Vec2 point, const b2Polygon* shape );
 
-/// Ray cast versus circle in shape local space. Initial overlap is treated as a miss.
+/// Ray cast versus circle shape in local space. Initial overlap is treated as a miss.
 B2_API b2CastOutput b2RayCastCircle( const b2RayCastInput* input, const b2Circle* shape );
 
-/// Ray cast versus capsule in shape local space. Initial overlap is treated as a miss.
+/// Ray cast versus capsule shape in local space. Initial overlap is treated as a miss.
 B2_API b2CastOutput b2RayCastCapsule( const b2RayCastInput* input, const b2Capsule* shape );
 
-/// Ray cast versus segment in shape local space. Optionally treat the segment as one-sided with hits from
+/// Ray cast versus segment shape in local space. Optionally treat the segment as one-sided with hits from
 /// the left side being treated as a miss.
 B2_API b2CastOutput b2RayCastSegment( const b2RayCastInput* input, const b2Segment* shape, bool oneSided );
 
-/// Ray cast versus polygon in shape local space. Initial overlap is treated as a miss.
+/// Ray cast versus polygon shape in local space. Initial overlap is treated as a miss.
 B2_API b2CastOutput b2RayCastPolygon( const b2RayCastInput* input, const b2Polygon* shape );
 
 /// Shape cast versus a circle. Initial overlap is treated as a miss.
@@ -348,8 +348,10 @@ typedef struct b2DistanceProxy
 	float radius;
 } b2DistanceProxy;
 
-/// Used to warm start b2Distance. Set count to zero on first call or
-/// use zero initialization.
+/// Used to warm start the GJK simplex. If you call this function multiple times with nearby
+/// transforms this might improve performance. Otherwise you can zero initialize this.
+/// The distance cache must be initialized to zero on the first call.
+/// Users should generally just zero initialize this structure for each call.
 typedef struct b2DistanceCache
 {
 	/// The number of stored simplex points
@@ -490,9 +492,11 @@ B2_API b2TOIOutput b2TimeOfImpact( const b2TOIInput* input );
  * @{
  */
 
-/// A manifold point is a contact point belonging to a contact
-/// manifold. It holds details related to the geometry and dynamics
-/// of the contact points.
+/// A manifold point is a contact point belonging to a contact manifold.
+/// It holds details related to the geometry and dynamics of the contact points.
+/// Box2D uses speculative collision so some contact points may be separated.
+/// You may use the maxNormalImpulse to determine if there was an interaction during
+/// the time step.
 typedef struct b2ManifoldPoint
 {
 	/// Location of the contact point in world space. Subject to precision loss at large coordinates.
@@ -516,8 +520,8 @@ typedef struct b2ManifoldPoint
 	/// The friction impulse
 	float tangentImpulse;
 
-	/// The maximum normal impulse applied during sub-stepping
-	/// This could be a bool to indicate the point is confirmed (may be a speculative point)
+	/// The maximum normal impulse applied during sub-stepping. This is important
+	/// to identify speculative contact points that had an interaction in the time step.
 	float maxNormalImpulse;
 
 	/// Relative normal velocity pre-solve. Used for hit events. If the normal impulse is
@@ -531,7 +535,8 @@ typedef struct b2ManifoldPoint
 	bool persisted;
 } b2ManifoldPoint;
 
-/// A contact manifold describes the contact points between colliding shapes
+/// A contact manifold describes the contact points between colliding shapes.
+/// @note Box2D uses speculative collision so some contact points may be separated.
 typedef struct b2Manifold
 {
 	/// The manifold points, up to two are possible in 2D
@@ -777,26 +782,14 @@ B2_API void b2DynamicTree_Validate( const b2DynamicTree* tree );
 /// called often.
 B2_API int b2DynamicTree_GetHeight( const b2DynamicTree* tree );
 
-/// Get the maximum balance of the tree. The balance is the difference in height of the two children of a node.
-B2_API int b2DynamicTree_GetMaxBalance( const b2DynamicTree* tree );
-
 /// Get the ratio of the sum of the node areas to the root area.
 B2_API float b2DynamicTree_GetAreaRatio( const b2DynamicTree* tree );
-
-/// Build an optimal tree. Very expensive. For testing.
-B2_API void b2DynamicTree_RebuildBottomUp( b2DynamicTree* tree );
 
 /// Get the number of proxies created
 B2_API int b2DynamicTree_GetProxyCount( const b2DynamicTree* tree );
 
 /// Rebuild the tree while retaining subtrees that haven't changed. Returns the number of boxes sorted.
 B2_API int b2DynamicTree_Rebuild( b2DynamicTree* tree, bool fullBuild );
-
-/// Shift the world origin. Useful for large worlds.
-/// The shift formula is: position -= newOrigin
-/// @param tree the tree to shift
-/// @param newOrigin the new origin with respect to the old origin
-B2_API void b2DynamicTree_ShiftOrigin( b2DynamicTree* tree, b2Vec2 newOrigin );
 
 /// Get the number of bytes used by this tree
 B2_API int b2DynamicTree_GetByteCount( const b2DynamicTree* tree );

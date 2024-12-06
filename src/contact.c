@@ -42,7 +42,7 @@ B2_ARRAY_SOURCE( b2ContactSim, b2ContactSim );
 
 static inline float b2MixFloats( float value1, float value2, b2MixingRule mixingRule )
 {
-	switch (mixingRule)
+	switch ( mixingRule )
 	{
 		case b2_mixAverage:
 			return 0.5f * ( value1 + value2 );
@@ -52,10 +52,10 @@ static inline float b2MixFloats( float value1, float value2, b2MixingRule mixing
 
 		case b2_mixMultiply:
 			return value1 * value2;
-			
+
 		case b2_mixMinimum:
 			return value1 < value2 ? value1 : value2;
-				
+
 		case b2_mixMaximum:
 			return value1 > value2 ? value1 : value2;
 
@@ -248,7 +248,7 @@ void b2CreateContact( b2World* world, b2Shape* shapeA, b2Shape* shapeB )
 	int shapeIdA = shapeA->id;
 	int shapeIdB = shapeB->id;
 
-	b2Contact* contact =  b2ContactArray_Get( &world->contacts, contactId );
+	b2Contact* contact = b2ContactArray_Get( &world->contacts, contactId );
 	contact->contactId = contactId;
 	contact->setIndex = setIndex;
 	contact->colorIndex = B2_NULL_INDEX;
@@ -367,10 +367,44 @@ void b2DestroyContact( b2World* world, b2Contact* contact, bool wakeBodies )
 	b2Body* bodyA = b2BodyArray_Get( &world->bodies, bodyIdA );
 	b2Body* bodyB = b2BodyArray_Get( &world->bodies, bodyIdB );
 
-	// if (contactListener && contact->IsTouching())
-	//{
-	//	contactListener->EndContact(contact);
-	// }
+	uint32_t flags = contact->flags;
+	if ( ( flags & ( b2_contactTouchingFlag | b2_contactSensorTouchingFlag ) ) != 0 &&
+		 ( flags & ( b2_contactEnableContactEvents | b2_contactEnableSensorEvents ) ) != 0 )
+	{
+		int16_t worldId = world->worldId;
+		const b2Shape* shapeA = b2ShapeArray_Get( &world->shapes, contact->shapeIdA );
+		const b2Shape* shapeB = b2ShapeArray_Get( &world->shapes, contact->shapeIdB );
+		b2ShapeId shapeIdA = { shapeA->id + 1, worldId, shapeA->revision };
+		b2ShapeId shapeIdB = { shapeB->id + 1, worldId, shapeB->revision };
+
+		// Was touching?
+		if ( ( flags & b2_contactTouchingFlag ) != 0 && ( flags & b2_contactEnableContactEvents ) != 0 )
+		{
+			B2_ASSERT( ( flags & b2_contactSensorFlag ) == 0 );
+			b2ContactEndTouchEvent event = { shapeIdA, shapeIdB };
+			b2ContactEndTouchEventArray_Push( world->contactEndEvents + world->endEventArrayIndex, event );
+		}
+
+		if ( ( flags & b2_contactSensorTouchingFlag ) != 0 && ( flags & b2_contactEnableSensorEvents ) != 0 )
+		{
+			B2_ASSERT( ( flags & b2_contactSensorFlag ) != 0 );
+			B2_ASSERT( shapeA->isSensor == true || shapeB->isSensor == true );
+			B2_ASSERT( shapeA->isSensor != shapeB->isSensor );
+
+			b2SensorEndTouchEvent event;
+			if (shapeA->isSensor)
+			{
+				event.sensorShapeId = shapeIdA;
+				event.visitorShapeId = shapeIdB;
+			}
+			else
+			{
+				event.sensorShapeId = shapeIdB;
+				event.visitorShapeId = shapeIdA;
+			}
+			b2SensorEndTouchEventArray_Push( world->sensorEndEvents + world->endEventArrayIndex, event );
+		}
+	}
 
 	// Remove from body A
 	if ( edgeA->prevKey != B2_NULL_INDEX )
@@ -516,11 +550,11 @@ bool b2UpdateContact( b2World* world, b2ContactSim* contactSim, b2Shape* shapeA,
 	}
 	else
 	{
+		// Save old manifold
 		b2Manifold oldManifold = contactSim->manifold;
 
-		// Compute TOI
+		// Compute new manifold
 		b2ManifoldFcn* fcn = s_registers[shapeA->type][shapeB->type].fcn;
-
 		contactSim->manifold = fcn( shapeA, transformA, shapeB, transformB, &contactSim->cache );
 
 		int pointCount = contactSim->manifold.pointCount;
@@ -536,8 +570,25 @@ bool b2UpdateContact( b2World* world, b2ContactSim* contactSim, b2Shape* shapeA,
 			if ( touching == false )
 			{
 				// disable contact
+				pointCount = 0;
 				contactSim->manifold.pointCount = 0;
 			}
+		}
+
+		// This flag is for testing
+		if (world->enableSpeculative == false && pointCount == 2)
+		{
+			if ( contactSim->manifold.points[0].separation > 1.5f * b2_linearSlop )
+			{
+				contactSim->manifold.points[0] = contactSim->manifold.points[1];
+				contactSim->manifold.pointCount = 1;
+			}
+			else if ( contactSim->manifold.points[0].separation > 1.5f * b2_linearSlop )
+			{
+				contactSim->manifold.pointCount = 1;
+			}
+
+			pointCount = contactSim->manifold.pointCount;
 		}
 
 		if ( touching && ( shapeA->enableHitEvents || shapeB->enableHitEvents ) )
@@ -632,4 +683,11 @@ bool b2UpdateContact( b2World* world, b2ContactSim* contactSim, b2Shape* shapeA,
 	}
 
 	return touching;
+}
+
+b2Manifold b2ComputeManifold(b2Shape* shapeA, b2Transform transformA, b2Shape* shapeB, b2Transform transformB)
+{
+	b2ManifoldFcn* fcn = s_registers[shapeA->type][shapeB->type].fcn;
+	b2DistanceCache cache = { 0 };
+	return fcn( shapeA, transformA, shapeB, transformB, &cache );
 }

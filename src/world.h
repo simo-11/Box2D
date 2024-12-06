@@ -100,9 +100,13 @@ typedef struct b2World
 
 	b2BodyMoveEventArray bodyMoveEvents;
 	b2SensorBeginTouchEventArray sensorBeginEvents;
-	b2SensorEndTouchEventArray sensorEndEvents;
 	b2ContactBeginTouchEventArray contactBeginEvents;
-	b2ContactEndTouchEventArray contactEndEvents;
+
+	// End events are double buffered so that the user doesn't need to flush events
+	b2SensorEndTouchEventArray sensorEndEvents[2];
+	b2ContactEndTouchEventArray contactEndEvents[2];
+	int endEventArrayIndex;
+
 	b2ContactHitEventArray contactHitEvents;
 
 	// Used to track debug draw
@@ -165,6 +169,7 @@ typedef struct b2World
 	bool locked;
 	bool enableWarmStarting;
 	bool enableContinuous;
+	bool enableSpeculative;
 	bool inUse;
 } b2World;
 

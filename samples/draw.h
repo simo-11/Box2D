@@ -5,7 +5,8 @@
 
 #include "box2d/types.h"
 
-//
+struct ImFont;
+
 struct Camera
 {
 	Camera();
@@ -65,6 +66,11 @@ public:
 	struct GLSolidCapsules* m_solidCapsules;
 	struct GLSolidPolygons* m_solidPolygons;
 	b2DebugDraw m_debugDraw;
+
+	ImFont* m_smallFont;
+	ImFont* m_regularFont;
+	ImFont* m_mediumFont;
+	ImFont* m_largeFont;
 };
 
 extern Draw g_draw;

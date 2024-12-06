@@ -35,6 +35,12 @@ if (MSVC OR APPLE)
 			add_compile_options(-fsanitize=address -fsanitize-address-use-after-scope -fsanitize=undefined)
 			add_link_options(-fsanitize=address -fsanitize-address-use-after-scope -fsanitize=undefined)
 		endif()
+	else()
+		if(MSVC)
+			# enable hot reloading
+			add_compile_options("$<$<CONFIG:Debug>:/ZI>")
+			add_link_options("$<$<CONFIG:Debug>:/INCREMENTAL>")
+		endif()
 	endif()
 endif()
 
@@ -106,6 +112,8 @@ if(PROJECT_IS_TOP_LEVEL)
 			GIT_PROGRESS TRUE
 		)
 		FetchContent_MakeAvailable(enkits)
+
+		add_subdirectory(shared)
 	endif()
 
 	# Tests need static linkage because they test internal Box2D functions
