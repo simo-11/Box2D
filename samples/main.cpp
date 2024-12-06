@@ -751,6 +751,12 @@ int main( int, char** )
 		double time2 = glfwGetTime();
 		double targetTime = time1 + 1.0f / 60.0f;
 		int loopCount = 0;
+		int sleepTime = (int)( ( targetTime - time2 ) * 1000 );
+		if ( sleepTime > 0 )
+		{
+			b2SleepMilliseconds( sleepTime );
+			time2 = glfwGetTime();
+		}
 		while ( time2 < targetTime )
 		{
 			b2Yield();
