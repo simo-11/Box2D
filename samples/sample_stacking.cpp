@@ -464,7 +464,7 @@ public:
 			m_events.push_back( { indexA, indexB } );
 		}
 
-		int eventCount = m_events.size();
+		int eventCount = (int)m_events.size();
 		for ( int i = 0; i < eventCount; ++i )
 		{
 			g_draw.DrawString( 5, m_textLine, "%d, %d", m_events[i].indexA, m_events[i].indexB );
@@ -883,9 +883,9 @@ public:
 		float cardHeight = 0.2f;
 		float cardThickness = 0.001f;
 
-		float angle0 = 25.0f * b2_pi / 180.0f;
-		float angle1 = -25.0f * b2_pi / 180.0f;
-		float angle2 = 0.5f * b2_pi;
+		float angle0 = 25.0f * B2_PI / 180.0f;
+		float angle1 = -25.0f * B2_PI / 180.0f;
+		float angle2 = 0.5f * B2_PI;
 
 		b2Polygon cardBox = b2MakeBox( cardThickness, cardHeight );
 		bodyDef.type = b2_dynamicBody;

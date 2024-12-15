@@ -10,6 +10,7 @@ project(box2d
 )
 
 # stuff to help debug cmake
+# message(STATUS "cmake tool chain: ${CMAKE_TOOLCHAIN_FILE}")
 # message(STATUS "cmake source dir: ${CMAKE_SOURCE_DIR}")
 # message(STATUS "library postfix: ${CMAKE_DEBUG_POSTFIX}")
 message(STATUS "CMake C compiler: ${CMAKE_C_COMPILER_ID}")
@@ -66,7 +67,7 @@ endif()
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 
-# set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
@@ -102,6 +103,15 @@ if(PROJECT_IS_TOP_LEVEL)
 	# enkiTS is used by all the test apps, but not directly by the Box2D library
 	if(BOX2D_UNIT_TESTS OR BOX2D_SAMPLES OR BOX2D_BENCHMARKS)
 		SET(ENKITS_BUILD_EXAMPLES OFF CACHE BOOL "Build enkiTS examples")
+
+		# Emscripten pthread support for enkiTS
+		if(EMSCRIPTEN)
+			set(EMSCRIPTEN_PTHREADS_COMPILER_FLAGS "-pthread -s USE_PTHREADS=1")
+			set(EMSCRIPTEN_PTHREADS_LINKER_FLAGS "${EMSCRIPTEN_PTHREADS_COMPILER_FLAGS} -s ALLOW_MEMORY_GROWTH")
+			string(APPEND CMAKE_C_FLAGS " ${EMSCRIPTEN_PTHREADS_COMPILER_FLAGS}")
+			string(APPEND CMAKE_CXX_FLAGS " ${EMSCRIPTEN_PTHREADS_COMPILER_FLAGS}")
+			string(APPEND CMAKE_EXE_LINKER_FLAGS " ${EMSCRIPTEN_PTHREADS_LINKER_FLAGS}")
+		endif()
 
 		# Used in tests and samples
 		FetchContent_Declare(

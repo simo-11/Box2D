@@ -11,11 +11,11 @@
 #include <float.h>
 #include <string.h>
 
-#define b2_treeStackSize 1024
+#define B2_TREE_STACK_SIZE 1024
 
 static b2TreeNode b2_defaultTreeNode = {
 	.aabb = { { 0.0f, 0.0f }, { 0.0f, 0.0f } },
-	.categoryBits = b2_defaultCategoryBits,
+	.categoryBits = B2_DEFAULT_CATEGORY_BITS,
 	.parent = B2_NULL_INDEX,
 	.child1 = B2_NULL_INDEX,
 	.child2 = B2_NULL_INDEX,
@@ -733,10 +733,10 @@ static void b2RemoveLeaf( b2DynamicTree* tree, int32_t leaf )
 // the node pool.
 int32_t b2DynamicTree_CreateProxy( b2DynamicTree* tree, b2AABB aabb, uint64_t categoryBits, int32_t userData )
 {
-	B2_ASSERT( -b2_huge < aabb.lowerBound.x && aabb.lowerBound.x < b2_huge );
-	B2_ASSERT( -b2_huge < aabb.lowerBound.y && aabb.lowerBound.y < b2_huge );
-	B2_ASSERT( -b2_huge < aabb.upperBound.x && aabb.upperBound.x < b2_huge );
-	B2_ASSERT( -b2_huge < aabb.upperBound.y && aabb.upperBound.y < b2_huge );
+	B2_ASSERT( -B2_HUGE < aabb.lowerBound.x && aabb.lowerBound.x < B2_HUGE );
+	B2_ASSERT( -B2_HUGE < aabb.lowerBound.y && aabb.lowerBound.y < B2_HUGE );
+	B2_ASSERT( -B2_HUGE < aabb.upperBound.x && aabb.upperBound.x < B2_HUGE );
+	B2_ASSERT( -B2_HUGE < aabb.upperBound.y && aabb.upperBound.y < B2_HUGE );
 
 	int32_t proxyId = b2AllocateNode( tree );
 	b2TreeNode* node = tree->nodes + proxyId;
@@ -775,8 +775,8 @@ int32_t b2DynamicTree_GetProxyCount( const b2DynamicTree* tree )
 void b2DynamicTree_MoveProxy( b2DynamicTree* tree, int32_t proxyId, b2AABB aabb )
 {
 	B2_ASSERT( b2IsValidAABB( aabb ) );
-	B2_ASSERT( aabb.upperBound.x - aabb.lowerBound.x < b2_huge );
-	B2_ASSERT( aabb.upperBound.y - aabb.lowerBound.y < b2_huge );
+	B2_ASSERT( aabb.upperBound.x - aabb.lowerBound.x < B2_HUGE );
+	B2_ASSERT( aabb.upperBound.y - aabb.lowerBound.y < B2_HUGE );
 	B2_ASSERT( 0 <= proxyId && proxyId < tree->nodeCapacity );
 	B2_ASSERT( b2IsLeaf( tree->nodes + proxyId ) );
 
@@ -793,8 +793,8 @@ void b2DynamicTree_EnlargeProxy( b2DynamicTree* tree, int32_t proxyId, b2AABB aa
 	b2TreeNode* nodes = tree->nodes;
 
 	B2_ASSERT( b2IsValidAABB( aabb ) );
-	B2_ASSERT( aabb.upperBound.x - aabb.lowerBound.x < b2_huge );
-	B2_ASSERT( aabb.upperBound.y - aabb.lowerBound.y < b2_huge );
+	B2_ASSERT( aabb.upperBound.x - aabb.lowerBound.x < B2_HUGE );
+	B2_ASSERT( aabb.upperBound.y - aabb.lowerBound.y < B2_HUGE );
 	B2_ASSERT( 0 <= proxyId && proxyId < tree->nodeCapacity );
 	B2_ASSERT( b2IsLeaf( tree->nodes + proxyId ) );
 
@@ -1019,7 +1019,7 @@ b2TreeStats b2DynamicTree_Query( const b2DynamicTree* tree, b2AABB aabb, uint64_
 		return result;
 	}
 
-	int32_t stack[b2_treeStackSize];
+	int32_t stack[B2_TREE_STACK_SIZE];
 	int32_t stackCount = 0;
 	stack[stackCount++] = tree->root;
 
@@ -1051,8 +1051,8 @@ b2TreeStats b2DynamicTree_Query( const b2DynamicTree* tree, b2AABB aabb, uint64_
 			}
 			else
 			{
-				B2_ASSERT( stackCount < b2_treeStackSize - 1 );
-				if ( stackCount < b2_treeStackSize - 1 )
+				B2_ASSERT( stackCount < B2_TREE_STACK_SIZE - 1 );
+				if ( stackCount < B2_TREE_STACK_SIZE - 1 )
 				{
 					stack[stackCount++] = node->child1;
 					stack[stackCount++] = node->child2;
@@ -1063,107 +1063,6 @@ b2TreeStats b2DynamicTree_Query( const b2DynamicTree* tree, b2AABB aabb, uint64_
 
 	return result;
 }
-
-#define B2_DIRK_RECURSE 0
-
-#if B2_DIRK_RECURSE == 1
-b2TraversalResult b2DynamicTree_RayCast( const b2DynamicTree* tree, const b2RayCastInput* input, uint64_t maskBits,
-										 b2TreeRayCastCallbackFcn* callback, void* context )
-{
-	b2TraversalResult result = { 0 };
-
-	b2Vec2 p1 = input->origin;
-	b2Vec2 d = input->translation;
-
-	b2Vec2 r = b2Normalize( d );
-
-	// v is perpendicular to the segment.
-	b2Vec2 v = b2CrossSV( 1.0f, r );
-	b2Vec2 abs_v = b2Abs( v );
-
-	// Separating axis for segment (Gino, p80).
-	// |dot(v, p1 - c)| > dot(|v|, h)
-
-	float maxFraction = input->maxFraction;
-
-	b2Vec2 p2 = b2MulAdd( p1, maxFraction, d );
-
-	// Build a bounding box for the segment.
-	b2AABB segmentAABB = { b2Min( p1, p2 ), b2Max( p1, p2 ) };
-
-	int32_t stack[b2_treeStackSize];
-	int32_t stackCount = 0;
-	int32_t nodeId = tree->root;
-
-	b2RayCastInput subInput = *input;
-
-	while ( true )
-	{
-		const b2TreeNode* node = tree->nodes + nodeId;
-		result.nodeVisits += 1;
-
-		b2AABB nodeAABB = node->aabb;
-
-		if ( ( node->categoryBits & maskBits ) != 0 && b2AABB_Overlaps( nodeAABB, segmentAABB ) )
-		{
-			// Separating axis for segment (Gino, p80).
-			// |dot(v, p1 - c)| > dot(|v|, h)
-			// radius extension is added to the node in this case
-			b2Vec2 c = b2AABB_Center( nodeAABB );
-			b2Vec2 h = b2AABB_Extents( nodeAABB );
-			float term1 = b2AbsFloat( b2Dot( v, b2Sub( p1, c ) ) );
-			float term2 = b2Dot( abs_v, h );
-			if ( term2 >= term1 )
-			{
-				if ( b2IsLeaf( node ) )
-				{
-					subInput.maxFraction = maxFraction;
-
-					float value = callback( &subInput, nodeId, node->userData, context );
-					result.leafVisits += 1;
-
-					if ( value == 0.0f )
-					{
-						// The client has terminated the ray cast.
-						return result;
-					}
-
-					if ( 0.0f < value && value < maxFraction )
-					{
-						// Update segment bounding box.
-						maxFraction = value;
-						p2 = b2MulAdd( p1, maxFraction, d );
-						segmentAABB.lowerBound = b2Min( p1, p2 );
-						segmentAABB.upperBound = b2Max( p1, p2 );
-					}
-				}
-				else
-				{
-					B2_ASSERT( stackCount < b2_treeStackSize - 1 );
-					if ( stackCount < b2_treeStackSize - 1 )
-					{
-						stack[stackCount++] = node->child2;
-					}
-
-					nodeId = node->child1;
-
-					continue;
-				}
-			}
-		}
-
-		if ( stackCount == 0 )
-		{
-			break;
-		}
-
-		nodeId = stack[--stackCount];
-	}
-
-	return result;
-}
-
-#else
 
 b2TreeStats b2DynamicTree_RayCast( const b2DynamicTree* tree, const b2RayCastInput* input, uint64_t maskBits,
 								   b2TreeRayCastCallbackFcn* callback, void* context )
@@ -1194,7 +1093,7 @@ b2TreeStats b2DynamicTree_RayCast( const b2DynamicTree* tree, const b2RayCastInp
 	// Build a bounding box for the segment.
 	b2AABB segmentAABB = { b2Min( p1, p2 ), b2Max( p1, p2 ) };
 
-	int32_t stack[b2_treeStackSize];
+	int32_t stack[B2_TREE_STACK_SIZE];
 	int32_t stackCount = 0;
 	stack[stackCount++] = tree->root;
 
@@ -1241,13 +1140,15 @@ b2TreeStats b2DynamicTree_RayCast( const b2DynamicTree* tree, const b2RayCastInp
 			float value = callback( &subInput, nodeId, node->userData, context );
 			result.leafVisits += 1;
 
+			// The user may return -1 to indicate this shape should be skipped
+
 			if ( value == 0.0f )
 			{
 				// The client has terminated the ray cast.
 				return result;
 			}
 
-			if ( 0.0f < value && value < maxFraction )
+			if ( 0.0f < value && value <= maxFraction )
 			{
 				// Update segment bounding box.
 				maxFraction = value;
@@ -1258,8 +1159,8 @@ b2TreeStats b2DynamicTree_RayCast( const b2DynamicTree* tree, const b2RayCastInp
 		}
 		else
 		{
-			B2_ASSERT( stackCount < b2_treeStackSize - 1 );
-			if ( stackCount < b2_treeStackSize - 1 )
+			B2_ASSERT( stackCount < B2_TREE_STACK_SIZE - 1 );
+			if ( stackCount < B2_TREE_STACK_SIZE - 1 )
 			{
 				b2Vec2 c1 = b2AABB_Center( nodes[node->child1].aabb );
 				b2Vec2 c2 = b2AABB_Center( nodes[node->child2].aabb );
@@ -1279,8 +1180,6 @@ b2TreeStats b2DynamicTree_RayCast( const b2DynamicTree* tree, const b2RayCastInp
 
 	return result;
 }
-
-#endif
 
 b2TreeStats b2DynamicTree_ShapeCast( const b2DynamicTree* tree, const b2ShapeCastInput* input, uint64_t maskBits,
 									 b2TreeShapeCastCallbackFcn* callback, void* context )
@@ -1327,7 +1226,7 @@ b2TreeStats b2DynamicTree_ShapeCast( const b2DynamicTree* tree, const b2ShapeCas
 	b2ShapeCastInput subInput = *input;
 	const b2TreeNode* nodes = tree->nodes;
 
-	int32_t stack[b2_treeStackSize];
+	int32_t stack[B2_TREE_STACK_SIZE];
 	int32_t stackCount = 0;
 	stack[stackCount++] = tree->root;
 
@@ -1385,8 +1284,8 @@ b2TreeStats b2DynamicTree_ShapeCast( const b2DynamicTree* tree, const b2ShapeCas
 		}
 		else
 		{
-			B2_ASSERT( stackCount < b2_treeStackSize - 1 );
-			if ( stackCount < b2_treeStackSize - 1 )
+			B2_ASSERT( stackCount < B2_TREE_STACK_SIZE - 1 );
+			if ( stackCount < B2_TREE_STACK_SIZE - 1 )
 			{
 				b2Vec2 c1 = b2AABB_Center( nodes[node->child1].aabb );
 				b2Vec2 c2 = b2AABB_Center( nodes[node->child2].aabb );
@@ -1722,7 +1621,7 @@ static int32_t b2BuildTree( b2DynamicTree* tree, int32_t leafCount )
 #endif
 
 	// todo large stack item
-	struct b2RebuildItem stack[b2_treeStackSize];
+	struct b2RebuildItem stack[B2_TREE_STACK_SIZE];
 	int32_t top = 0;
 
 	stack[0].nodeIndex = b2AllocateNode( tree );
@@ -1824,7 +1723,7 @@ static int32_t b2BuildTree( b2DynamicTree* tree, int32_t leafCount )
 			else
 			{
 				B2_ASSERT( count > 0 );
-				B2_ASSERT( top < b2_treeStackSize );
+				B2_ASSERT( top < B2_TREE_STACK_SIZE );
 
 				top += 1;
 				struct b2RebuildItem* newItem = stack + top;
@@ -1888,7 +1787,7 @@ int32_t b2DynamicTree_Rebuild( b2DynamicTree* tree, bool fullBuild )
 	}
 
 	int32_t leafCount = 0;
-	int32_t stack[b2_treeStackSize];
+	int32_t stack[B2_TREE_STACK_SIZE];
 	int32_t stackCount = 0;
 
 	int32_t nodeIndex = tree->root;
@@ -1932,8 +1831,8 @@ int32_t b2DynamicTree_Rebuild( b2DynamicTree* tree, bool fullBuild )
 			// Handle children
 			nodeIndex = node->child1;
 
-			B2_ASSERT( stackCount < b2_treeStackSize );
-			if ( stackCount < b2_treeStackSize )
+			B2_ASSERT( stackCount < B2_TREE_STACK_SIZE );
+			if ( stackCount < B2_TREE_STACK_SIZE )
 			{
 				stack[stackCount++] = node->child2;
 			}

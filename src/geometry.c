@@ -1,8 +1,7 @@
 // SPDX-FileCopyrightText: 2023 Erin Catto
 // SPDX-License-Identifier: MIT
 
-#include "aabb.h"
-#include "core.h"
+#include "constants.h"
 #include "shape.h"
 
 #include "box2d/collision.h"
@@ -11,16 +10,16 @@
 #include <float.h>
 #include <stddef.h>
 
-_Static_assert( b2_maxPolygonVertices > 2, "must be 3 or more" );
+_Static_assert( B2_MAX_POLYGON_VERTICES > 2, "must be 3 or more" );
 
 bool b2IsValidRay( const b2RayCastInput* input )
 {
 	bool isValid = b2IsValidVec2( input->origin ) && b2IsValidVec2( input->translation ) && b2IsValidFloat( input->maxFraction ) &&
-				   0.0f <= input->maxFraction && input->maxFraction < b2_huge;
+				   0.0f <= input->maxFraction && input->maxFraction < B2_HUGE;
 	return isValid;
 }
 
-static b2Vec2 b2ComputePolygonCentroid( const b2Vec2* vertices, int32_t count )
+static b2Vec2 b2ComputePolygonCentroid( const b2Vec2* vertices, int count )
 {
 	b2Vec2 center = { 0.0f, 0.0f };
 	float area = 0.0f;
@@ -31,7 +30,7 @@ static b2Vec2 b2ComputePolygonCentroid( const b2Vec2* vertices, int32_t count )
 
 	const float inv3 = 1.0f / 3.0f;
 
-	for ( int32_t i = 1; i < count - 1; ++i )
+	for ( int i = 1; i < count - 1; ++i )
 	{
 		// Triangle edges
 		b2Vec2 e1 = b2Sub( vertices[i], origin );
@@ -223,7 +222,7 @@ b2MassData b2ComputeCircleMass( const b2Circle* shape, float density )
 	float rr = shape->radius * shape->radius;
 
 	b2MassData massData;
-	massData.mass = density * b2_pi * rr;
+	massData.mass = density * B2_PI * rr;
 	massData.center = shape->center;
 
 	// inertia about the local origin
@@ -241,7 +240,7 @@ b2MassData b2ComputeCapsuleMass( const b2Capsule* shape, float density )
 	float length = b2Length( b2Sub( p2, p1 ) );
 	float ll = length * length;
 
-	float circleMass = density * ( b2_pi * radius * radius );
+	float circleMass = density * ( B2_PI * radius * radius );
 	float boxMass = density * ( 2.0f * radius * length );
 
 	b2MassData massData;
@@ -259,7 +258,7 @@ b2MassData b2ComputeCapsuleMass( const b2Capsule* shape, float density )
 	// I verified this formula by computing the convex hull of a 128 vertex capsule
 
 	// half circle centroid
-	float lc = 4.0f * radius / ( 3.0f * b2_pi );
+	float lc = 4.0f * radius / ( 3.0f * B2_PI );
 
 	// half length of rectangular portion of capsule
 	float h = 0.5f * length;
@@ -319,7 +318,7 @@ b2MassData b2ComputePolygonMass( const b2Polygon* shape, float density )
 		return b2ComputeCapsuleMass( &capsule, density );
 	}
 
-	b2Vec2 vertices[b2_maxPolygonVertices] = { 0 };
+	b2Vec2 vertices[B2_MAX_POLYGON_VERTICES] = { 0 };
 	int32_t count = shape->count;
 	float radius = shape->radius;
 
