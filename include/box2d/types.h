@@ -489,6 +489,8 @@ typedef enum b2JointType
 	b2_revoluteJoint,
 	b2_weldJoint,
 	b2_wheelJoint,
+	b2ep_elasticPlasticJoint, // ep
+	b2ep_rigidPlasticJoint,   // ep
 } b2JointType;
 
 /// Distance joint definition

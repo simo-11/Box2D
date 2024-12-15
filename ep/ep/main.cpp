@@ -1,26 +1,20 @@
+// SPDX-FileCopyrightText: 2023 Erin Catto
+// SPDX-License-Identifier: MIT
 /*
-* Copyright (c) 2006-2016 Erin Catto http://www.box2d.org
-*
-* This software is provided 'as-is', without any express or implied
-* warranty.  In no event will the authors be held liable for any damages
-* arising from the use of this software.
-* Permission is granted to anyone to use this software for any purpose,
-* including commercial applications, and to alter it and redistribute it
-* freely, subject to the following restrictions:
-* 1. The origin of this software must not be misrepresented; you must not
-* claim that you wrote the original software. If you use this software
-* in a product, an acknowledgment in the product documentation would be
-* appreciated but is not required.
-* 2. Altered source versions must be plainly marked as such, and must not be
-* misrepresented as being the original software.
-* 3. This notice may not be removed or altered from any source distribution.
 *
 * Simo Nikula modified starting 2017/02
 */
 #define _CRT_SECURE_NO_WARNINGS
-#include "imgui/imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
+#define _CRTDBG_MAP_ALLOC
+#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS 0
+// clang-format off
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+// clang-format on
+
+#include "../../build/imgui/imgui.h"
+#include "../../build/imgui/backends/imgui_impl_glfw.h"
+#include "../../build/imgui/backends/imgui_impl_opengl3.h"
 #include "draw.h"
 #include "test.h"
 #include "ep_joint.h"
@@ -53,9 +47,9 @@ namespace
 	GLFWwindow* mainWindow = NULL;
 	UIState ui;
 
-	int32 testIndex = 0;
-	int32 testSelection = 0;
-	int32 testCount = 0;
+	int testIndex = 0;
+	int testSelection = 0;
+	int testCount = 0;
 	TestEntry* entry;
 	Test* test;
 	Settings settings;
@@ -146,7 +140,7 @@ static void sKeyCallback(GLFWwindow* window, int key, int scancode, int action, 
 			// Pan left
 			if (mods == GLFW_MOD_CONTROL)
 			{
-				b2Vec2 newOrigin(2.0f, 0.0f);
+				b2Vec2 newOrigin{ 2.0f, 0.0f };
 				test->ShiftOrigin(newOrigin);
 			}
 			else
@@ -159,7 +153,7 @@ static void sKeyCallback(GLFWwindow* window, int key, int scancode, int action, 
 			// Pan right
 			if (mods == GLFW_MOD_CONTROL)
 			{
-				b2Vec2 newOrigin(-2.0f, 0.0f);
+				b2Vec2 newOrigin{-2.0f, 0.0f};
 				test->ShiftOrigin(newOrigin);
 			}
 			else
@@ -172,7 +166,7 @@ static void sKeyCallback(GLFWwindow* window, int key, int scancode, int action, 
 			// Pan down
 			if (mods == GLFW_MOD_CONTROL)
 			{
-				b2Vec2 newOrigin(0.0f, 2.0f);
+				b2Vec2 newOrigin{ 0.0f, 2.0f };
 				test->ShiftOrigin(newOrigin);
 			}
 			else
@@ -185,7 +179,7 @@ static void sKeyCallback(GLFWwindow* window, int key, int scancode, int action, 
 			// Pan up
 			if (mods == GLFW_MOD_CONTROL)
 			{
-				b2Vec2 newOrigin(0.0f, -2.0f);
+				b2Vec2 newOrigin{ 0.0f, -2.0f };
 				test->ShiftOrigin(newOrigin);
 			}
 			else
@@ -196,18 +190,7 @@ static void sKeyCallback(GLFWwindow* window, int key, int scancode, int action, 
 
 		case GLFW_KEY_HOME:
 			// Reset view
-			g_camera.m_zoom = 1.0f;
-			g_camera.m_center.Set(0.0f, 20.0f);
-			break;
-
-		case GLFW_KEY_Z:
-			// Zoom out
-			g_camera.m_zoom = b2Min(1.1f * g_camera.m_zoom, 20.0f);
-			break;
-
-		case GLFW_KEY_X:
-			// Zoom in
-			g_camera.m_zoom = b2Max(0.9f * g_camera.m_zoom, 0.02f);
+			g_camera.ResetView();
 			break;
 
 		case GLFW_KEY_R:
@@ -278,13 +261,13 @@ static void sCharCallback(GLFWwindow* window, unsigned int c)
 }
 
 //
-static void sMouseButton(GLFWwindow* window, int32 button, int32 action, int32 mods)
+static void sMouseButton(GLFWwindow* window, int button, int action, int mods)
 {
 	ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
 
 	double xd, yd;
 	glfwGetCursorPos(mainWindow, &xd, &yd);
-	b2Vec2 ps((float)xd, (float)yd);
+	b2Vec2 ps{ (float)xd, (float)yd };
 
 	// Use the mouse to move things around.
 	if (button == GLFW_MOUSE_BUTTON_1)
@@ -333,7 +316,7 @@ static void sMouseButton(GLFWwindow* window, int32 button, int32 action, int32 m
 //
 static void sMouseMotion(GLFWwindow*, double xd, double yd)
 {
-	b2Vec2 ps((float)xd, (float)yd);
+	b2Vec2 ps{ (float)xd, (float)yd };
 
 	b2Vec2 pw = g_camera.ConvertScreenToWorld(ps);
 	test->MouseMove(pw);
@@ -390,7 +373,7 @@ static void sSimulate()
 		entry = g_testEntries + testIndex;
 		test = entry->createFcn(&settings);
 		g_camera.m_zoom = 1.0f;
-		g_camera.m_center.Set(0.0f, 20.0f);
+		g_camera.m_center={ 0.0f, 20.0f };
 	}
 }
 
@@ -411,8 +394,6 @@ static void sInterface()
 		ImGui::SetNextWindowSize(ImVec2((float)menuWidth, (float)g_camera.m_height - 20));
 		ImGui::Begin("Common Controls##cc",
 			&ui.showMenu, ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize);
-		ImGui::PushAllowKeyboardFocus(false); // Disable TAB
-
 		ImGui::PushItemWidth(-1.0f);
 
 		ImGui::Text("Test");
@@ -935,6 +916,13 @@ const char* glslVersion = NULL;
 	}
 
 	glfwMakeContextCurrent(mainWindow);
+	if ( !gladLoadGL() )
+	{
+		fprintf( stderr, "Failed to initialize glad\n" );
+		glfwTerminate();
+		return -1;
+	}
+
 	// Load OpenGL functions using glad
 	int version = gladLoadGL(glfwGetProcAddress);
 	printf("GL %d.%d\n", GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
@@ -975,6 +963,17 @@ const char* glslVersion = NULL;
 	glClearColor(0.3f, 0.3f, 0.3f, 1.f);
 	while (!glfwWindowShouldClose(mainWindow))
 	{
+		double time1 = glfwGetTime();
+		if ( glfwGetKey( g_mainWindow, GLFW_KEY_Z ) == GLFW_PRESS )
+		{
+			// Zoom out
+			g_camera.m_zoom = b2MinFloat( 1.005f * g_camera.m_zoom, 100.0f );
+		}
+		else if ( glfwGetKey( g_mainWindow, GLFW_KEY_X ) == GLFW_PRESS )
+		{
+			// Zoom in
+			g_camera.m_zoom = b2MaxFloat( 0.995f * g_camera.m_zoom, 0.5f );
+		}
 		bool opened;
 		glfwGetWindowSize(mainWindow, &g_camera.m_width, &g_camera.m_height);
 		glViewport(0, 0, g_camera.m_width, g_camera.m_height);
@@ -984,7 +983,7 @@ const char* glslVersion = NULL;
 		ImGui::NewFrame();
 		ImGui::SetNextWindowPos(ImVec2(0, 0));
 		ImGui::SetNextWindowSize(ImVec2((float)g_camera.m_width, (float)g_camera.m_height));
-		opened = ImGui::Begin("Overlay", NULL, ImVec2(0, 0), 0.0f,
+		opened = ImGui::Begin("Overlay", nullptr,
 			ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs |
 			ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
 		if (opened){
