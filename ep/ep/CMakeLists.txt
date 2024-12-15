@@ -5,13 +5,13 @@ set(EP_SOURCE_FILES
 	test.cpp
 	)
 
-set(SHARED_TESTBED_SOURCE_FILES
-	../../testbed/draw.cpp
-	../../testbed/draw.h
-	../../testbed/imgui_impl_glfw.cpp
-	../../testbed/imgui_impl_glfw.h
-	../../testbed/imgui_impl_opengl3.cpp
-	../../testbed/imgui_impl_opengl3.h
+set(SHARED_SAMPLE_FILES
+	../../samples/draw.cpp
+	../../samples/draw.h
+	../../build/imgui/backends/imgui_impl_glfw.cpp
+	../../build/imgui/backends/imgui_impl_glfw.h
+	../../build/imgui/backends/imgui_impl_opengl3.cpp
+	../../build/imgui/backends/imgui_impl_opengl3.h
 )
 set(EP_HEADER_FILES
 	beam.h
@@ -61,14 +61,14 @@ set(EP_HEADER_FILES
 	../../include/box2d/b2_world.h
 	../../include/box2d/b2_world_callbacks.h
 	../../include/box2d/box2d.h
-	../../src/dynamics/b2_island.h
+	../../src/island.h
 	)
 
 add_executable(ep)
 target_include_directories(ep PRIVATE 
 	../../include 
 	../../src
-	../../testbed
+	../../samples
 	../../extern/glad/include 
 	../../extern/glfw/include 
 	../../extern
