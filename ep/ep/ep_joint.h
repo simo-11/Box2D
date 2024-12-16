@@ -67,7 +67,7 @@ struct EPBeam
 	unsigned char label;
 	bool deleteSbody = false;
 	float position[2]; // for static body
-	b2Body * body, *sBody;
+	b2BodySim * body, *sBody;
 	b2ElasticPlasticJoint* joint;
 	EPBeam* next;
 	EPBeam() {
@@ -105,7 +105,7 @@ struct RigidTriangle
 {
 	unsigned char label;
 	float position[2] = {};
-	b2Body * body;
+	b2BodySim * body;
 	RigidTriangle* next;
 	RigidTriangle() {
 		label = 1;

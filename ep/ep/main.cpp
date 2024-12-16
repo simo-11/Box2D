@@ -16,6 +16,7 @@
 #include "../../build/imgui/backends/imgui_impl_glfw.h"
 #include "../../build/imgui/backends/imgui_impl_opengl3.h"
 #include "draw.h"
+#include "body.h"
 #include "test.h"
 #include "ep_joint.h"
 
@@ -55,7 +56,8 @@ namespace
 	Settings settings;
 	bool rightMouseDown;
 	b2Vec2 lastp;
-}
+	bool epLogEnabled = true;
+	}
 
 static bool canRead(const char* path){
 	FILE* f;
@@ -378,10 +380,9 @@ static void sSimulate()
 }
 
 //
-static bool sTestEntriesGetName(void*, int idx, const char** out_name)
+static const char * sTestEntriesGetName(void*, int idx)
 {
-	*out_name = g_testEntries[idx].name;
-	return true;
+	return g_testEntries[idx].name;
 }
 
 //
@@ -490,7 +491,7 @@ static void sInterface()
 			v[1] = settings.bombVelocity.y;
 			ImGui::Text("Velocity");
 			ImGui::SameLine();
-			if (ImGui::InputFloat2("Velocity", v,3)) {
+			if (ImGui::InputFloat2("Velocity", v)) {
 				settings.bombVelocity.x = v[0];
 				settings.bombVelocity.y = v[1];
 			}
@@ -499,7 +500,7 @@ static void sInterface()
 			v[1] = sp.y;
 			ImGui::Text("Spawn@");
 			ImGui::SameLine();
-			if (ImGui::InputFloat2("Start", v,3)) {
+			if (ImGui::InputFloat2("Start", v)) {
 				sp.x = v[0];
 				sp.y = v[1];
 				test->setBombSpawnPoint(sp);
@@ -645,11 +646,11 @@ static void sInterface()
 			{ // draw labels and update positions
 				bool movingByMouse = false;
 				bool valueChanged = false;
-				if (test->m_movingBody==rt->body){
+				if (test->m_movingBody->id==rt->body->bodyId){
 					movingByMouse = true;
 				}
-				b2Body *body = rt->body;
-				b2Vec2 p = body->GetTransform().p;
+				b2BodySim *body = rt->body;
+				b2Vec2 p = body->transform.p;
 				rt->position[0] = p.x;
 				rt->position[1] = p.y;
 				char buff[4];
@@ -670,7 +671,7 @@ static void sInterface()
 						labelForDelete = rt->label;
 					}
 					ImGui::SameLine();
-					valueChanged = ImGui::InputFloat2(bufa, rt->position, decimals);
+					valueChanged = ImGui::InputFloat2(bufa, rt->position);
 				}
 				float zoom = g_camera.m_zoom;
 				p.x -= 1.5f*zoom;
@@ -680,7 +681,7 @@ static void sInterface()
 				if (valueChanged){
 					np.x = rt->position[0];
 					np.y = rt->position[1];
-					body->SetTransform(np, 0);
+					body->transform.p=np;
 				}
 			}
 			if (labelForDelete){
@@ -706,7 +707,7 @@ static void sInterface()
 			float mv[2];
 			mv[0] = settings.addMassPoint.x;
 			mv[1] = settings.addMassPoint.y;
-			if (ImGui::InputFloat2("", mv,3)) {
+			if (ImGui::InputFloat2("", mv)) {
 				settings.addMassPoint.x = mv[0];
 				settings.addMassPoint.y = mv[1];
 			}
@@ -802,10 +803,10 @@ static void sInterface()
 			for (EPBeam* rt = test->GetEPBeamList();
 				rt != nullptr; rt = rt->next)
 			{ // draw labels and update positions
-				b2Body *body = rt->sBody;
+				b2BodySim *body = rt->sBody;
 				if (rt->deleteSbody) {
 					// turn to sensor
-					body->GetFixtureList()->SetSensor(true);
+					// TODO body->GetFixtureList()->SetSensor(true);
 					rt->deleteSbody = false;
 				}
 				char lbuff[4];
@@ -820,7 +821,7 @@ static void sInterface()
 					labelForDelete = rt->label;
 				}
 				ImGui::SameLine();
-				b2Vec2 p = body->GetTransform().p;
+				b2Vec2 p = body->transform.p;
 				rt->position[0] = p.x;
 				rt->position[1] = p.y;
 				bool valueChanged = ImGui::InputFloat2(buff, rt->position, decimals);
@@ -833,7 +834,7 @@ static void sInterface()
 				if (valueChanged) {
 					np.x = rt->position[0];
 					np.y = rt->position[1];
-					body->SetTransform(np, 0);
+					body->transform.p=np;
 				}
 			}
 			if (labelForDelete) {
@@ -865,8 +866,6 @@ static void sInterface()
 		if (ImGui::SmallButton("ResetTest")){
 			test->reset();
 		}
-
-		ImGui::PopAllowKeyboardFocus();
 		ImGui::End();
 	}
 	test->Ui();
@@ -923,12 +922,10 @@ const char* glslVersion = NULL;
 		return -1;
 	}
 
-	// Load OpenGL functions using glad
-	int version = gladLoadGL(glfwGetProcAddress);
-	printf("GL %d.%d\n", GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
-	printf("OpenGL %s, GLSL %s\n", 
-		glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
-
+	printf( "GL %d.%d\n", GLVersion.major, GLVersion.minor );
+	printf( "OpenGL %s, GLSL %s\n", 
+		glGetString( GL_VERSION ), 
+		glGetString( GL_SHADING_LANGUAGE_VERSION ) );
 	glfwSetScrollCallback(mainWindow, sScrollCallback);
 	glfwSetWindowSizeCallback(mainWindow, sResizeWindow);
 	glfwSetKeyCallback(mainWindow, sKeyCallback);
@@ -947,7 +944,7 @@ const char* glslVersion = NULL;
 		++testCount;
 	}
 
-	testIndex = b2Clamp(testIndex, 0, testCount - 1);
+	testIndex = b2ClampInt(testIndex, 0, testCount - 1);
 	testSelection = testIndex;
 
 	entry = g_testEntries + testIndex;
