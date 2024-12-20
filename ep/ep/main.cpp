@@ -676,7 +676,7 @@ static void sInterface()
 				float zoom = g_camera.m_zoom;
 				p.x -= 1.5f*zoom;
 				p.y += 1.f*zoom;
-				g_debugDraw.DrawString(p, "%s", buff);
+				g_draw.DrawString(p, "%s", buff);
 				b2Vec2 np;
 				if (valueChanged){
 					np.x = rt->position[0];
@@ -824,12 +824,12 @@ static void sInterface()
 				b2Vec2 p = body->transform.p;
 				rt->position[0] = p.x;
 				rt->position[1] = p.y;
-				bool valueChanged = ImGui::InputFloat2(buff, rt->position, decimals);
+				bool valueChanged = ImGui::InputFloat2(buff, rt->position);
 				float zoom = g_camera.m_zoom;
 				b2Vec2 lp = p;
 				lp.x -= 1.5f*zoom;
 				lp.y += 1.f*zoom;
-				g_debugDraw.DrawString(lp, "%s", lbuff);
+				g_draw.DrawString(lp, "%s", lbuff);
 				b2Vec2 np;
 				if (valueChanged) {
 					np.x = rt->position[0];
@@ -933,10 +933,8 @@ const char* glslVersion = NULL;
 	glfwSetMouseButtonCallback(mainWindow, sMouseButton);
 	glfwSetCursorPosCallback(mainWindow, sMouseMotion);
 	glfwSetScrollCallback(mainWindow, sScrollCallback);
-
-	g_debugDraw.Create();
-
 	sCreateUI(mainWindow,glslVersion);
+	g_draw.Create();
 
 	testCount = 0;
 	while (g_testEntries[testCount].createFcn != NULL)
@@ -1011,7 +1009,7 @@ const char* glslVersion = NULL;
 	}
 	Test::DeleteRigidTriangles();
 	Test::DeleteEPBeams();
-	g_debugDraw.Destroy();
+	g_draw.Destroy();
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	glfwTerminate();

@@ -19,8 +19,7 @@
 Modified for ep fork
 */
 
-#ifndef TEST_H
-#define TEST_H
+#pragma once
 
 #include <box2d/box2d.h>
 #include "draw.h"
@@ -71,7 +70,8 @@ struct Settings
 	{
 		reset();
 	}
-	void reset(){
+	void reset()
+	{
 		hz = 60.0f;
 		mouseJointForceScale = 30.f;
 		velocityIterations = 8;
@@ -98,8 +98,8 @@ struct Settings
 		forceScale = 0.1f;
 		momentScale = 0.3f;
 		// 100*100*4 mm RHS@350MPa
-		epbMaxForce = 15.3f*100*275/2; // 15 cm^2 275 MPa
-		epbMaxMoment = 54.9*275; // 54.9cm^3  275 MPa [Nm]
+		epbMaxForce = 15.3f * 100 * 275 / 2; // 15 cm^2 275 MPa
+		epbMaxMoment = 54.9 * 275;			 // 54.9cm^3  275 MPa [Nm]
 		epbMaxStrain = 0.1f;
 		epbMaxRotation = 3;
 		epbX = 0.1f;
@@ -116,15 +116,15 @@ struct Settings
 		bombShape = CIRCLE;
 		bombWidth = 2;
 		bombMultiplier = 10;
-		bombVelocity = b2Vec2(5, 0);
-		bombSpawnPoint = b2Vec2(-0.5f*bombWidth, 0.5f*bombWidth);
-		addMassPoint = b2Vec2(0, 0);
+		bombVelocity = b2Vec2{ 5, 0 };
+		bombSpawnPoint = b2Vec2{ -0.5f * bombWidth, 0.5f * bombWidth };
+		addMassPoint = b2Vec2{0, 0};
 	}
 	float hz;
 	float mouseJointForceScale; 
-	int32 velocityIterations;
-	int32 epDebugSteps;
-	int32 positionIterations;
+	int velocityIterations;
+	int epDebugSteps;
+	int positionIterations;
 	bool drawShapes;
 	bool drawJoints;
 	bool drawJointReactions;
@@ -165,33 +165,24 @@ struct TestEntry
 };
 
 extern TestEntry g_testEntries[];
-// This is called when a joint in the world is implicitly destroyed
-// because an attached body is destroyed. This gives us a chance to
-// nullify the mouse joint.
-class DestructionListener : public b2DestructionListener
-{
-public:
-	void SayGoodbye(b2Fixture* fixture) { B2_NOT_USED(fixture); }
-	void SayGoodbye(b2Joint* joint);
 
-	Test* test;
-};
-
-const int32 k_maxContactPoints = 2048;
+const int k_maxContactPoints = 2048;
 
 struct ContactPoint
 {
-	b2Fixture* fixtureA;
-	b2Fixture* fixtureB;
+	b2ShapeId shapeIdA;
+	b2ShapeId shapeIdB;
 	b2Vec2 normal;
 	b2Vec2 position;
-	b2PointState state;
+	bool persisted;
 	float normalImpulse;
 	float tangentImpulse;
 	float separation;
+	int32_t constraintIndex;
+	int32_t color;
 };
 
-class Test : public b2ContactListener
+class Test
 {
 public:
 
@@ -200,12 +191,12 @@ public:
 
 	void DrawTitle(const char *string);
 	virtual void Step();
-	virtual void Keyboard(int key) { B2_NOT_USED(key); }
-	virtual void KeyboardUp(int key) { B2_NOT_USED(key); }
+	virtual void Keyboard(int key) { }
+	virtual void KeyboardUp(int key) { }
 	void ShiftMouseDown(const b2Vec2& p);
 	void ControlMouseDown(const b2Vec2& p);
 	void AltMouseDown(const b2Vec2& p);
-	virtual void MouseDown(const b2Vec2& p, int32 mods);
+	virtual void MouseDown(const b2Vec2& p, int mods);
 	virtual void MouseUp(const b2Vec2& p);
 	void MouseMove(const b2Vec2& p);
 	void LaunchBomb();
@@ -216,17 +207,12 @@ public:
 	void UpdateBombVelocity(const b2Vec2& p);
 
 	// Let derived tests know that a joint was destroyed.
-	virtual void JointDestroyed(b2Joint* joint) { B2_NOT_USED(joint); }
+	virtual void JointDestroyed(b2Joint* joint) { }
 
 	// Callbacks for derived classes.
-	virtual void BeginContact(b2Contact* contact) { B2_NOT_USED(contact); }
-	virtual void EndContact(b2Contact* contact) { B2_NOT_USED(contact); }
+	virtual void BeginContact(b2Contact* contact) {}
+	virtual void EndContact(b2Contact* contact) { }
 	virtual void PreSolve(b2Contact* contact, const b2Manifold* oldManifold);
-	virtual void PostSolve(b2Contact* contact, const b2ContactImpulse* impulse)
-	{
-		B2_NOT_USED(contact);
-		B2_NOT_USED(impulse);
-	};
 	void ShiftOrigin(const b2Vec2& newOrigin);
 	b2Vec2 GetMouseWorld() { return m_mouseWorld; }
 	// ep-start
@@ -239,14 +225,14 @@ public:
 		const char * fmt = "%5.2f", float maxValue = (float)FLT_MAX, float minMaxValue = 0.f);
 	virtual void LogContact(ContactPoint* cp, float scale, float[3],
 		const char * fmt = "%5.2f");
-	virtual void LogEpCapasity(b2ElasticPlasticJoint* j,float[4]);
+	//virtual void LogEpCapasity(b2ElasticPlasticJoint* j,float[4]);
 	virtual void LogEpCapasityForSelectedJoints(float[4]);
-	virtual void LogEpJointErrors(b2ElasticPlasticJoint* j, float[2]);
+	//virtual void LogEpJointErrors(b2ElasticPlasticJoint* j, float[2]);
 	virtual void LogEpJointErrorsForSelectedJoints(float[2]);
 	virtual void HighLightJoint(b2Joint* j);
 	virtual bool IsSelectedJoint(b2Joint* j);
 	virtual void SelectJoint(const b2Vec2& p);
-	virtual SelectedEPJoint* AddSelectedJoint(b2ElasticPlasticJoint* j);
+	//virtual SelectedEPJoint* AddSelectedJoint(b2ElasticPlasticJoint* j);
 	void DeleteSelectedJoint(b2Joint* j);
 	virtual bool OpenEPJoints() { return false; }
 	void SelectedJointDeleted(b2Joint* j);
@@ -296,16 +282,14 @@ public:
 	static bool restartPending,isRestart;
 	// ep-end
 protected:
-	friend class DestructionListener;
 	friend class BoundaryListener;
 	friend class ContactListener;
 
 	b2Body* m_groundBody;
 	b2AABB m_worldAABB;
 	ContactPoint m_points[k_maxContactPoints];
-	int32 m_pointCount;
-	DestructionListener m_destructionListener;
-	int32 m_textLine;
+	int m_pointCount;
+	int m_textLine;
 	b2World* m_world;
 	b2Body* m_bomb;
 	b2MouseJoint* m_mouseJoint;
@@ -316,18 +300,16 @@ protected:
 	float pva, aa;
 	bool validAcc=false;
 	b2Body* pb;
-	b2Vec3 max, min;
+	b2Vec2 max, min;
 	void ResetMinAndMax();
 	// ep
 	b2Vec2 m_bombSpawnPoint;
 	bool m_bombSpawning;
 	b2Vec2 m_bombVelocity;
-	b2Vec2 m_mouseWorld=b2Vec2(0,0);
-	int32 m_stepCount;
+	b2Vec2 m_mouseWorld = b2Vec2{ 0, 0 };
+	int m_stepCount;
 
 	b2Profile m_maxProfile;
 	b2Profile m_totalProfile;
 	Settings *settings;
 };
-
-#endif

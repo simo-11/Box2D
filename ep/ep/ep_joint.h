@@ -19,9 +19,7 @@
 * Collection of various helpers for 
 * demos and debugging of elastic plastic joints
 */
-
-#ifndef EP_JOINT_H
-#define EP_JOINT_H
+#pragma once
 
 #include <box2d/box2d.h>
 #include "draw.h"
@@ -34,7 +32,7 @@ class Test;
 /**
 Collects data from iterations
 */
-class EpDebug : public EpDebugListener {
+class EpDebug{
 public:
 	float *xyData;
 	float *vxA, *vxB, *vyA, *vyB, *vaA, *vaB;
@@ -46,6 +44,7 @@ public:
 	int epDebugSteps,stepsStored;
 	EpDebug();
 	virtual ~EpDebug();
+	/**
 	virtual void EndInitVelocityConstraints
 	(b2ElasticPlasticJoint* joint, const b2SolverData& data);
 	virtual void BeginVelocityIteration
@@ -56,6 +55,7 @@ public:
 	(b2ElasticPlasticJoint* joint, const b2SolverData& data);
 	virtual void EndPositionIteration
 	(b2ElasticPlasticJoint* joint, const b2SolverData& data);
+	*/
 	static Settings* settings;
 	static void Ui(Test *t, SelectedEPJoint* j);
 	static void xyPlot(const char *label, float*v, int count);
@@ -85,7 +85,7 @@ struct EPBeam
 #define EP_MAX_VALUES 10
 struct SelectedEPJoint
 {
-	int32 id; // allows survival during restarts
+	int id; // allows survival during restarts
 	bool highlight;
 	float *forces = NULL; // store at most 3*EP_MAX_VALUES values
 	float *capacities = NULL; // store at most 5*EP_MAX_VALUES values
@@ -113,4 +113,3 @@ struct RigidTriangle
 		body = nullptr;
 	}
 };
-#endif
