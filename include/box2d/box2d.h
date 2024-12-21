@@ -1118,6 +1118,51 @@ B2_API void b2WeldJoint_SetAngularDampingRatio( b2JointId jointId, float damping
 /// Get the weld joint angular damping ratio, non-dimensional
 B2_API float b2WeldJoint_GetAngularDampingRatio( b2JointId jointId );
 
+/**
+ * @defgroup ep_joint ElasticPlastic Joint
+ * @brief A ElasticPlastic joint constrains the relative transform between two bodies while allowing for springiness
+ *
+ * A ElasticPlastic joint constrains the relative rotation and translation between two bodies. Both rotation and translation
+ * can have damped springs and maximum rotation and translation.
+ *
+ * @note The accuracy of weld joint is limited by the accuracy of the solver. Long chains of ElasticPlastic joints may flex.
+ * @{
+ */
+
+/// Create a ElasticPlastic joint
+/// @see b2EpJointDef for details
+B2_API b2JointId b2CreateEpJoint( b2WorldId worldId, const b2EpJointDef* def );
+
+/// Get the weld joint reference angle in radians
+B2_API float b2EpJoint_GetReferenceAngle( b2JointId jointId );
+
+/// Set the weld joint reference angle in radians, must be in [-pi,pi].
+B2_API void b2EpJoint_SetReferenceAngle( b2JointId jointId, float angleInRadians );
+
+/// Set the weld joint linear stiffness in Hertz. 0 is rigid.
+B2_API void b2EpJoint_SetLinearHertz( b2JointId jointId, float hertz );
+
+/// Get the weld joint linear stiffness in Hertz
+B2_API float b2EpJoint_GetLinearHertz( b2JointId jointId );
+
+/// Set the weld joint linear damping ratio (non-dimensional)
+B2_API void b2EpJoint_SetLinearDampingRatio( b2JointId jointId, float dampingRatio );
+
+/// Get the weld joint linear damping ratio (non-dimensional)
+B2_API float b2EpJoint_GetLinearDampingRatio( b2JointId jointId );
+
+/// Set the weld joint angular stiffness in Hertz. 0 is rigid.
+B2_API void b2EpJoint_SetAngularHertz( b2JointId jointId, float hertz );
+
+/// Get the weld joint angular stiffness in Hertz
+B2_API float b2EpJoint_GetAngularHertz( b2JointId jointId );
+
+/// Set weld joint angular damping ratio, non-dimensional
+B2_API void b2EpJoint_SetAngularDampingRatio( b2JointId jointId, float dampingRatio );
+
+/// Get the weld joint angular damping ratio, non-dimensional
+B2_API float b2EpJoint_GetAngularDampingRatio( b2JointId jointId );
+
 /** @} */
 
 /**

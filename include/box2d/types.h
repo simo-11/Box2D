@@ -491,9 +491,8 @@ typedef enum b2JointType
 	b2_prismaticJoint,
 	b2_revoluteJoint,
 	b2_weldJoint,
+	b2_epJoint, // ep
 	b2_wheelJoint,
-	b2ep_elasticPlasticJoint, // ep
-	b2ep_rigidPlasticJoint,   // ep
 } b2JointType;
 
 /// Distance joint definition
@@ -854,6 +853,41 @@ typedef struct b2WeldJointDef
 /// Use this to initialize your joint definition
 /// @ingroup weld_joint
 B2_API b2WeldJointDef b2DefaultWeldJointDef( void );
+
+// ep
+typedef struct b2ElasticPlasticJointDef
+{
+	b2BodyId bodyIdA;
+	b2BodyId bodyIdB;
+	b2Vec2 localAnchorA;
+	b2Vec2 localAnchorB;
+	float referenceAngle;
+	float linearHertz;
+	/// Angular stiffness as Hertz (cycles per second). Use zero for maximum stiffness.
+	float angularHertz;
+	/// Linear damping ratio, non-dimensional. Use 1 for critical damping.
+	float linearDampingRatio;
+	/// Linear damping ratio, non-dimensional. Use 1 for critical damping.
+	float angularDampingRatio;
+	/// Set this flag to true if the attached bodies should collide
+	bool collideConnected;
+	/// User data pointer
+	void* userData;
+	/// Used internally to detect a valid definition. DO NOT SET.
+	int32_t internalValue;
+	/// maximum joint forced in N.
+	b2Vec2 maxForce;
+	/// The maximum joint torque in N-m.
+	float maxTorque;
+	// or max elastic rotation
+	float maxElasticRotation;
+	// meters, typically less than about 10 % of joint distance
+	float maxStrain;
+	// radians, typically 1 - 6
+	float maxRotation;
+} b2EpJointDef;
+B2_API b2EpJointDef b2DefaultEpJointDef( void );
+
 
 /// Wheel joint definition
 ///

@@ -80,6 +80,14 @@ b2WeldJointDef b2DefaultWeldJointDef( void )
 	return def;
 }
 
+// ep
+b2EpJointDef b2DefaultEpJointDef( void )
+{
+	b2EpJointDef def = { 0 };
+	def.internalValue = B2_SECRET_COOKIE;
+	return def;
+}
+
 b2WheelJointDef b2DefaultWheelJointDef( void )
 {
 	b2WheelJointDef def = { 0 };

@@ -209,6 +209,40 @@ typedef struct b2WeldJoint
 	float axialMass;
 } b2WeldJoint;
 
+// ep
+typedef struct b2EpJoint
+{
+	float referenceAngle;
+	float linearHertz;
+	float linearDampingRatio;
+	float angularHertz;
+	float angularDampingRatio;
+
+	b2Softness linearSoftness;
+	b2Softness angularSoftness;
+	b2Vec2 linearImpulse;
+	float angularImpulse;
+
+	int indexA;
+	int indexB;
+	b2Vec2 anchorA;
+	b2Vec2 anchorB;
+	b2Vec2 deltaCenter;
+	float deltaAngle;
+	float axialMass;
+	b2Vec2 maxForce;
+	float maxTorque;
+	float maxElasticRotation;
+	float currentStrain;
+	float currentRotation;
+	float angularError;
+	float positionError;
+	float maxStrain;
+	float maxRotation;
+	b2Vec2 rotatedMaxforce;
+	int id;
+} b2EpJoint;
+
 typedef struct b2WheelJoint
 {
 	b2Vec2 localAxisA;
@@ -266,6 +300,7 @@ typedef struct b2JointSim
 		b2RevoluteJoint revoluteJoint;
 		b2PrismaticJoint prismaticJoint;
 		b2WeldJoint weldJoint;
+		b2EpJoint epJoint;
 		b2WheelJoint wheelJoint;
 	};
 } b2JointSim;
