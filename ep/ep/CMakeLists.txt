@@ -1,5 +1,5 @@
 set(EP_SOURCE_FILES
-	ep_joint.cpp
+	ep_joint.c
 	main.cpp
 	test_entries.cpp
 	test.cpp
