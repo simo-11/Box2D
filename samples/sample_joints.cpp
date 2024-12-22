@@ -1331,13 +1331,11 @@ public:
 		m_tipId = b2_nullBodyId;
 		m_bodyIds = nullptr;
 		m_jointIds = nullptr;
+		m_groundId = b2_nullBodyId;
+		m_shapeIdFloor1 = b2_nullShapeId;
+		m_shapeIdFloor2 = b2_nullShapeId;
 	}
 	void CreateWorld(){
-		b2BodyId groundId = b2_nullBodyId;
-		{
-			b2BodyDef bodyDef = b2DefaultBodyDef();
-			groundId = b2CreateBody( m_worldId, &bodyDef );
-		}
 		for ( int i = 0; i < m_jointIdsV.size(); i++ )
 		{
 			b2DestroyJoint( m_jointIdsV.at( i ) );
@@ -1350,8 +1348,36 @@ public:
 		m_bodyIds = m_bodyIdsV.data();
 		m_jointIdsV.resize( m_bodyCount );
 		m_jointIds = m_jointIdsV.data();
+		if ( m_groundId.index1 == 0 )
 		{
-			float hx = 0.5f;
+			b2BodyDef bodyDef = b2DefaultBodyDef();
+			m_groundId = b2CreateBody( m_worldId, &bodyDef );
+			b2ShapeDef shapeDef = b2DefaultShapeDef();
+			b2Vec2 p1 = { -40.0f, -2.0f };
+			b2Vec2 p2 = { 0.0f, -1.f * (m_bodyCount+2) };
+			b2Vec2 p3 = { 40.0f, -2.0f };
+			b2Segment segment = { p1, p2 };
+			m_shapeIdFloor1=b2CreateSegmentShape( m_groundId, &shapeDef, &segment );
+			segment = { p2, p3 };
+			m_shapeIdFloor2 = b2CreateSegmentShape( m_groundId, &shapeDef, &segment );
+		}
+		else
+		{
+			b2Segment segment=b2Shape_GetSegment( m_shapeIdFloor1 );
+			float y = -1.f * ( m_bodyCount + 2 );
+			segment.point2.y = y;
+			b2Shape_SetSegment( m_shapeIdFloor1, &segment );
+			segment = b2Shape_GetSegment( m_shapeIdFloor2 );
+			segment.point1.y = y;
+			b2Shape_SetSegment( m_shapeIdFloor2, &segment );
+			while ( !m_shapesToDeleteOnRestart.empty() )
+			{
+				b2DestroyShape( m_shapesToDeleteOnRestart.back(), true );
+				m_shapesToDeleteOnRestart.pop_back();
+			}
+		}
+		float hx = 0.5f;
+		{
 			b2Capsule capsule = { { -hx, 0.0f }, { hx, 0.0f }, 0.125f };
 			b2ShapeDef shapeDef = b2DefaultShapeDef();
 			shapeDef.density = 20.0f;
@@ -1362,7 +1388,7 @@ public:
 			bodyDef.type = b2_dynamicBody;
 			bodyDef.isAwake = false;
 
-			b2BodyId prevBodyId = groundId;
+			b2BodyId prevBodyId = m_groundId;
 			for ( int i = 0; i < m_bodyCount; ++i )
 			{
 				bodyDef.position = { ( 1.0f + 2.0f * i ) * hx, 0.0f };
@@ -1384,6 +1410,18 @@ public:
 			}
 
 			m_tipId = prevBodyId;
+			for ( int i = 0; i < 3; ++i )
+			{
+				b2Circle circle = { { 0.0f, 0.0f }, 0.5f };
+				circle.center = { ( 1.0f + 2.0f * i ) * hx, 1.f };
+				b2ShapeDef shapeDef = b2DefaultShapeDef();
+				shapeDef.density = 20.0f;
+				b2BodyDef bodyDef = b2DefaultBodyDef();
+				bodyDef.type = b2_dynamicBody;
+				b2BodyId bodyId = b2CreateBody( m_worldId, &bodyDef );
+				m_shapesToDeleteOnRestart.push_back(b2CreateCircleShape( bodyId, &shapeDef, &circle ));
+			}
+
 		}
 		m_restart = false;
 	}
@@ -1398,6 +1436,10 @@ public:
 		ImGui::PushItemWidth( 100.0f );
 
 		if ( ImGui::SliderInt( "Body count", &m_bodyCount, 1,20) )
+		{
+			m_restart = true;
+		}
+		if ( ImGui::SmallButton( "Restart with current settings") )
 		{
 			m_restart = true;
 		}
@@ -1482,7 +1524,7 @@ public:
 	float m_angularHertz;
 	float m_angularDampingRatio;
 	float m_gravityScale;
-	b2BodyId m_tipId;
+	b2BodyId m_tipId, m_groundId;
 	std::vector<b2BodyId> m_bodyIdsV;
 	b2BodyId* m_bodyIds;
 	std::vector<b2JointId> m_jointIdsV;
@@ -1490,6 +1532,8 @@ public:
 	bool m_collideConnected;
 	bool m_restart;
 	int m_bodyCount;
+	b2ShapeId m_shapeIdFloor1,m_shapeIdFloor2;
+	std::vector<b2ShapeId> m_shapesToDeleteOnRestart;
 };
 static int sampleEpCantileverIndex = RegisterSample( "Joints", "EpCantilever", EpCantilever::Create );
 
