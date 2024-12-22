@@ -1305,6 +1305,194 @@ public:
 
 static int sampleCantileverIndex = RegisterSample( "Joints", "Cantilever", Cantilever::Create );
 
+
+#include <vector>
+// This sample shows the limitations of an iterative solver. The cantilever sags even though the weld
+// joint is stiff as possible.
+class EpCantilever : public Sample
+{
+public:
+	explicit EpCantilever( Settings& settings )
+		: Sample( settings )
+	{
+		if ( settings.restart == false )
+		{
+			g_camera.m_center = { 0.0f, 0.0f };
+			g_camera.m_zoom = 25.0f * 0.35f;
+		}
+		m_restart = true;
+		m_bodyCount = 8;
+		m_linearHertz = 20.0f;
+		m_linearDampingRatio = 10.f;
+		m_angularHertz = 20.0f;
+		m_angularDampingRatio = 10.f;
+		m_gravityScale = 1.0f;
+		m_collideConnected = false;
+		m_tipId = b2_nullBodyId;
+		m_bodyIds = nullptr;
+		m_jointIds = nullptr;
+	}
+	void CreateWorld(){
+		b2BodyId groundId = b2_nullBodyId;
+		{
+			b2BodyDef bodyDef = b2DefaultBodyDef();
+			groundId = b2CreateBody( m_worldId, &bodyDef );
+		}
+		for ( int i = 0; i < m_jointIdsV.size(); i++ )
+		{
+			b2DestroyJoint( m_jointIdsV.at( i ) );
+		}
+		for ( int i = 0; i < m_bodyIdsV.size(); i++ )
+		{
+			b2DestroyBody( m_bodyIdsV.at( i ) );
+		}
+		m_bodyIdsV.resize( m_bodyCount );
+		m_bodyIds = m_bodyIdsV.data();
+		m_jointIdsV.resize( m_bodyCount );
+		m_jointIds = m_jointIdsV.data();
+		{
+			float hx = 0.5f;
+			b2Capsule capsule = { { -hx, 0.0f }, { hx, 0.0f }, 0.125f };
+			b2ShapeDef shapeDef = b2DefaultShapeDef();
+			shapeDef.density = 20.0f;
+
+			b2WeldJointDef jointDef = b2DefaultWeldJointDef();
+
+			b2BodyDef bodyDef = b2DefaultBodyDef();
+			bodyDef.type = b2_dynamicBody;
+			bodyDef.isAwake = false;
+
+			b2BodyId prevBodyId = groundId;
+			for ( int i = 0; i < m_bodyCount; ++i )
+			{
+				bodyDef.position = { ( 1.0f + 2.0f * i ) * hx, 0.0f };
+				m_bodyIds[i] = b2CreateBody( m_worldId, &bodyDef );
+				b2CreateCapsuleShape( m_bodyIds[i], &shapeDef, &capsule );
+
+				b2Vec2 pivot = { ( 2.0f * i ) * hx, 0.0f };
+				jointDef.bodyIdA = prevBodyId;
+				jointDef.bodyIdB = m_bodyIds[i];
+				jointDef.localAnchorA = b2Body_GetLocalPoint( jointDef.bodyIdA, pivot );
+				jointDef.localAnchorB = b2Body_GetLocalPoint( jointDef.bodyIdB, pivot );
+				jointDef.linearHertz = m_linearHertz;
+				jointDef.linearDampingRatio = m_linearDampingRatio;
+				jointDef.angularHertz = m_angularHertz;
+				jointDef.angularDampingRatio = m_angularDampingRatio;
+				jointDef.collideConnected = m_collideConnected;
+				m_jointIds[i] = b2CreateWeldJoint( m_worldId, &jointDef );
+				prevBodyId = m_bodyIds[i];
+			}
+
+			m_tipId = prevBodyId;
+		}
+		m_restart = false;
+	}
+
+	void UpdateUI() override
+	{
+		float height = 240.0f;
+		ImGui::SetNextWindowPos( ImVec2( 10.0f, g_camera.m_height - height - 50.0f ), ImGuiCond_Once );
+		ImGui::SetNextWindowSize( ImVec2( 240.0f, height ) );
+
+		ImGui::Begin( "EpCantilever", nullptr, ImGuiWindowFlags_NoResize );
+		ImGui::PushItemWidth( 100.0f );
+
+		if ( ImGui::SliderInt( "Body count", &m_bodyCount, 1,20) )
+		{
+			m_restart = true;
+		}
+
+		if ( ImGui::SliderFloat( "Linear Hertz", &m_linearHertz, 0.0f, 20.0f, "%.0f" ) )
+		{
+			for ( int i = 0; i < m_bodyCount; ++i )
+			{
+				b2WeldJoint_SetLinearHertz( m_jointIds[i], m_linearHertz );
+			}
+		}
+
+		if ( ImGui::SliderFloat( "Linear Damping Ratio", &m_linearDampingRatio, 0.0f, 10.0f, "%.1f" ) )
+		{
+			for ( int i = 0; i < m_bodyCount; ++i )
+			{
+				b2WeldJoint_SetLinearDampingRatio( m_jointIds[i], m_linearDampingRatio );
+			}
+		}
+
+		if ( ImGui::SliderFloat( "Angular Hertz", &m_angularHertz, 0.0f, 20.0f, "%.0f" ) )
+		{
+			for ( int i = 0; i < m_bodyCount; ++i )
+			{
+				b2WeldJoint_SetAngularHertz( m_jointIds[i], m_angularHertz );
+			}
+		}
+
+		if ( ImGui::SliderFloat( "Angular Damping Ratio", &m_angularDampingRatio, 0.0f, 10.0f, "%.1f" ) )
+		{
+			for ( int i = 0; i < m_bodyCount; ++i )
+			{
+				b2WeldJoint_SetAngularDampingRatio( m_jointIds[i], m_angularDampingRatio );
+			}
+		}
+
+		if ( ImGui::Checkbox( "Collide Connected", &m_collideConnected ) )
+		{
+			for ( int i = 0; i < m_bodyCount; ++i )
+			{
+				b2Joint_SetCollideConnected( m_jointIds[i], m_collideConnected );
+			}
+		}
+
+		if ( ImGui::SliderFloat( "Gravity Scale", &m_gravityScale, -1.0f, 1.0f, "%.1f" ) )
+		{
+			for ( int i = 0; i < m_bodyCount; ++i )
+			{
+				b2Body_SetGravityScale( m_bodyIds[i], m_gravityScale );
+			}
+		}
+
+		ImGui::PopItemWidth();
+		ImGui::End();
+	}
+
+	void Step( Settings& settings ) override
+	{
+		if ( m_restart )
+		{
+			Restart();
+		}
+		Sample::Step( settings );
+
+		b2Vec2 tipPosition = b2Body_GetPosition( m_tipId );
+		g_draw.DrawString( 5, m_textLine, "tip-y = %.2f", tipPosition.y );
+		m_textLine += m_textIncrement;
+	}
+
+	void Restart() override
+	{
+		CreateWorld();
+	}
+
+	static Sample* Create( Settings& settings )
+	{
+		return new EpCantilever( settings );
+	}
+
+	float m_linearHertz;
+	float m_linearDampingRatio;
+	float m_angularHertz;
+	float m_angularDampingRatio;
+	float m_gravityScale;
+	b2BodyId m_tipId;
+	std::vector<b2BodyId> m_bodyIdsV;
+	b2BodyId* m_bodyIds;
+	std::vector<b2JointId> m_jointIdsV;
+	b2JointId* m_jointIds;
+	bool m_collideConnected;
+	bool m_restart;
+	int m_bodyCount;
+};
+static int sampleEpCantileverIndex = RegisterSample( "Joints", "EpCantilever", EpCantilever::Create );
+
 // This test ensures joints work correctly with bodies that have fixed rotation
 class FixedRotation : public Sample
 {

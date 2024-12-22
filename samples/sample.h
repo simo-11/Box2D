@@ -54,6 +54,10 @@ public:
 	virtual void MouseDown( b2Vec2 p, int button, int mod );
 	virtual void MouseUp( b2Vec2 p, int button );
 	virtual void MouseMove( b2Vec2 p );
+	/** internal restart 
+	* keep settings
+	*/
+	virtual void Restart(){	}
 
 	void ResetProfile();
 	void ShiftOrigin( b2Vec2 newOrigin );
