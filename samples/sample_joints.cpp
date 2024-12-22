@@ -1363,18 +1363,18 @@ public:
 		}
 		else
 		{
-			b2Segment segment=b2Shape_GetSegment( m_shapeIdFloor1 );
+			while ( !m_shapesToDeleteOnRestart.empty() )
+			{
+				b2DestroyShape( m_shapesToDeleteOnRestart.back(), true );
+				m_shapesToDeleteOnRestart.pop_back();
+			}
+			b2Segment segment = b2Shape_GetSegment( m_shapeIdFloor1 );
 			float y = -1.f * ( m_bodyCount + 2 );
 			segment.point2.y = y;
 			b2Shape_SetSegment( m_shapeIdFloor1, &segment );
 			segment = b2Shape_GetSegment( m_shapeIdFloor2 );
 			segment.point1.y = y;
 			b2Shape_SetSegment( m_shapeIdFloor2, &segment );
-			while ( !m_shapesToDeleteOnRestart.empty() )
-			{
-				b2DestroyShape( m_shapesToDeleteOnRestart.back(), true );
-				m_shapesToDeleteOnRestart.pop_back();
-			}
 		}
 		float hx = 0.5f;
 		{
