@@ -1307,8 +1307,7 @@ static int sampleCantileverIndex = RegisterSample( "Joints", "Cantilever", Canti
 
 
 #include <vector>
-// This sample shows the limitations of an iterative solver. The cantilever sags even though the weld
-// joint is stiff as possible.
+// This sample studies stiff to flexible body behaviour.
 class EpCantilever : public Sample
 {
 public:
@@ -1321,13 +1320,9 @@ public:
 			g_camera.m_zoom = 25.0f * 0.35f;
 		}
 		m_restart = true;
-		m_bodyCount = 8;
-		m_linearHertz = 20.0f;
-		m_linearDampingRatio = 10.f;
-		m_angularHertz = 20.0f;
-		m_angularDampingRatio = 10.f;
+		m_bodyCount = 1;
+		m_bodyLength = 8.0f;
 		m_gravityScale = 1.0f;
-		m_collideConnected = false;
 		m_tipId = b2_nullBodyId;
 		m_bodyIds = nullptr;
 		m_jointIds = nullptr;
@@ -1376,9 +1371,9 @@ public:
 			segment.point1.y = y;
 			b2Shape_SetSegment( m_shapeIdFloor2, &segment );
 		}
-		float hx = 0.5f;
+		float hx = 0.5f*m_bodyLength;
 		{
-			b2Capsule capsule = { { -hx, 0.0f }, { hx, 0.0f }, 0.125f };
+			b2Polygon box = b2MakeBox(hx,0.125f);
 			b2ShapeDef shapeDef = b2DefaultShapeDef();
 			shapeDef.density = 20.0f;
 
@@ -1393,18 +1388,13 @@ public:
 			{
 				bodyDef.position = { ( 1.0f + 2.0f * i ) * hx, 0.0f };
 				m_bodyIds[i] = b2CreateBody( m_worldId, &bodyDef );
-				b2CreateCapsuleShape( m_bodyIds[i], &shapeDef, &capsule );
+				b2CreatePolygonShape( m_bodyIds[i], &shapeDef, &box );
 
 				b2Vec2 pivot = { ( 2.0f * i ) * hx, 0.0f };
 				jointDef.bodyIdA = prevBodyId;
 				jointDef.bodyIdB = m_bodyIds[i];
 				jointDef.localAnchorA = b2Body_GetLocalPoint( jointDef.bodyIdA, pivot );
 				jointDef.localAnchorB = b2Body_GetLocalPoint( jointDef.bodyIdB, pivot );
-				jointDef.linearHertz = m_linearHertz;
-				jointDef.linearDampingRatio = m_linearDampingRatio;
-				jointDef.angularHertz = m_angularHertz;
-				jointDef.angularDampingRatio = m_angularDampingRatio;
-				jointDef.collideConnected = m_collideConnected;
 				m_jointIds[i] = b2CreateWeldJoint( m_worldId, &jointDef );
 				prevBodyId = m_bodyIds[i];
 			}
@@ -1413,7 +1403,7 @@ public:
 			for ( int i = 0; i < 3; ++i )
 			{
 				b2Circle circle = { { 0.0f, 0.0f }, 0.5f };
-				circle.center = { ( 1.0f + 2.0f * i ) * hx, 1.f };
+				circle.center = { ( 1.0f + 2.0f * i ) * 0.4f*hx, 1.f };
 				b2ShapeDef shapeDef = b2DefaultShapeDef();
 				shapeDef.density = 20.0f;
 				b2BodyDef bodyDef = b2DefaultBodyDef();
@@ -1435,7 +1425,7 @@ public:
 		ImGui::Begin( "EpCantilever", nullptr, ImGuiWindowFlags_NoResize );
 		ImGui::PushItemWidth( 100.0f );
 
-		if ( ImGui::SliderInt( "Body count", &m_bodyCount, 1,20) )
+		if ( ImGui::SliderFloat( "Body Length", &m_bodyLength, 1,20) )
 		{
 			m_restart = true;
 		}
@@ -1443,47 +1433,6 @@ public:
 		{
 			m_restart = true;
 		}
-
-		if ( ImGui::SliderFloat( "Linear Hertz", &m_linearHertz, 0.0f, 20.0f, "%.0f" ) )
-		{
-			for ( int i = 0; i < m_bodyCount; ++i )
-			{
-				b2WeldJoint_SetLinearHertz( m_jointIds[i], m_linearHertz );
-			}
-		}
-
-		if ( ImGui::SliderFloat( "Linear Damping Ratio", &m_linearDampingRatio, 0.0f, 10.0f, "%.1f" ) )
-		{
-			for ( int i = 0; i < m_bodyCount; ++i )
-			{
-				b2WeldJoint_SetLinearDampingRatio( m_jointIds[i], m_linearDampingRatio );
-			}
-		}
-
-		if ( ImGui::SliderFloat( "Angular Hertz", &m_angularHertz, 0.0f, 20.0f, "%.0f" ) )
-		{
-			for ( int i = 0; i < m_bodyCount; ++i )
-			{
-				b2WeldJoint_SetAngularHertz( m_jointIds[i], m_angularHertz );
-			}
-		}
-
-		if ( ImGui::SliderFloat( "Angular Damping Ratio", &m_angularDampingRatio, 0.0f, 10.0f, "%.1f" ) )
-		{
-			for ( int i = 0; i < m_bodyCount; ++i )
-			{
-				b2WeldJoint_SetAngularDampingRatio( m_jointIds[i], m_angularDampingRatio );
-			}
-		}
-
-		if ( ImGui::Checkbox( "Collide Connected", &m_collideConnected ) )
-		{
-			for ( int i = 0; i < m_bodyCount; ++i )
-			{
-				b2Joint_SetCollideConnected( m_jointIds[i], m_collideConnected );
-			}
-		}
-
 		if ( ImGui::SliderFloat( "Gravity Scale", &m_gravityScale, -1.0f, 1.0f, "%.1f" ) )
 		{
 			for ( int i = 0; i < m_bodyCount; ++i )
@@ -1503,9 +1452,14 @@ public:
 			Restart();
 		}
 		Sample::Step( settings );
-
+		b2JointId myJointId=m_jointIds[0];
+		b2Vec2 force = b2Joint_GetConstraintForce( myJointId );
+		float torque = b2Joint_GetConstraintTorque( myJointId );
 		b2Vec2 tipPosition = b2Body_GetPosition( m_tipId );
-		g_draw.DrawString( 5, m_textLine, "tip-y = %.2f", tipPosition.y );
+		g_draw.DrawString( 5, m_textLine, "constraintForces = %.0f, %.0f, %.0f", 
+			force.x, force.y, torque);
+		m_textLine += m_textIncrement;
+		g_draw.DrawString( 5, m_textLine, "tip = %.2f, %.2f", tipPosition.x, tipPosition.y );
 		m_textLine += m_textIncrement;
 	}
 
@@ -1519,17 +1473,13 @@ public:
 		return new EpCantilever( settings );
 	}
 
-	float m_linearHertz;
-	float m_linearDampingRatio;
-	float m_angularHertz;
-	float m_angularDampingRatio;
+	float m_bodyLength;
 	float m_gravityScale;
 	b2BodyId m_tipId, m_groundId;
 	std::vector<b2BodyId> m_bodyIdsV;
 	b2BodyId* m_bodyIds;
 	std::vector<b2JointId> m_jointIdsV;
 	b2JointId* m_jointIds;
-	bool m_collideConnected;
 	bool m_restart;
 	int m_bodyCount;
 	b2ShapeId m_shapeIdFloor1,m_shapeIdFloor2;
