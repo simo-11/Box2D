@@ -61,6 +61,8 @@ add_library(jsmn INTERFACE ${JSMN_DIR}/jsmn.h)
 target_include_directories(jsmn INTERFACE ${JSMN_DIR})
 
 set(BOX2D_SAMPLE_FILES
+	beam.cpp
+	beam.h
 	car.cpp
 	car.h
 	donut.cpp

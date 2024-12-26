@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2022 Erin Catto
 // SPDX-License-Identifier: MIT
+// Beam modifications by Simo Nikula
 
+#include "beam.h"
 #include "car.h"
 #include "donut.h"
 #include "doohickey.h"
@@ -1319,37 +1321,21 @@ public:
 			g_camera.m_center = { 0.0f, 0.0f };
 			g_camera.m_zoom = 25.0f * 0.35f;
 		}
+		Beam::reset();
 		m_restart = true;
-		m_bodyCount = 1;
-		m_bodyLength = 8.0f;
-		m_gravityScale = 1.0f;
 		m_tipId = b2_nullBodyId;
-		m_bodyIds = nullptr;
-		m_jointIds = nullptr;
 		m_groundId = b2_nullBodyId;
 		m_shapeIdFloor1 = b2_nullShapeId;
 		m_shapeIdFloor2 = b2_nullShapeId;
 	}
 	void CreateWorld(){
-		for ( int i = 0; i < m_jointIdsV.size(); i++ )
-		{
-			b2DestroyJoint( m_jointIdsV.at( i ) );
-		}
-		for ( int i = 0; i < m_bodyIdsV.size(); i++ )
-		{
-			b2DestroyBody( m_bodyIdsV.at( i ) );
-		}
-		m_bodyIdsV.resize( m_bodyCount );
-		m_bodyIds = m_bodyIdsV.data();
-		m_jointIdsV.resize( m_bodyCount );
-		m_jointIds = m_jointIdsV.data();
 		if ( m_groundId.index1 == 0 )
 		{
 			b2BodyDef bodyDef = b2DefaultBodyDef();
 			m_groundId = b2CreateBody( m_worldId, &bodyDef );
 			b2ShapeDef shapeDef = b2DefaultShapeDef();
 			b2Vec2 p1 = { -40.0f, -2.0f };
-			b2Vec2 p2 = { 0.0f, -1.f * (m_bodyCount+2) };
+			b2Vec2 p2 = { 0.0f, -3.f };
 			b2Vec2 p3 = { 40.0f, -2.0f };
 			b2Segment segment = { p1, p2 };
 			m_shapeIdFloor1=b2CreateSegmentShape( m_groundId, &shapeDef, &segment );
@@ -1358,61 +1344,21 @@ public:
 		}
 		else
 		{
-			while ( !m_shapesToDeleteOnRestart.empty() )
+			while ( !m_beams.empty() )
 			{
-				b2DestroyShape( m_shapesToDeleteOnRestart.back(), true );
-				m_shapesToDeleteOnRestart.pop_back();
+				delete m_beams.back();
+				m_beams.pop_back();
 			}
 			b2Segment segment = b2Shape_GetSegment( m_shapeIdFloor1 );
-			float y = -1.f * ( m_bodyCount + 2 );
+			float y = -1.f * ( 1 + 2 );
 			segment.point2.y = y;
 			b2Shape_SetSegment( m_shapeIdFloor1, &segment );
 			segment = b2Shape_GetSegment( m_shapeIdFloor2 );
 			segment.point1.y = y;
 			b2Shape_SetSegment( m_shapeIdFloor2, &segment );
 		}
-		float hx = 0.5f*m_bodyLength;
-		{
-			b2Polygon box = b2MakeBox(hx,0.125f);
-			b2ShapeDef shapeDef = b2DefaultShapeDef();
-			shapeDef.density = 20.0f;
-
-			b2WeldJointDef jointDef = b2DefaultWeldJointDef();
-
-			b2BodyDef bodyDef = b2DefaultBodyDef();
-			bodyDef.type = b2_dynamicBody;
-			bodyDef.isAwake = false;
-
-			b2BodyId prevBodyId = m_groundId;
-			for ( int i = 0; i < m_bodyCount; ++i )
-			{
-				bodyDef.position = { ( 1.0f + 2.0f * i ) * hx, 0.0f };
-				m_bodyIds[i] = b2CreateBody( m_worldId, &bodyDef );
-				b2CreatePolygonShape( m_bodyIds[i], &shapeDef, &box );
-
-				b2Vec2 pivot = { ( 2.0f * i ) * hx, 0.0f };
-				jointDef.bodyIdA = prevBodyId;
-				jointDef.bodyIdB = m_bodyIds[i];
-				jointDef.localAnchorA = b2Body_GetLocalPoint( jointDef.bodyIdA, pivot );
-				jointDef.localAnchorB = b2Body_GetLocalPoint( jointDef.bodyIdB, pivot );
-				m_jointIds[i] = b2CreateWeldJoint( m_worldId, &jointDef );
-				prevBodyId = m_bodyIds[i];
-			}
-
-			m_tipId = prevBodyId;
-			for ( int i = 0; i < 3; ++i )
-			{
-				b2Circle circle = { { 0.0f, 0.0f }, 0.5f };
-				circle.center = { ( 1.0f + 2.0f * i ) * 0.4f*hx, 1.f };
-				b2ShapeDef shapeDef = b2DefaultShapeDef();
-				shapeDef.density = 20.0f;
-				b2BodyDef bodyDef = b2DefaultBodyDef();
-				bodyDef.type = b2_dynamicBody;
-				b2BodyId bodyId = b2CreateBody( m_worldId, &bodyDef );
-				m_shapesToDeleteOnRestart.push_back(b2CreateCircleShape( bodyId, &shapeDef, &circle ));
-			}
-
-		}
+		Beam* beam = new Beam( m_worldId, {});
+		m_beams.push_back( beam );
 		m_restart = false;
 	}
 
@@ -1425,22 +1371,18 @@ public:
 		ImGui::Begin( "EpCantilever", nullptr, ImGuiWindowFlags_NoResize );
 		ImGui::PushItemWidth( 100.0f );
 
-		if ( ImGui::SliderFloat( "Body Length", &m_bodyLength, 1,20) )
+		if ( ImGui::SliderFloat( "Beam Length", &Beam::L, 1,20) )
 		{
 			m_restart = true;
 		}
-		if ( ImGui::SmallButton( "Restart with current settings") )
+		if ( ImGui::SliderFloat( "Beam Height", &Beam::h, Beam::L/100, Beam::L/5) )
 		{
 			m_restart = true;
 		}
-		if ( ImGui::SliderFloat( "Gravity Scale", &m_gravityScale, -1.0f, 1.0f, "%.1f" ) )
+		if ( ImGui::SmallButton( "Restart with current settings" ) )
 		{
-			for ( int i = 0; i < m_bodyCount; ++i )
-			{
-				b2Body_SetGravityScale( m_bodyIds[i], m_gravityScale );
-			}
+			m_restart = true;
 		}
-
 		ImGui::PopItemWidth();
 		ImGui::End();
 	}
@@ -1452,15 +1394,6 @@ public:
 			Restart();
 		}
 		Sample::Step( settings );
-		b2JointId myJointId=m_jointIds[0];
-		b2Vec2 force = b2Joint_GetConstraintForce( myJointId );
-		float torque = b2Joint_GetConstraintTorque( myJointId );
-		b2Vec2 tipPosition = b2Body_GetPosition( m_tipId );
-		g_draw.DrawString( 5, m_textLine, "constraintForces = %.0f, %.0f, %.0f", 
-			force.x, force.y, torque);
-		m_textLine += m_textIncrement;
-		g_draw.DrawString( 5, m_textLine, "tip = %.2f, %.2f", tipPosition.x, tipPosition.y );
-		m_textLine += m_textIncrement;
 	}
 
 	void Restart() override
@@ -1473,19 +1406,14 @@ public:
 		return new EpCantilever( settings );
 	}
 
-	float m_bodyLength;
-	float m_gravityScale;
 	b2BodyId m_tipId, m_groundId;
-	std::vector<b2BodyId> m_bodyIdsV;
-	b2BodyId* m_bodyIds;
-	std::vector<b2JointId> m_jointIdsV;
-	b2JointId* m_jointIds;
 	bool m_restart;
-	int m_bodyCount;
 	b2ShapeId m_shapeIdFloor1,m_shapeIdFloor2;
 	std::vector<b2ShapeId> m_shapesToDeleteOnRestart;
+	std::vector<Beam*> m_beams;
 };
-static int sampleEpCantileverIndex = RegisterSample( "Joints", "EpCantilever", EpCantilever::Create );
+static int sampleEpCantileverIndex = 
+RegisterSample( "Joints", "EpCantilever", EpCantilever::Create );
 
 // This test ensures joints work correctly with bodies that have fixed rotation
 class FixedRotation : public Sample
