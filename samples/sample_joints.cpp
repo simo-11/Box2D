@@ -1309,6 +1309,7 @@ static int sampleCantileverIndex = RegisterSample( "Joints", "Cantilever", Canti
 
 
 #include <vector>
+#include <iterator>
 // This sample studies stiff to flexible body behaviour.
 class EpCantilever : public Sample
 {
@@ -1394,6 +1395,10 @@ public:
 			Restart();
 		}
 		Sample::Step( settings );
+		for (const auto& beam:m_beams)
+		{
+			beam->update();
+		}
 	}
 
 	void Restart() override

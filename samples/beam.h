@@ -5,15 +5,23 @@
 #pragma once
 
 #include "box2d/types.h"
+#include <vector>
 
 class Beam
 {
 public:
+	/** Creates cantilever beam */
 	Beam(b2WorldId worldId, b2Vec2 position);
 	~Beam();
 	b2BodyId m_groundId,m_bodyId;
 	b2JointId m_jointId;
+	/** update shapes based on current forces */
+	void update();
+	/** reset statics that are used for creation */
 	static void reset();
 	static float L, w, h, E, fy,density;
 	float m_L, m_w, m_h, m_E, m_fy, m_density;
+
+protected:
+	std::vector<b2ShapeId> shapes;
 };

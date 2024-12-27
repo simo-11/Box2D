@@ -29,7 +29,7 @@ Beam::Beam( b2WorldId worldId, b2Vec2 position)
 	bodyDef.isAwake = false;
 	bodyDef.position = {hx, 0.0f };
 	m_bodyId = b2CreateBody( worldId, &bodyDef );
-	b2CreatePolygonShape( m_bodyId, &shapeDef, &box );
+	shapes.push_back(b2CreatePolygonShape( m_bodyId, &shapeDef, &box ));
 	b2Vec2 pivot = { 0.f, 0.0f };
 	jointDef.bodyIdA = m_groundId;
 	jointDef.bodyIdB = m_bodyId;
@@ -37,6 +37,7 @@ Beam::Beam( b2WorldId worldId, b2Vec2 position)
 	jointDef.localAnchorB = b2Body_GetLocalPoint( jointDef.bodyIdB, pivot );
 	m_jointId = b2CreateWeldJoint( worldId, &jointDef );
 }
+float Beam::L, Beam::w, Beam::h, Beam::density, Beam::E, Beam::fy;
 void Beam::reset()
 {
 Beam::L = 10.0f;
@@ -45,6 +46,15 @@ Beam::h = 0.5f;
 Beam::density = 7800.f;
 Beam::E = 210E9;
 Beam::fy = 350E6;
+}
+
+void Beam::update()
+{
+	if (!b2Body_IsAwake(m_bodyId)) {
+		return;
+	}
+	// is worth update or return
+	// update shape or recreate it
 }
 
 Beam::~Beam()
