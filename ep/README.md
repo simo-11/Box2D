@@ -23,7 +23,7 @@ Beam with input L,w,h,E,fy,density
 
 ### Elastic
  * I=w*h^3/12, https://en.wikipedia.org/wiki/List_of_second_moments_of_area
- * displacement due to own weight q=A*rho, qx*x*(6*L*L-4*L*x+x*x)/(24*E*I), https://en.wikipedia.org/wiki/Euler%E2%80%93Bernoulli_beam_theory
+ * displacement due to own weight q=A*rho, q*x*x*(6*L*L-4*L*x+x*x)/(24*E*I), https://en.wikipedia.org/wiki/Euler%E2%80%93Bernoulli_beam_theory
 
 ### Plastic
  * Ip=w*h^2/4
