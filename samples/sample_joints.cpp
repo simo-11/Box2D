@@ -1345,11 +1345,7 @@ public:
 		}
 		else
 		{
-			while ( !m_beams.empty() )
-			{
-				delete m_beams.back();
-				m_beams.pop_back();
-			}
+			Cleanup();
 			b2Segment segment = b2Shape_GetSegment( m_shapeIdFloor1 );
 			float y = -1.f * ( 1 + 2 );
 			segment.point2.y = y;
@@ -1362,7 +1358,18 @@ public:
 		m_beams.push_back( beam );
 		m_restart = false;
 	}
-
+	~EpCantilever()
+	{
+		Cleanup();
+	}
+	void Cleanup()
+	{
+		while ( !m_beams.empty() )
+		{
+			delete m_beams.back();
+			m_beams.pop_back();
+		}
+	}
 	void UpdateUI() override
 	{
 		float height = 240.0f;
