@@ -17,6 +17,10 @@ Beam::Beam( b2WorldId worldId, b2Vec2 position)
 	m_density = Beam::density;
 	m_E = Beam::E;
 	m_fy = Beam::fy;
+	m_contacts = nullptr;
+	m_joints = nullptr;
+	m_contactCount = 0;
+	m_jointCount = 0;
 	b2BodyDef bodyDef = b2DefaultBodyDef();
 	m_groundId = b2CreateBody( worldId, &bodyDef );
 	float hx = 0.5f * m_L;
@@ -48,11 +52,73 @@ Beam::E = 210E9;
 Beam::fy = 350E6;
 }
 
-void Beam::update()
+void Beam::update(float timeStep)
 {
 	if (!b2Body_IsAwake(m_bodyId)) {
 		return;
 	}
+	b2Vec2 force = { 0.f, 0.f };
+	float moment = 0.f;
+	int jointCount = b2Body_GetJointCount( m_bodyId );
+	if ( jointCount != m_jointCount )
+	{
+		if ( m_joints != nullptr )
+		{
+			free( m_joints );
+		}
+		m_jointCount = jointCount;
+		m_joints = (b2JointId*)malloc( m_jointCount * sizeof( b2JointId ) );
+	}
+	if ( m_joints != nullptr )
+	{
+		jointCount = b2Body_GetJoints( m_bodyId, m_joints, m_jointCount );
+		for ( int i = 0; i < jointCount; i++ )
+		{
+			b2Vec2 f=b2Joint_GetConstraintForce( m_joints[i] );
+			force.x += b2AbsFloat( f.x );
+			force.y += b2AbsFloat( f.y );
+			float m = b2Joint_GetConstraintTorque( m_joints[i] );
+			moment += fabs( m );
+		}
+	}
+	int contactCount = b2Body_GetContactCapacity( m_bodyId );
+	if ( contactCount != m_contactCount )
+	{
+		if ( m_contacts != nullptr )
+		{
+			free( m_contacts );
+		}
+		m_contactCount = contactCount;
+		m_contacts = (b2ContactData*)malloc( m_contactCount * sizeof( b2ContactData ) );
+	}
+	if ( m_contacts != nullptr )
+	{
+		float inv_h = 1.f/timeStep;
+		contactCount = b2Body_GetContactData( m_bodyId, m_contacts, m_contactCount );
+		for ( int i = 0; i < contactCount; i++ )
+		{
+			b2ContactData cd = m_contacts[i];
+			b2Manifold manifold = cd.manifold;
+			b2Vec2 normal = manifold.normal;
+			b2Vec2 tangent = b2RightPerp( normal );
+			for ( int pi = 0; pi < manifold.pointCount; pi++ )
+			{
+				b2ManifoldPoint manifoldPoint = manifold.points[pi];
+				float nf=inv_h*manifoldPoint.maxNormalImpulse;
+				float tf = inv_h * manifoldPoint.tangentImpulse;
+				b2Vec2 f = b2MulSV( nf, normal );
+				force.x += b2AbsFloat( f.x);
+				force.y += b2AbsFloat( f.y );
+				// moment += fabs( m );
+				f = b2MulSV( tf, tangent );
+				force.x += b2AbsFloat( f.x );
+				force.y += b2AbsFloat( f.y );
+				// moment += fabs( m );
+			}
+		}
+	}
+
+	
 	// is worth update or return
 	// update shape or recreate it
 }
@@ -61,4 +127,12 @@ Beam::~Beam()
 {
 	b2DestroyJoint( m_jointId );
 	b2DestroyBody( m_bodyId );
+	if ( m_contacts != nullptr )
+	{
+		free( m_contacts );
+	}
+	if ( m_joints != nullptr )
+	{
+		free( m_joints );
+	}
 }

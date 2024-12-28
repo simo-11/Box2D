@@ -1402,9 +1402,13 @@ public:
 			Restart();
 		}
 		Sample::Step( settings );
-		for (const auto& beam:m_beams)
+		float timeStep = settings.hertz > 0.0f ? 1.0f / settings.hertz : 0.0f;
+		if ( !settings.pause )
 		{
-			beam->update();
+			for ( const auto& beam : m_beams )
+			{
+				beam->update(timeStep);
+			}
 		}
 	}
 

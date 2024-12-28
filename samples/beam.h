@@ -16,7 +16,7 @@ public:
 	b2BodyId m_groundId,m_bodyId;
 	b2JointId m_jointId;
 	/** update shapes based on current forces */
-	void update();
+	void update(float timeStep);
 	/** reset statics that are used for creation */
 	static void reset();
 	static float L, w, h, E, fy,density;
@@ -24,4 +24,7 @@ public:
 
 protected:
 	std::vector<b2ShapeId> shapes;
+	int m_jointCount, m_contactCount;
+	b2JointId* m_joints;
+	b2ContactData* m_contacts;
 };
