@@ -1372,7 +1372,7 @@ public:
 	}
 	void UpdateUI() override
 	{
-		float height = 240.0f;
+		float height = 400.0f;
 		ImGui::SetNextWindowPos( ImVec2( 10.0f, g_camera.m_height - height - 50.0f ), ImGuiCond_Once );
 		ImGui::SetNextWindowSize( ImVec2( 240.0f, height ) );
 
@@ -1384,6 +1384,18 @@ public:
 			m_restart = true;
 		}
 		if ( ImGui::SliderFloat( "Beam Height", &Beam::h, Beam::L/100, Beam::L/5) )
+		{
+			m_restart = true;
+		}
+		if ( ImGui::SliderFloat( "Beam Density", &Beam::density, 500, 10000 ) )
+		{
+			m_restart = true;
+		}
+		if ( ImGui::SliderFloat( "Beam Young's modulus", &Beam::E, 1E9, 1E12, "%.3E" ) )
+		{
+			m_restart = true;
+		}
+		if ( ImGui::SliderFloat( "Beam Yield stress", &Beam::fy, 1E6, 1E9, "%.3E" ) )
 		{
 			m_restart = true;
 		}
@@ -1402,12 +1414,13 @@ public:
 			Restart();
 		}
 		Sample::Step( settings );
-		float timeStep = settings.hertz > 0.0f ? 1.0f / settings.hertz : 0.0f;
 		if ( !settings.pause )
 		{
+			float timeStep = settings.hertz > 0.0f ? 1.0f / settings.hertz : 0.0f;
+			b2UpdateData updateData = { timeStep, &g_draw, &g_camera };
 			for ( const auto& beam : m_beams )
 			{
-				beam->update(timeStep);
+				beam->update( updateData );
 			}
 		}
 	}

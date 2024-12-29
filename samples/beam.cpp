@@ -3,7 +3,6 @@
 // Beam modifications by Simo Nikula
 
 #include "beam.h"
-
 #include "box2d/box2d.h"
 #include "box2d/math_functions.h"
 
@@ -33,7 +32,7 @@ Beam::Beam( b2WorldId worldId, b2Vec2 position)
 	bodyDef.isAwake = false;
 	bodyDef.position = {hx, 0.0f };
 	m_bodyId = b2CreateBody( worldId, &bodyDef );
-	shapes.push_back(b2CreatePolygonShape( m_bodyId, &shapeDef, &box ));
+	m_shapes.push_back(b2CreatePolygonShape( m_bodyId, &shapeDef, &box ));
 	b2Vec2 pivot = { 0.f, 0.0f };
 	jointDef.bodyIdA = m_groundId;
 	jointDef.bodyIdB = m_bodyId;
@@ -52,13 +51,19 @@ Beam::E = 210E9;
 Beam::fy = 350E6;
 }
 
-void Beam::update(float timeStep)
+void Beam::update( b2UpdateData updateData )
 {
 	if (!b2Body_IsAwake(m_bodyId)) {
 		return;
 	}
-	b2Vec2 force = { 0.f, 0.f };
-	float moment = 0.f;
+	CleanLoads();
+	CollectLoads( updateData );
+	// is worth update or return
+	// update shape or recreate it
+}
+
+void Beam::CollectLoads( b2UpdateData& updateData )
+{
 	int jointCount = b2Body_GetJointCount( m_bodyId );
 	if ( jointCount != m_jointCount )
 	{
@@ -74,11 +79,22 @@ void Beam::update(float timeStep)
 		jointCount = b2Body_GetJoints( m_bodyId, m_joints, m_jointCount );
 		for ( int i = 0; i < jointCount; i++ )
 		{
-			b2Vec2 f=b2Joint_GetConstraintForce( m_joints[i] );
-			force.x += b2AbsFloat( f.x );
-			force.y += b2AbsFloat( f.y );
-			float m = b2Joint_GetConstraintTorque( m_joints[i] );
-			moment += fabs( m );
+			b2JointId jointId = m_joints[i];
+			b2BodyId ba = b2Joint_GetBodyA( jointId );
+			b2Vec2 anchor;
+			if ( ba.index1 == m_bodyId.index1 )
+			{
+				anchor = b2Joint_GetLocalAnchorA( jointId );
+			}
+			else
+			{
+				anchor = b2Joint_GetLocalAnchorB( jointId );
+			}
+			Load* load = new Load();
+			load->p = anchor;
+			load->f = b2Joint_GetConstraintForce( jointId );
+			load->m = b2Joint_GetConstraintTorque( jointId );
+			m_loads.push_back( load );
 		}
 	}
 	int contactCount = b2Body_GetContactCapacity( m_bodyId );
@@ -93,34 +109,44 @@ void Beam::update(float timeStep)
 	}
 	if ( m_contacts != nullptr )
 	{
-		float inv_h = 1.f/timeStep;
+		float inv_h = 1.f / updateData.timeStep;
 		contactCount = b2Body_GetContactData( m_bodyId, m_contacts, m_contactCount );
 		for ( int i = 0; i < contactCount; i++ )
 		{
 			b2ContactData cd = m_contacts[i];
+			bool useA = false;
+			b2BodyId ba = b2Shape_GetBody( cd.shapeIdA );
+			if ( ba.index1 == m_bodyId.index1 )
+			{
+				useA = true;
+			}
 			b2Manifold manifold = cd.manifold;
 			b2Vec2 normal = manifold.normal;
 			b2Vec2 tangent = b2RightPerp( normal );
 			for ( int pi = 0; pi < manifold.pointCount; pi++ )
 			{
 				b2ManifoldPoint manifoldPoint = manifold.points[pi];
-				float nf=inv_h*manifoldPoint.maxNormalImpulse;
+				b2Vec2 anchor;
+				if ( useA )
+				{
+					anchor = manifoldPoint.anchorA;
+				}
+				else
+				{
+					anchor = manifoldPoint.anchorB;
+				}
+				float nf = inv_h * manifoldPoint.normalImpulse;
 				float tf = inv_h * manifoldPoint.tangentImpulse;
-				b2Vec2 f = b2MulSV( nf, normal );
-				force.x += b2AbsFloat( f.x);
-				force.y += b2AbsFloat( f.y );
-				// moment += fabs( m );
-				f = b2MulSV( tf, tangent );
-				force.x += b2AbsFloat( f.x );
-				force.y += b2AbsFloat( f.y );
-				// moment += fabs( m );
+				Load* load = new Load();
+				load->p = anchor;
+				load->f = b2MulSV( nf, normal );
+				m_loads.push_back( load );
+				load = new Load();
+				load->p = anchor;
+				load->f = b2MulSV( tf, tangent );
 			}
 		}
 	}
-
-	
-	// is worth update or return
-	// update shape or recreate it
 }
 
 Beam::~Beam()
@@ -134,5 +160,15 @@ Beam::~Beam()
 	if ( m_joints != nullptr )
 	{
 		free( m_joints );
+	}
+	CleanLoads();
+}
+
+void Beam::CleanLoads()
+{
+	while ( !m_loads.empty() )
+	{
+		delete m_loads.back();
+		m_loads.pop_back();
 	}
 }
