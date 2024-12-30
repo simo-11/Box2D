@@ -23,19 +23,32 @@ public:
 	float m;  // moment
 };
 
+enum BeamFlags_
+{
+	BeamFlags_None = 0,
+	BeamFlags_ClampedAtStart = 1,
+	BeamFlags_ClampedAtEnd = 1 << 1,
+	BeamFlags_HingeAtStart = 1<<2,
+	BeamFlags_HingeAtEnd = 1 << 3,
+};
+
 
 class Beam
 {
 public:
 	/** Creates cantilever beam */
-	Beam(b2WorldId worldId, b2Vec2 position);
+	Beam( b2WorldId worldId, 
+		b2Vec2 position = {0.,0.}, 
+		float rotationInRadians, 
+		int beamFlags=0);
 	~Beam();
 	void CleanLoads();
-	b2BodyId m_groundId,m_bodyId;
+	b2BodyId m_groundIdStart,m_groundIdEnd,m_bodyId;
 	b2JointId m_jointId;
-	/** update shapes based on current forces */
-	void update( b2UpdateData updateData );
-	void CollectLoads( b2UpdateData& updateData );
+	virtual void DoBeamAnalysis( b2UpdateData updateData );
+	virtual void CollectLoads( b2UpdateData& updateData );
+	virtual bool IsModelUpdateNeeded();
+	virtual void UpdateModel();
 	/** reset statics that are used for creation */
 	static void reset();
 	static float L, w, h, E, fy,density;

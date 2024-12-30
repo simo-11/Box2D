@@ -1420,7 +1420,7 @@ public:
 			b2UpdateData updateData = { timeStep, &g_draw, &g_camera };
 			for ( const auto& beam : m_beams )
 			{
-				beam->update( updateData );
+				beam->DoBeamAnalysis( updateData );
 			}
 		}
 	}

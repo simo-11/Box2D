@@ -8,7 +8,7 @@
 
 #include <assert.h>
 
-Beam::Beam( b2WorldId worldId, b2Vec2 position)
+Beam::Beam( b2WorldId worldId, b2Vec2 position, float rotation, int beamFlags)
 {
 	m_L=Beam::L;
 	m_w=Beam::w;
@@ -21,24 +21,39 @@ Beam::Beam( b2WorldId worldId, b2Vec2 position)
 	m_contactCount = 0;
 	m_jointCount = 0;
 	b2BodyDef bodyDef = b2DefaultBodyDef();
-	m_groundId = b2CreateBody( worldId, &bodyDef );
+	bodyDef.position = position;
+	b2Rot rot = b2MakeRot( rotation );
+	if ( beamFlags & BeamFlags_ClampedAtStart || BeamFlags_HingeAtStart )
+	{
+		m_groundIdStart = b2CreateBody( worldId, &bodyDef );
+	}
+	if ( beamFlags & BeamFlags_ClampedAtStart || BeamFlags_HingeAtStart )
+	{
+		bodyDef.position.x = position.x+rot.c*m_L;
+		bodyDef.position.y = position.y + rot.s * m_L;
+		m_groundIdEnd = b2CreateBody( worldId, &bodyDef );
+	}
 	float hx = 0.5f * m_L;
 	float hh = 0.5f * m_h;
 	b2Polygon box = b2MakeBox( hx, hh );
 	b2ShapeDef shapeDef = b2DefaultShapeDef();
 	shapeDef.density = m_density;
-	b2WeldJointDef jointDef = b2DefaultWeldJointDef();
 	bodyDef.type = b2_dynamicBody;
 	bodyDef.isAwake = false;
-	bodyDef.position = {hx, 0.0f };
+	bodyDef.position = {position.x+hx, position.y };
+	bodyDef.rotation = rot;
 	m_bodyId = b2CreateBody( worldId, &bodyDef );
 	m_shapes.push_back(b2CreatePolygonShape( m_bodyId, &shapeDef, &box ));
-	b2Vec2 pivot = { 0.f, 0.0f };
-	jointDef.bodyIdA = m_groundId;
-	jointDef.bodyIdB = m_bodyId;
-	jointDef.localAnchorA = b2Body_GetLocalPoint( jointDef.bodyIdA, pivot );
-	jointDef.localAnchorB = b2Body_GetLocalPoint( jointDef.bodyIdB, pivot );
-	m_jointId = b2CreateWeldJoint( worldId, &jointDef );
+	if ( beamFlags & BeamFlags_ClampedAtStart )
+	{
+		b2Vec2 pivot = { 0.f, 0.0f };
+		b2WeldJointDef jointDef = b2DefaultWeldJointDef();
+		jointDef.bodyIdA = m_groundId;
+		jointDef.bodyIdB = m_bodyId;
+		jointDef.localAnchorA = b2Body_GetLocalPoint( jointDef.bodyIdA, pivot );
+		jointDef.localAnchorB = b2Body_GetLocalPoint( jointDef.bodyIdB, pivot );
+		m_jointId = b2CreateWeldJoint( worldId, &jointDef );
+	}
 }
 float Beam::L, Beam::w, Beam::h, Beam::density, Beam::E, Beam::fy;
 void Beam::reset()
@@ -51,15 +66,26 @@ Beam::E = 210E9;
 Beam::fy = 350E6;
 }
 
-void Beam::update( b2UpdateData updateData )
+void Beam::DoBeamAnalysis( b2UpdateData updateData )
 {
 	if (!b2Body_IsAwake(m_bodyId)) {
 		return;
 	}
 	CleanLoads();
 	CollectLoads( updateData );
-	// is worth update or return
-	// update shape or recreate it
+	if ( IsModelUpdateNeeded() )
+	{
+		UpdateModel();
+	}
+}
+
+bool Beam::IsModelUpdateNeeded()
+{
+	return 2 > 1;
+}
+
+void Beam::UpdateModel()
+{
 }
 
 void Beam::CollectLoads( b2UpdateData& updateData )
