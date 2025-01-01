@@ -26,8 +26,6 @@ Elastic displacements that are smaller than B2_LINEAR_SLOP ( 0.005f * b2_lengthU
 
 ## update method
 
-
-
 ## Elastic
  * I=w*h^3/12, https://en.wikipedia.org/wiki/List_of_second_moments_of_area
  * displacement due to own weight q=A*rho, q*x*x*(6*L*L-4*L*x+x*x)/(24*E*I), https://en.wikipedia.org/wiki/Euler%E2%80%93Bernoulli_beam_theory
