@@ -36,17 +36,19 @@ enum BeamFlags_
 class Beam
 {
 public:
-	/** Creates cantilever beam */
+	/** Creates Beam 
+	* beamFlags can be used to create few selected joints
+	*/
 	Beam( b2WorldId worldId, 
 		b2Vec2 position = {0.,0.}, 
-		float rotationInRadians, 
+		float rotationInRadians=0, 
 		int beamFlags=0);
 	~Beam();
 	void CleanLoads();
 	b2BodyId m_groundIdStart,m_groundIdEnd,m_bodyId;
-	b2JointId m_jointId;
 	virtual void DoBeamAnalysis( b2UpdateData updateData );
 	virtual void CollectLoads( b2UpdateData& updateData );
+	void CollectJoints();
 	virtual bool IsModelUpdateNeeded();
 	virtual void UpdateModel();
 	/** reset statics that are used for creation */
