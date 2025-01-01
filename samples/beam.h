@@ -53,7 +53,9 @@ public:
 	virtual void UpdateModel();
 	/** reset statics that are used for creation */
 	static void reset();
-	static float L, w, h, E, fy,density;
+	static float L, w, h, E, fy,density, rotation;
+	static int flags;
+	static char* flag_labels[4];
 	float m_L, m_w, m_h, m_E, m_fy, m_density;
 
 protected:

@@ -59,8 +59,6 @@ public:
 			segment.point1.y = y;
 			b2Shape_SetSegment( m_shapeIdFloor2, &segment );
 		}
-		Beam* beam = new Beam( m_worldId, {});
-		m_beams.push_back( beam );
 		m_restart = false;
 	}
 	~EpBeam()
@@ -104,6 +102,21 @@ public:
 		{
 			m_restart = true;
 		}
+		ImGui::SliderFloat( "Beam Rotation", &Beam::rotation, 0.f, 2 * B2_PI );
+		if ( ImGui::TreeNodeEx( "Beam Boundary conditions", 
+			ImGuiTreeNodeFlags_CollapsingHeader ) )
+		{
+			for ( int i = 0; i < 4; i++ )
+			{
+				int mask = 1 << i;
+				bool v = Beam::flags & mask;
+				char* label = Beam::flag_labels[i];
+				if ( ImGui::Checkbox( label, &v ) )
+				{
+					Beam::flags ^= mask;
+				}
+			}
+		}
 		if ( ImGui::SmallButton( "Restart with current settings" ) )
 		{
 			m_restart = true;
@@ -111,7 +124,21 @@ public:
 		ImGui::PopItemWidth();
 		ImGui::End();
 	}
-
+	void MouseDown( b2Vec2 p, int button, int mod )
+	{
+		switch ( mod )
+		{
+			case GLFW_MOD_ALT:
+			{
+				Beam* beam = new Beam( m_worldId, p, Beam::rotation, Beam::flags );
+				m_beams.push_back( beam );
+			}
+			break;
+			default:
+			Sample::MouseDown( p, button, mod );
+				break;
+		}
+	}
 	void Step( Settings& settings ) override
 	{
 		if ( m_restart )
@@ -128,7 +155,10 @@ public:
 				beam->DoBeamAnalysis( updateData );
 			}
 		}
+		g_draw.DrawString( 5, m_textLine, "Create Beams using ALT-MB1");
+		m_textLine += m_textIncrement;
 	}
+
 
 	void Restart() override
 	{

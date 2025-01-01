@@ -70,7 +70,7 @@ Beam::Beam( b2WorldId worldId, b2Vec2 position, float rotation, int beamFlags)
 	{
 		b2Vec2 pivot = { position.x + rot.c * m_L, position.y + rot.s * m_L };
 		b2WeldJointDef jointDef = b2DefaultWeldJointDef();
-		jointDef.bodyIdA = m_groundIdStart;
+		jointDef.bodyIdA = m_groundIdEnd;
 		jointDef.bodyIdB = m_bodyId;
 		jointDef.localAnchorA = b2Body_GetLocalPoint( jointDef.bodyIdA, pivot );
 		jointDef.localAnchorB = b2Body_GetLocalPoint( jointDef.bodyIdB, pivot );
@@ -79,14 +79,16 @@ Beam::Beam( b2WorldId worldId, b2Vec2 position, float rotation, int beamFlags)
 	{
 		b2Vec2 pivot = { position.x + rot.c * m_L, position.y + rot.s * m_L };
 		b2RevoluteJointDef jointDef = b2DefaultRevoluteJointDef();
-		jointDef.bodyIdA = m_groundIdStart;
+		jointDef.bodyIdA = m_groundIdEnd;
 		jointDef.bodyIdB = m_bodyId;
 		jointDef.localAnchorA = b2Body_GetLocalPoint( jointDef.bodyIdA, pivot );
 		jointDef.localAnchorB = b2Body_GetLocalPoint( jointDef.bodyIdB, pivot );
 		b2CreateRevoluteJoint( worldId, &jointDef );
 	}
 }
-float Beam::L, Beam::w, Beam::h, Beam::density, Beam::E, Beam::fy;
+float Beam::L, Beam::w, Beam::h, Beam::density, Beam::E, Beam::fy, Beam::rotation;
+int Beam::flags;
+char* Beam::flag_labels[4];
 void Beam::reset()
 {
 Beam::L = 10.0f;
@@ -95,6 +97,12 @@ Beam::h = 0.5f;
 Beam::density = 7800.f;
 Beam::E = 210E9;
 Beam::fy = 350E6;
+Beam::rotation = 0E0;
+Beam::flags = 0;
+Beam::flag_labels[0] = "ClampedAtStart (1)";
+Beam::flag_labels[1] = "ClampedAtEnd (2)";
+Beam::flag_labels[2] = "HingeAtStart (4)";
+Beam::flag_labels[3] = "HingeAtEnd (8)";
 }
 
 void Beam::DoBeamAnalysis( b2UpdateData updateData )
