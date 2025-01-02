@@ -33,6 +33,7 @@ public:
 		m_groundId = b2_nullBodyId;
 		m_shapeIdFloor1 = b2_nullShapeId;
 		m_shapeIdFloor2 = b2_nullShapeId;
+		m_insertV = b2Vec2_zero;
 	}
 	void CreateWorld(){
 		if ( m_groundId.index1 == 0 )
@@ -73,70 +74,24 @@ public:
 			m_beams.pop_back();
 		}
 	}
-	void UpdateUI() override
-	{
-		float height = 400.0f;
-		ImGui::SetNextWindowPos( ImVec2( 10.0f, g_camera.m_height - height - 50.0f ), ImGuiCond_Once );
-		ImGui::SetNextWindowSize( ImVec2( 240.0f, height ) );
-
-		ImGui::Begin( "EpCantilever", nullptr, ImGuiWindowFlags_NoResize );
-		ImGui::PushItemWidth( 100.0f );
-
-		if ( ImGui::SliderFloat( "Beam Length", &Beam::L, 1,20) )
-		{
-			m_restart = true;
-		}
-		if ( ImGui::SliderFloat( "Beam Height", &Beam::h, Beam::L/100, Beam::L/5) )
-		{
-			m_restart = true;
-		}
-		if ( ImGui::SliderFloat( "Beam Density", &Beam::density, 500, 10000 ) )
-		{
-			m_restart = true;
-		}
-		if ( ImGui::SliderFloat( "Beam Young's modulus", &Beam::E, 1E9, 1E12, "%.3E" ) )
-		{
-			m_restart = true;
-		}
-		if ( ImGui::SliderFloat( "Beam Yield stress", &Beam::fy, 1E6, 1E9, "%.3E" ) )
-		{
-			m_restart = true;
-		}
-		ImGui::SliderFloat( "Beam Rotation", &Beam::rotation, 0.f, 2 * B2_PI );
-		if ( ImGui::TreeNodeEx( "Beam Boundary conditions", 
-			ImGuiTreeNodeFlags_CollapsingHeader ) )
-		{
-			for ( int i = 0; i < 4; i++ )
-			{
-				int mask = 1 << i;
-				bool v = Beam::flags & mask;
-				char* label = Beam::flag_labels[i];
-				if ( ImGui::Checkbox( label, &v ) )
-				{
-					Beam::flags ^= mask;
-				}
-			}
-		}
-		if ( ImGui::SmallButton( "Restart with current settings" ) )
-		{
-			m_restart = true;
-		}
-		ImGui::PopItemWidth();
-		ImGui::End();
-	}
+	void UpdateUI() override;
 	void MouseDown( b2Vec2 p, int button, int mod )
 	{
 		switch ( mod )
 		{
 			case GLFW_MOD_ALT:
-			{
-				Beam* beam = new Beam( m_worldId, p, Beam::rotation, Beam::flags );
-				m_beams.push_back( beam );
-			}
+				AddBeam( p );
 			break;
 			default:
 			Sample::MouseDown( p, button, mod );
 				break;
+		}
+	}
+	void AddBeam( const b2Vec2& p )
+	{
+		{
+			Beam* beam = new Beam( m_worldId, p, Beam::rotation, Beam::flags );
+			m_beams.push_back( beam );
 		}
 	}
 	void Step( Settings& settings ) override
@@ -175,6 +130,54 @@ public:
 	b2ShapeId m_shapeIdFloor1,m_shapeIdFloor2;
 	std::vector<b2ShapeId> m_shapesToDeleteOnRestart;
 	std::vector<Beam*> m_beams;
+	b2Vec2 m_insertV;
 };
 static int sampleEpCantileverIndex = 
 RegisterSample( "ElasticPlastic", "Beam", EpBeam::Create );
+
+inline void EpBeam::UpdateUI()
+{
+	float height = 400.0f;
+	ImGui::SetNextWindowPos( ImVec2( 10.0f, g_camera.m_height - height - 50.0f ), ImGuiCond_Once );
+	ImGui::SetNextWindowSize( ImVec2( 240.0f, height ) );
+	ImGui::Begin( "EpCantilever", nullptr, ImGuiWindowFlags_NoResize );
+	ImGui::PushItemWidth( 100.0f );
+	ImGui::SliderFloat( "Beam Length", &Beam::L, 1, 20 );
+	ImGui::SliderFloat( "Beam Height", &Beam::h, Beam::L / 100, Beam::L / 5 );
+	ImGui::SliderFloat( "Beam Density", &Beam::density, 500, 10000 );
+	ImGui::SliderFloat( "Beam Young's modulus", &Beam::E, 1E9, 1E12, "%.3E" );
+	ImGui::SliderFloat( "Beam Yield stress", &Beam::fy, 1E6, 1E9, "%.3E" );
+	ImGui::SliderFloat( "Beam Rotation", &Beam::rotation, 0.f, 2 * B2_PI );
+	if ( ImGui::TreeNodeEx( "Beam Boundary conditions", ImGuiTreeNodeFlags_CollapsingHeader ) )
+	{
+		for ( int i = 0; i < 4; i++ )
+		{
+			int mask = 1 << i;
+			bool v = Beam::flags & mask;
+			char* label = Beam::flag_labels[i];
+			if ( ImGui::Checkbox( label, &v ) )
+			{
+				Beam::flags ^= mask;
+			}
+		}
+	}
+	if ( ImGui::TreeNodeEx( "Beam at given point", ImGuiTreeNodeFlags_CollapsingHeader ) )
+	{
+		float v[2];
+		v[0] = m_insertV.x;
+		v[1] = m_insertV.y;
+		ImGui::SliderFloat2( "x,y", v, -2 * Beam::L, 2 * Beam::L );
+		if ( ImGui::SmallButton( "Insert at point" ) )
+		{
+			m_insertV = b2Vec2{ v[0], v[1] };
+			AddBeam( m_insertV );
+			m_insertV.y += 1.2 * Beam::h;
+		}
+	}
+	if ( ImGui::SmallButton( "Restart with current settings" ) )
+	{
+		m_restart = true;
+	}
+	ImGui::PopItemWidth();
+	ImGui::End();
+}
