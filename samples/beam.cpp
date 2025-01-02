@@ -42,7 +42,7 @@ Beam::Beam( b2WorldId worldId, b2Vec2 position, float rotation, int beamFlags)
 	shapeDef.density = m_density;
 	bodyDef.type = b2_dynamicBody;
 	bodyDef.isAwake = false;
-	bodyDef.position = {position.x+hx, position.y };
+	bodyDef.position = {position.x+rot.c*hx, position.y+rot.s*hx };
 	bodyDef.rotation = rot;
 	m_bodyId = b2CreateBody( worldId, &bodyDef );
 	m_shapes.push_back(b2CreatePolygonShape( m_bodyId, &shapeDef, &box ));

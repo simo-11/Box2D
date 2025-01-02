@@ -155,7 +155,7 @@ public:
 				beam->DoBeamAnalysis( updateData );
 			}
 		}
-		g_draw.DrawString( 5, m_textLine, "Create Beams using ALT-MB1");
+		g_draw.DrawString( 5, m_textLine, "Create beams using ALT-MB1 at start of beam");
 		m_textLine += m_textIncrement;
 	}
 
