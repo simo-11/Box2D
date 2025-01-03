@@ -120,6 +120,10 @@ void Beam::DoBeamAnalysis( b2UpdateData updateData )
 
 bool Beam::IsModelUpdateNeeded()
 {
+	if ( m_loads.empty() )
+	{
+		return false;
+	}
 	return 2 > 1;
 }
 
