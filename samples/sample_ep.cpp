@@ -29,6 +29,7 @@ public:
 		}
 		Beam::reset();
 		m_restart = true;
+		m_wakeAddedBeams = true;
 		m_tipId = b2_nullBodyId;
 		m_groundId = b2_nullBodyId;
 		m_shapeIdFloor1 = b2_nullShapeId;
@@ -92,6 +93,10 @@ public:
 		{
 			Beam* beam = new Beam( m_worldId, p, Beam::rotation, Beam::flags );
 			m_beams.push_back( beam );
+			if ( m_wakeAddedBeams )
+			{
+				b2Body_SetAwake( beam->m_bodyId, true );
+			}
 		}
 	}
 	void Step( Settings& settings ) override
@@ -126,7 +131,7 @@ public:
 	}
 
 	b2BodyId m_tipId, m_groundId;
-	bool m_restart;
+	bool m_restart, m_wakeAddedBeams;
 	b2ShapeId m_shapeIdFloor1,m_shapeIdFloor2;
 	std::vector<b2ShapeId> m_shapesToDeleteOnRestart;
 	std::vector<Beam*> m_beams;
@@ -137,7 +142,7 @@ RegisterSample( "ElasticPlastic", "Beam", EpBeam::Create );
 
 inline void EpBeam::UpdateUI()
 {
-	float height = 400.0f;
+	float height = 600.0f;
 	ImGui::SetNextWindowPos( ImVec2( 10.0f, g_camera.m_height - height - 50.0f ), ImGuiCond_Once );
 	ImGui::SetNextWindowSize( ImVec2( 240.0f, height ) );
 	ImGui::Begin( "EpCantilever", nullptr, ImGuiWindowFlags_NoResize );
@@ -174,6 +179,7 @@ inline void EpBeam::UpdateUI()
 			m_insertV.y += 1.2 * Beam::h;
 		}
 	}
+	ImGui::Checkbox( "Wake added beams", &m_wakeAddedBeams );
 	if ( ImGui::SmallButton( "Restart with current settings" ) )
 	{
 		m_restart = true;
