@@ -32,3 +32,11 @@ Elastic displacements that are smaller than B2_LINEAR_SLOP ( 0.005f * b2_lengthU
 
 ## Plastic
  * Ip=w*h^2/4
+
+## Based on minimal 2D FE-solver
+
+Meshing e.g. c++ implementation of https://github.com/mapbox/delaunator / https://mapbox.github.io/delaunator/ at https://github.com/delfrrr/delaunator-cpp
+
+### Solve
+
+Using e.g. [Eigen](https://eigen.tuxfamily.org/) sample e.g. https://github.com/podgorskiy/MinimalFem
