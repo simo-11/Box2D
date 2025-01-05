@@ -74,6 +74,7 @@ public:
 			delete m_beams.back();
 			m_beams.pop_back();
 		}
+		Beam::Cleanup();
 	}
 	void UpdateUI() override;
 	void MouseDown( b2Vec2 p, int button, int mod )
@@ -145,14 +146,20 @@ inline void EpBeam::UpdateUI()
 	float height = 600.0f;
 	ImGui::SetNextWindowPos( ImVec2( 10.0f, g_camera.m_height - height - 50.0f ), ImGuiCond_Once );
 	ImGui::SetNextWindowSize( ImVec2( 240.0f, height ) );
-	ImGui::Begin( "EpCantilever", nullptr, ImGuiWindowFlags_NoResize );
+	ImGui::Begin( "EpBeam", nullptr, ImGuiWindowFlags_NoResize );
 	ImGui::PushItemWidth( 100.0f );
-	ImGui::SliderFloat( "Beam Length", &Beam::L, 1, 20 );
-	ImGui::SliderFloat( "Beam Height", &Beam::h, Beam::L / 100, Beam::L / 5 );
-	ImGui::SliderFloat( "Beam Density", &Beam::density, 500, 10000 );
-	ImGui::SliderFloat( "Beam Young's modulus", &Beam::E, 1E9, 1E12, "%.3E" );
-	ImGui::SliderFloat( "Beam Yield stress", &Beam::fy, 1E6, 1E9, "%.3E" );
-	ImGui::SliderFloat( "Beam Rotation", &Beam::rotation, 0.f, 2 * B2_PI );
+	static bool beamPropertiesChanged;
+	if ( ImGui::TreeNodeEx( "Beam Properties", ImGuiTreeNodeFlags_CollapsingHeader ) )
+	{
+		if ( ImGui::SliderFloat( "Beam Length", &Beam::L, 1, 20 ) ||
+			 ImGui::SliderFloat( "Beam Height", &Beam::h, Beam::L / 100, Beam::L / 5 ) ||
+			 ImGui::SliderFloat( "Beam Density", &Beam::density, 500, 10000 ) ||
+			 ImGui::SliderFloat( "Beam Young's modulus", &Beam::E, 1E9, 1E12, "%.3E" ) ||
+			 ImGui::SliderFloat( "Beam Yield stress", &Beam::fy, 1E6, 1E9, "%.3E" ) )
+		{
+			beamPropertiesChanged = true;
+		}
+	}
 	if ( ImGui::TreeNodeEx( "Beam Boundary conditions", ImGuiTreeNodeFlags_CollapsingHeader ) )
 	{
 		for ( int i = 0; i < 4; i++ )
@@ -166,12 +173,39 @@ inline void EpBeam::UpdateUI()
 			}
 		}
 	}
-	if ( ImGui::TreeNodeEx( "Beam at given point", ImGuiTreeNodeFlags_CollapsingHeader ) )
+	static ImGuiComboFlags flags = 0;
+	if ( beamPropertiesChanged )
+	{
+		Beam::UpdateValidImplementations();
+		beamPropertiesChanged = false;
+	}
+	const char** items = Beam::GetValidImplementationLabels();
+	static int item_selected_idx = Beam::selectedImplementationIndex;
+	const char* combo_preview_value = items[item_selected_idx];
+	if ( ImGui::BeginCombo( "Implementation", combo_preview_value, flags ) )
+	{
+		for ( int n = 0; n < IM_ARRAYSIZE( items ); n++ )
+		{
+			const bool is_selected = ( item_selected_idx == n );
+			if ( ImGui::Selectable( items[n], is_selected ) )
+			{
+				Beam::SetSelectedImplementation( items[n] );
+			}
+			if (is_selected)
+			{
+				ImGui::SetItemDefaultFocus();
+			}
+		}
+		ImGui::EndCombo();
+	}
+	void ImGui::Spacing();
+	if ( ImGui::TreeNodeEx( "Add Beam at given point", ImGuiTreeNodeFlags_CollapsingHeader ) )
 	{
 		float v[2];
 		v[0] = m_insertV.x;
 		v[1] = m_insertV.y;
 		ImGui::SliderFloat2( "x,y", v, -2 * Beam::L, 2 * Beam::L );
+		ImGui::SliderFloat( "Beam Rotation", &Beam::rotation, 0.f, 2 * B2_PI );
 		if ( ImGui::SmallButton( "Insert at point" ) )
 		{
 			m_insertV = b2Vec2{ v[0], v[1] };
@@ -183,6 +217,11 @@ inline void EpBeam::UpdateUI()
 	if ( ImGui::SmallButton( "Restart with current settings" ) )
 	{
 		m_restart = true;
+	}
+	static bool showImguiDemo;
+	ImGui::Checkbox( "ImGui::ShowDemoWindow",&showImguiDemo);
+	if(showImguiDemo){
+		ImGui::ShowDemoWindow();
 	}
 	ImGui::PopItemWidth();
 	ImGui::End();

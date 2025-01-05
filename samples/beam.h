@@ -31,6 +31,11 @@ enum BeamFlags_
 	BeamFlags_HingeAtStart = 1<<2,
 	BeamFlags_HingeAtEnd = 1 << 3,
 };
+enum BeamImplementation
+{
+	BeamImplementation_Rigid,
+	BeamImplementation_RigidPlastic,
+};
 
 
 class Beam
@@ -39,7 +44,7 @@ public:
 	/** Creates Beam 
 	* beamFlags can be used to create few selected joints
 	*/
-	Beam( b2WorldId worldId, 
+	Beam(b2WorldId worldId, 
 		b2Vec2 position = {0.,0.}, 
 		float rotationInRadians=0, 
 		int beamFlags=0);
@@ -51,13 +56,20 @@ public:
 	void CollectJoints();
 	virtual bool IsModelUpdateNeeded();
 	virtual void UpdateModel();
+	static void Cleanup();
 	/** reset statics that are used for creation */
 	static void reset();
 	static float L, w, h, E, fy,density, rotation;
 	static int flags;
 	static char* flag_labels[4];
+	static int selectedImplementationIndex;
+	static bool isValid( BeamImplementation );
+	static void UpdateValidImplementations();
+	static const char** GetValidImplementationLabels();
+	static BeamImplementation GetSelectedImplementation();
+	static void SetSelectedImplementation( BeamImplementation bi );
+	static void SetSelectedImplementation( const char* );
 	float m_L, m_w, m_h, m_E, m_fy, m_density;
-
 protected:
 	std::vector<b2ShapeId> m_shapes;
 	std::vector<Load*> m_loads;

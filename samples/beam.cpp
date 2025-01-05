@@ -7,6 +7,7 @@
 #include "box2d/math_functions.h"
 
 #include <assert.h>
+#include <memory>
 
 Beam::Beam( b2WorldId worldId, b2Vec2 position, float rotation, int beamFlags)
 {
@@ -86,9 +87,45 @@ Beam::Beam( b2WorldId worldId, b2Vec2 position, float rotation, int beamFlags)
 		b2CreateRevoluteJoint( worldId, &jointDef );
 	}
 }
+
 float Beam::L, Beam::w, Beam::h, Beam::density, Beam::E, Beam::fy, Beam::rotation;
 int Beam::flags;
 char* Beam::flag_labels[4];
+std::shared_ptr<std::vector<const char*>> implementationLabels;
+std::shared_ptr<std::vector<const char*>> validImplementationLabels;
+std::shared_ptr<std::vector<int>> validImplementations;
+int Beam::selectedImplementationIndex;
+
+namespace beam
+{
+bool static_init_done;
+void static_init()
+{
+	if ( static_init_done )
+	{
+		return;
+	}
+	Beam::flag_labels[0] = "ClampedAtStart (1)";
+	Beam::flag_labels[1] = "ClampedAtEnd (2)";
+	Beam::flag_labels[2] = "HingeAtStart (4)";
+	Beam::flag_labels[3] = "HingeAtEnd (8)";
+	implementationLabels = std::make_shared<std::vector<const char*>>();
+	validImplementationLabels = std::make_shared<std::vector<const char*>>();
+	validImplementations = std::make_shared<std::vector<int>>();
+	implementationLabels->push_back( "Rigid" );
+	implementationLabels->push_back( "RigidPlastic" );
+	Beam::selectedImplementationIndex = 0;
+	static_init_done = true;
+}
+void static_cleanup()
+{
+	implementationLabels.reset();
+	validImplementationLabels.reset();
+	validImplementations.reset();
+	static_init_done = false;
+}
+} // namespace
+
 void Beam::reset()
 {
 Beam::L = 10.0f;
@@ -99,10 +136,76 @@ Beam::E = 210E9;
 Beam::fy = 350E6;
 Beam::rotation = 0E0;
 Beam::flags = 0;
-Beam::flag_labels[0] = "ClampedAtStart (1)";
-Beam::flag_labels[1] = "ClampedAtEnd (2)";
-Beam::flag_labels[2] = "HingeAtStart (4)";
-Beam::flag_labels[3] = "HingeAtEnd (8)";
+beam::static_init();
+}
+
+bool Beam::isValid( BeamImplementation bi)
+{
+	switch ( bi )
+	{
+		case BeamImplementation_Rigid:
+			return true;
+		case BeamImplementation_RigidPlastic:
+			break;
+	}
+	return false;
+}
+
+void Beam::UpdateValidImplementations()
+{
+	validImplementations->clear();
+	validImplementationLabels->clear();
+	int v_count = implementationLabels->size();
+	for ( int i = 0; i < v_count; i++ )
+	{
+		auto implementation = BeamImplementation( i );
+		if ( isValid( implementation ) )
+		{
+			validImplementations->push_back( i );
+			validImplementationLabels->push_back( (*implementationLabels)[i] );
+		}
+		else
+		{
+			if ( i == selectedImplementationIndex )
+			{
+				selectedImplementationIndex = 0;
+			}
+		}
+	}
+}
+
+const char** Beam::GetValidImplementationLabels()
+{
+	if ( validImplementationLabels->empty() )
+	{
+		UpdateValidImplementations();
+	}
+	return validImplementationLabels->data();
+}
+
+BeamImplementation Beam::GetSelectedImplementation()
+{
+	return BeamImplementation( selectedImplementationIndex );
+}
+
+void Beam::SetSelectedImplementation( BeamImplementation bi )
+{
+	selectedImplementationIndex=static_cast<int>( bi );
+}
+
+void Beam::SetSelectedImplementation( const char* offer)
+{
+	int index = 0;
+	for ( const char* s : *implementationLabels )
+	{
+		if ( strcmp( offer, s ) )
+		{
+			selectedImplementationIndex = index;
+			return;
+		}
+		index++;
+	}
+	
 }
 
 void Beam::DoBeamAnalysis( b2UpdateData updateData )
@@ -129,6 +232,11 @@ bool Beam::IsModelUpdateNeeded()
 
 void Beam::UpdateModel()
 {
+}
+
+void Beam::Cleanup()
+{
+	beam::static_cleanup();
 }
 
 void Beam::CollectLoads( b2UpdateData& updateData )
