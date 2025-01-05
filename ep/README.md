@@ -24,6 +24,13 @@ More (old, main work was done 2017) details in https://docs.google.com/document/
 Beam is based on b2Polygon and material properties.
 Elastic displacements that are smaller than B2_LINEAR_SLOP ( 0.005f * b2_lengthUnitsPerMeter ) are ignored.
 
+## Rigid-plastic approximation based on one dimensional beam analysis 
+can be done based on only moment calculation
+ * calculate elastic displacement using scenario where moment of Wp is applied at tip of clamped beam
+ * if displacement is < B2_LINEAR_SLOP accept this approximation
+   
+More complex processes have been developed, one example is https://www.jstor.org/stable/43634039 published in 1953.
+
 ## update method
 
 ## Elastic
@@ -31,7 +38,7 @@ Elastic displacements that are smaller than B2_LINEAR_SLOP ( 0.005f * b2_lengthU
  * displacement due to own weight q=A*rho, q*x*x*(6*L*L-4*L*x+x*x)/(24*E*I), https://en.wikipedia.org/wiki/Euler%E2%80%93Bernoulli_beam_theory
 
 ## Plastic
- * Ip=w*h^2/4
+ * Wp=w*h^2/4
 
 ## Based on minimal 2D FE-solver
 
