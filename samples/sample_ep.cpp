@@ -201,9 +201,7 @@ inline void EpBeam::UpdateUI()
 	void ImGui::Spacing();
 	if ( ImGui::TreeNodeEx( "Add Beam at given point", ImGuiTreeNodeFlags_CollapsingHeader ) )
 	{
-		float v[2];
-		v[0] = m_insertV.x;
-		v[1] = m_insertV.y;
+		float v[2]{ m_insertV.x, m_insertV.y };
 		ImGui::SliderFloat2( "x,y", v, -2 * Beam::L, 2 * Beam::L );
 		ImGui::SliderFloat( "Beam Rotation", &Beam::rotation, 0.f, 2 * B2_PI );
 		if ( ImGui::SmallButton( "Insert at point" ) )
