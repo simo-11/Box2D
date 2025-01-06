@@ -179,12 +179,12 @@ inline void EpBeam::UpdateUI()
 		Beam::UpdateValidImplementations();
 		beamPropertiesChanged = false;
 	}
-	const char** items = Beam::GetValidImplementationLabels();
+	std::vector<const char*> items = Beam::GetValidImplementationLabels();
 	static int item_selected_idx = Beam::selectedImplementationIndex;
 	const char* combo_preview_value = items[item_selected_idx];
 	if ( ImGui::BeginCombo( "Implementation", combo_preview_value, flags ) )
 	{
-		for ( int n = 0; n < IM_ARRAYSIZE( items ); n++ )
+		for ( int n = 0; n < items.size(); n++ )
 		{
 			const bool is_selected = ( item_selected_idx == n );
 			if ( ImGui::Selectable( items[n], is_selected ) )

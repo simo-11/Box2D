@@ -174,13 +174,13 @@ void Beam::UpdateValidImplementations()
 	}
 }
 
-const char** Beam::GetValidImplementationLabels()
+std::vector<const char*> Beam::GetValidImplementationLabels()
 {
 	if ( validImplementationLabels->empty() )
 	{
 		UpdateValidImplementations();
 	}
-	return validImplementationLabels->data();
+	return *validImplementationLabels;
 }
 
 BeamImplementation Beam::GetSelectedImplementation()

@@ -65,7 +65,7 @@ public:
 	static int selectedImplementationIndex;
 	static bool isValid( BeamImplementation );
 	static void UpdateValidImplementations();
-	static const char** GetValidImplementationLabels();
+	static std::vector<const char*> GetValidImplementationLabels();
 	static BeamImplementation GetSelectedImplementation();
 	static void SetSelectedImplementation( BeamImplementation bi );
 	static void SetSelectedImplementation( const char* );
