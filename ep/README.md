@@ -22,13 +22,13 @@ More (old, main work was done 2017) details in https://docs.google.com/document/
 
 # Beam with input L,w,h,E,fy,density
 Beam is based on b2Polygon and material properties.
-Elastic displacements that are smaller than B2_LINEAR_SLOP ( 0.005f * b2_lengthUnitsPerMeter ) are ignored.
+Elastic displacements that are smaller than 0.005f * L are ignored.
 
 ## Rigid-plastic approximation based on one dimensional beam analysis 
 can be done based on only moment calculation
  * calculate elastic displacement using scenario where moment of Wp is applied at tip of clamped beam
    * y=M*x^2/(2*EI) e.g. Tekniikan käsikirja 1, page 52.
- * if displacement is < 0.005f*b2GetLengthUnitsPerMeter() accept this approximation
+ * if displacement is < 0.1*L this model can be used, Beam::isValid
  * compare against e.g. https://civilengineeronline.com/cecalc.php
    * https://civilengineeronline.com/str/sdcantm.php  
    
