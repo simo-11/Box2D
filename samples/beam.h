@@ -60,6 +60,7 @@ public:
 	/** reset statics that are used for creation */
 	static void reset();
 	static float L, w, h, E, fy,density, rotation;
+	static float Wp(), I();
 	static int flags;
 	static char* flag_labels[4];
 	static int selectedImplementationIndex;

@@ -139,6 +139,17 @@ Beam::flags = 0;
 beam::static_init();
 }
 
+float Beam::Wp()
+{
+	// for rectangular
+	return Beam::fy*Beam::w * Beam::h * Beam::h / 4.f;
+}
+
+float Beam::I()
+{
+	return Beam::w * Beam::h * Beam::h *Beam::h/ 12.f;
+}
+
 bool Beam::isValid( BeamImplementation bi)
 {
 	switch ( bi )
@@ -146,7 +157,9 @@ bool Beam::isValid( BeamImplementation bi)
 		case BeamImplementation_Rigid:
 			return true;
 		case BeamImplementation_RigidPlastic:
-			break;
+			float y = Beam::Wp() * Beam::L * Beam::L / 
+				(2*Beam::E*Beam::I());
+			return y < 0.1f*Beam::L;
 	}
 	return false;
 }
