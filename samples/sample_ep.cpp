@@ -66,6 +66,7 @@ public:
 	~EpBeam()
 	{
 		Cleanup();
+		Beam::Cleanup();
 	}
 	void Cleanup()
 	{
@@ -74,7 +75,6 @@ public:
 			delete m_beams.back();
 			m_beams.pop_back();
 		}
-		Beam::Cleanup();
 	}
 	void UpdateUI() override;
 	void MouseDown( b2Vec2 p, int button, int mod )
@@ -189,10 +189,11 @@ inline void EpBeam::UpdateUI()
 			const bool is_selected = ( item_selected_idx == n );
 			if ( ImGui::Selectable( items[n], is_selected ) )
 			{
-				Beam::SetSelectedImplementation( items[n] );
+				item_selected_idx = n;
 			}
 			if (is_selected)
 			{
+				Beam::SetSelectedImplementation( items[n] );
 				ImGui::SetItemDefaultFocus();
 			}
 		}

@@ -71,10 +71,27 @@ public:
 	static void SetSelectedImplementation( BeamImplementation bi );
 	static void SetSelectedImplementation( const char* );
 	float m_L, m_w, m_h, m_E, m_fy, m_density;
+	BeamImplementation m_impl;
 protected:
 	std::vector<b2ShapeId> m_shapes;
 	std::vector<Load*> m_loads;
 	int m_jointCount, m_contactCount;
 	b2JointId* m_joints;
 	b2ContactData* m_contacts;
+};
+
+class Solver
+{
+public:
+	~Solver();
+	virtual void solve( Beam* )
+	{
+	}
+};
+
+class RigidPlasticSolver: public Solver
+{
+public:
+	~RigidPlasticSolver();
+	virtual void solve( Beam* );
 };

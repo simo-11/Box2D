@@ -17,6 +17,7 @@ Beam::Beam( b2WorldId worldId, b2Vec2 position, float rotation, int beamFlags)
 	m_density = Beam::density;
 	m_E = Beam::E;
 	m_fy = Beam::fy;
+	m_impl = Beam::GetSelectedImplementation();
 	m_contacts = nullptr;
 	m_joints = nullptr;
 	m_contactCount = 0;
@@ -228,6 +229,15 @@ void Beam::DoBeamAnalysis( b2UpdateData updateData )
 	}
 	CleanLoads();
 	CollectLoads( updateData );
+	switch ( m_impl )
+	{
+		case BeamImplementation_Rigid:
+			return;
+		case BeamImplementation_RigidPlastic:
+			std::unique_ptr<RigidPlasticSolver> solver( new RigidPlasticSolver() );
+			solver->solve(this);
+			break;
+	}
 	if ( IsModelUpdateNeeded() )
 	{
 		UpdateModel();
@@ -371,4 +381,16 @@ void Beam::CleanLoads()
 		delete m_loads.back();
 		m_loads.pop_back();
 	}
+}
+
+RigidPlasticSolver::~RigidPlasticSolver()
+{
+}
+
+void RigidPlasticSolver::solve( Beam* beam )
+{
+}
+
+Solver::~Solver()
+{
 }
