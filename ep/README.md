@@ -27,7 +27,7 @@ Elastic displacements that are smaller than B2_LINEAR_SLOP ( 0.005f * b2_lengthU
 ## Rigid-plastic approximation based on one dimensional beam analysis 
 can be done based on only moment calculation
  * calculate elastic displacement using scenario where moment of Wp is applied at tip of clamped beam
-   * y=M*x^2/(2*EI) e.g. Tekniikan käsikirja sivu 52.
+   * y=M*x^2/(2*EI) e.g. Tekniikan käsikirja 1, page 52.
  * if displacement is < B2_LINEAR_SLOP accept this approximation
  * compare against e.g. https://civilengineeronline.com/cecalc.php
    * https://civilengineeronline.com/str/sdcantm.php  
