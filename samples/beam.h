@@ -54,8 +54,6 @@ public:
 	virtual void DoBeamAnalysis( b2UpdateData updateData );
 	virtual void CollectLoads( b2UpdateData& updateData );
 	void CollectJoints();
-	virtual bool IsModelUpdateNeeded();
-	virtual void UpdateModel();
 	static void Cleanup();
 	/** reset statics that are used for creation */
 	static void reset();
@@ -70,9 +68,8 @@ public:
 	static BeamImplementation GetSelectedImplementation();
 	static void SetSelectedImplementation( BeamImplementation bi );
 	static void SetSelectedImplementation( const char* );
-	float m_L, m_w, m_h, m_E, m_fy, m_density;
+	float m_L, m_w, m_h, m_E, m_fy, m_density, m_Wp;
 	BeamImplementation m_impl;
-protected:
 	std::vector<b2ShapeId> m_shapes;
 	std::vector<Load*> m_loads;
 	int m_jointCount, m_contactCount;

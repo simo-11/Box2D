@@ -17,6 +17,7 @@ Beam::Beam( b2WorldId worldId, b2Vec2 position, float rotation, int beamFlags)
 	m_density = Beam::density;
 	m_E = Beam::E;
 	m_fy = Beam::fy;
+	m_Wp = Beam::Wp();
 	m_impl = Beam::GetSelectedImplementation();
 	m_contacts = nullptr;
 	m_joints = nullptr;
@@ -229,6 +230,10 @@ void Beam::DoBeamAnalysis( b2UpdateData updateData )
 	}
 	CleanLoads();
 	CollectLoads( updateData );
+	if ( m_loads.empty() )
+	{
+		return;
+	}
 	switch ( m_impl )
 	{
 		case BeamImplementation_Rigid:
@@ -238,23 +243,6 @@ void Beam::DoBeamAnalysis( b2UpdateData updateData )
 			solver->solve(this);
 			break;
 	}
-	if ( IsModelUpdateNeeded() )
-	{
-		UpdateModel();
-	}
-}
-
-bool Beam::IsModelUpdateNeeded()
-{
-	if ( m_loads.empty() )
-	{
-		return false;
-	}
-	return 2 > 1;
-}
-
-void Beam::UpdateModel()
-{
 }
 
 void Beam::Cleanup()
@@ -389,6 +377,38 @@ RigidPlasticSolver::~RigidPlasticSolver()
 
 void RigidPlasticSolver::solve( Beam* beam )
 {
+	std::vector<b2Vec2> pv;
+	std::vector<float> m;
+	float mMax,mMaxAbs=0.f, hingeX;
+	for (auto load:beam->m_loads )
+	{
+		pv.push_back( load->p );
+	}
+	for ( auto p : pv )
+	{
+		float mAtX = 0.f;
+		for ( auto load : beam->m_loads )
+		{
+			mAtX += load->m;
+			mAtX += load->f.y * (load->p.x-p.x);
+			mAtX += load->f.x * ( load->p.y - p.y );
+		}
+		m.push_back( mAtX );
+		float mAbs = b2AbsFloat( mAtX );
+		if ( mAbs > mMaxAbs )
+		{
+			mMax = mAtX;
+			mMaxAbs = mAbs;
+			hingeX = p.x;
+		}
+	}
+	if ( mMaxAbs < beam->m_Wp)
+	{
+		return;
+	}
+	else
+	{
+	}
 }
 
 Solver::~Solver()
