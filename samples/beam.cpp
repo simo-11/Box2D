@@ -18,6 +18,7 @@ Beam::Beam( b2WorldId worldId, b2Vec2 position, float rotation, int beamFlags)
 	m_E = Beam::E;
 	m_fy = Beam::fy;
 	m_Wp = Beam::Wp();
+	m_worldId = worldId;
 	m_impl = Beam::GetSelectedImplementation();
 	m_contacts = nullptr;
 	m_joints = nullptr;
@@ -252,6 +253,10 @@ void Beam::Cleanup()
 
 void Beam::CollectLoads( b2UpdateData& updateData )
 {
+	Load* load = new Load();
+	load->p = b2Body_GetLocalCenterOfMass( m_bodyId );
+	load->f = b2World_GetGravity( m_worldId ) * b2Body_GetMass(m_bodyId);
+	m_loads.push_back( load );
 	CollectJoints();
 	for ( int i = 0; i < m_jointCount; i++ )
 	{
@@ -389,9 +394,10 @@ void RigidPlasticSolver::solve( Beam* beam )
 		float mAtX = 0.f;
 		for ( auto load : beam->m_loads )
 		{
-			mAtX += load->m;
-			mAtX += load->f.y * (load->p.x-p.x);
-			mAtX += load->f.x * ( load->p.y - p.y );
+			float dm = load->m;
+			float dmy = load->f.y * (load->p.x-p.x);
+			float dmx= load->f.x * ( load->p.y - p.y );
+			mAtX += dm + dmy + dmx;
 		}
 		m.push_back( mAtX );
 		float mAbs = b2AbsFloat( mAtX );

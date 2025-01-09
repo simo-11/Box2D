@@ -75,6 +75,7 @@ public:
 	int m_jointCount, m_contactCount;
 	b2JointId* m_joints;
 	b2ContactData* m_contacts;
+	b2WorldId m_worldId;
 };
 
 class Solver
