@@ -116,6 +116,7 @@ void static_init()
 	implementationLabels = std::make_shared<std::vector<const char*>>();
 	validImplementationLabels = std::make_shared<std::vector<const char*>>();
 	validImplementations = std::make_shared<std::vector<int>>();
+	// put best ones at end
 	implementationLabels->push_back( "Rigid" );
 	implementationLabels->push_back( "RigidPlastic" );
 	Beam::selectedImplementationIndex = 0;
@@ -139,7 +140,7 @@ Beam::density = 7800.f;
 Beam::E = 210E9;
 Beam::fy = 350E6;
 Beam::rotation = 0E0;
-Beam::flags = 0;
+Beam::flags = BeamFlags_ClampedAtStart;
 beam::static_init();
 }
 
@@ -163,7 +164,8 @@ bool Beam::isValid( BeamImplementation bi)
 		case BeamImplementation_RigidPlastic:
 			float y = Beam::Wp() * Beam::L * Beam::L / 
 				(2*Beam::E*Beam::I());
-			return y < 0.1f*Beam::L;
+			bool b=y < 0.1f*Beam::L;
+			return b;
 	}
 	return false;
 }
@@ -180,13 +182,10 @@ void Beam::UpdateValidImplementations()
 		{
 			validImplementations->push_back( i );
 			validImplementationLabels->push_back( (*implementationLabels)[i] );
-		}
-		else
-		{
-			if ( i == selectedImplementationIndex )
-			{
-				selectedImplementationIndex = 0;
-			}
+			/*
+			 * prefer higher values
+			 */
+			selectedImplementationIndex = i;
 		}
 	}
 }
@@ -238,7 +237,7 @@ void Beam::DoBeamAnalysis( b2UpdateData updateData )
 			return;
 		case BeamImplementation_RigidPlastic:
 			std::unique_ptr<RigidPlasticSolver> solver( new RigidPlasticSolver() );
-			solver->solve(this);
+			solver->solve(this,updateData);
 			break;
 	}
 }
@@ -385,7 +384,7 @@ RigidPlasticSolver::~RigidPlasticSolver()
 {
 }
 
-void RigidPlasticSolver::solve( Beam* beam )
+void RigidPlasticSolver::solve( Beam* beam, b2UpdateData& updateDate )
 {
 	std::vector<b2Vec2> pv;
 	std::vector<float> m;
@@ -399,6 +398,10 @@ void RigidPlasticSolver::solve( Beam* beam )
 		float mAtX = 0.f;
 		for ( auto load : beam->m_loads )
 		{
+			if ( load->p.x > p.x )
+			{
+				break;
+			}
 			float dm = load->m;
 			float dmy = load->f.y * (load->p.x-p.x);
 			float dmx= load->f.x * ( load->p.y - p.y );
@@ -419,6 +422,7 @@ void RigidPlasticSolver::solve( Beam* beam )
 	}
 	else
 	{
+		// make plastic hinge
 	}
 }
 

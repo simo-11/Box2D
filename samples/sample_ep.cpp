@@ -180,7 +180,11 @@ inline void EpBeam::UpdateUI()
 		beamPropertiesChanged = false;
 	}
 	std::vector<const char*> items = Beam::GetValidImplementationLabels();
-	static int item_selected_idx = Beam::selectedImplementationIndex;
+	static int item_selected_idx = items.size() - 1;
+	if ( item_selected_idx >= items.size() )
+	{
+		item_selected_idx = items.size() - 1;
+	}
 	const char* combo_preview_value = items[item_selected_idx];
 	if ( ImGui::BeginCombo( "Implementation", combo_preview_value, flags ) )
 	{
@@ -200,7 +204,8 @@ inline void EpBeam::UpdateUI()
 		ImGui::EndCombo();
 	}
 	void ImGui::Spacing();
-	if ( ImGui::TreeNodeEx( "Add Beam at given point", ImGuiTreeNodeFlags_CollapsingHeader ) )
+	if ( ImGui::TreeNodeEx( "Add Beam at given point",
+		ImGuiTreeNodeFlags_CollapsingHeader | ImGuiTreeNodeFlags_DefaultOpen ) )
 	{
 		float v[2]{ m_insertV.x, m_insertV.y };
 		ImGui::SliderFloat2( "x,y", v, -2 * Beam::L, 2 * Beam::L );

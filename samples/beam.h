@@ -82,7 +82,7 @@ class Solver
 {
 public:
 	~Solver();
-	virtual void solve( Beam* )
+	virtual void solve( Beam*, b2UpdateData&)
 	{
 	}
 };
@@ -91,5 +91,5 @@ class RigidPlasticSolver: public Solver
 {
 public:
 	~RigidPlasticSolver();
-	virtual void solve( Beam* );
+	virtual void solve( Beam*, b2UpdateData& );
 };
