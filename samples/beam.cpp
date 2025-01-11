@@ -8,6 +8,7 @@
 
 #include <assert.h>
 #include <memory>
+#include <algorithm>
 
 Beam::Beam( b2WorldId worldId, b2Vec2 position, float rotation, int beamFlags)
 {
@@ -231,10 +232,6 @@ void Beam::DoBeamAnalysis( b2UpdateData updateData )
 	}
 	CleanLoads();
 	CollectLoads( updateData );
-	if ( m_loads.empty() )
-	{
-		return;
-	}
 	switch ( m_impl )
 	{
 		case BeamImplementation_Rigid:
@@ -328,6 +325,14 @@ void Beam::CollectLoads( b2UpdateData& updateData )
 			}
 		}
 	}
+	struct
+	{
+		bool operator()( Load* a, Load* b ) const
+		{
+			return a->p.x < b->p.x;
+		}
+	} customLess;
+	std::sort( m_loads.begin(), m_loads.end(), customLess ); 
 }
 
 void Beam::CollectJoints()
