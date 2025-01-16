@@ -51,8 +51,9 @@ public:
 	~Beam();
 	void CleanLoads();
 	b2BodyId m_groundIdStart,m_groundIdEnd,m_bodyId;
-	virtual void DoBeamAnalysis( b2UpdateData updateData );
-	virtual void CollectLoads( b2UpdateData& updateData );
+	virtual void DoBeamAnalysis( const b2UpdateData updateData );
+	virtual void CollectLoads( const b2UpdateData& updateData );
+	virtual void handleHinge( float x, float m, const b2UpdateData& updateData );
 	void CollectJoints();
 	static void Cleanup();
 	/** reset statics that are used for creation */
@@ -82,7 +83,7 @@ class Solver
 {
 public:
 	~Solver();
-	virtual void solve( Beam*, b2UpdateData&)
+	virtual void solve( Beam*, const b2UpdateData&)
 	{
 	}
 };
@@ -91,5 +92,5 @@ class RigidPlasticSolver: public Solver
 {
 public:
 	~RigidPlasticSolver();
-	virtual void solve( Beam*, b2UpdateData& );
+	virtual void solve( Beam*, const b2UpdateData& );
 };

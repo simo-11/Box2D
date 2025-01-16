@@ -247,7 +247,7 @@ void Beam::Cleanup()
 	beam::static_cleanup();
 }
 
-void Beam::CollectLoads( b2UpdateData& updateData )
+void Beam::CollectLoads( const b2UpdateData& updateData )
 {
 	Load* load = new Load();
 	load->p = b2Body_GetLocalCenterOfMass( m_bodyId );
@@ -334,6 +334,53 @@ void Beam::CollectLoads( b2UpdateData& updateData )
 	std::sort( m_loads.begin(), m_loads.end(), customLess ); 
 }
 
+/**
+* Create sub world, which can often be reused
+*/
+void Beam::handleHinge( float x, float m, const b2UpdateData& updateData )
+{
+	b2Transform current=b2Body_GetTransform( m_bodyId );
+	b2Vec2 position=current.p;
+	b2Rot rotation=current.q;
+	if ( x == 0.f || x == L )
+	{
+		b2WorldDef worldDef = b2DefaultWorldDef();
+		b2WorldId worldId = b2CreateWorld( &worldDef );
+		b2BodyDef bodyDef = b2DefaultBodyDef();
+		bodyDef.position.x = current.p.x + current.q.c * x;
+		bodyDef.position.y = current.p.y + current.q.s * x;
+		b2BodyId groundId = b2CreateBody( worldId, &bodyDef );
+		float hx = 0.5f * m_L;
+		float hh = 0.5f * m_h;
+		b2Polygon box = b2MakeBox( hx, hh );
+		b2ShapeDef shapeDef = b2DefaultShapeDef();
+		shapeDef.density = m_density;
+		bodyDef.type = b2_dynamicBody;
+		bodyDef.isAwake = false;
+		bodyDef.position = current.p;
+		bodyDef.rotation = current.q;
+		b2BodyId bodyId = b2CreateBody( worldId, &bodyDef );
+		b2Vec2 pivot = { current.p.x + current.q.c * x, current.p.x + current.q.s * x };
+		b2RevoluteJointDef jointDef = b2DefaultRevoluteJointDef();
+		jointDef.bodyIdA = groundId;
+		jointDef.bodyIdB = bodyId;
+		jointDef.enableMotor = true;
+		jointDef.maxMotorTorque = m;
+		jointDef.localAnchorA = b2Body_GetLocalPoint( jointDef.bodyIdA, pivot );
+		jointDef.localAnchorB = b2Body_GetLocalPoint( jointDef.bodyIdB, pivot );
+		b2CreateRevoluteJoint( worldId, &jointDef );
+		int subStepCount = 1;
+		b2World_Step( m_worldId, updateData.timeStep, subStepCount);
+		b2Transform updated = b2Body_GetTransform( bodyId );
+		position = updated.p;
+		rotation = updated.q;
+	}
+	else // split body
+	{
+	}
+	b2Body_SetTransform( m_bodyId, position, rotation );
+}
+
 void Beam::CollectJoints()
 {
 	int jointCount = b2Body_GetJointCount( m_bodyId );
@@ -384,11 +431,11 @@ RigidPlasticSolver::~RigidPlasticSolver()
 {
 }
 
-void RigidPlasticSolver::solve( Beam* beam, b2UpdateData& updateDate )
+void RigidPlasticSolver::solve( Beam* beam, const b2UpdateData& updateData )
 {
 	std::vector<b2Vec2> pv;
 	std::vector<float> m;
-	float mMax,mMaxAbs=0.f, hingeX;
+	float mMax=0.f,mMaxAbs=0.f, hingeX=0.f;
 	for (auto load:beam->m_loads )
 	{
 		pv.push_back( load->p );
@@ -422,7 +469,7 @@ void RigidPlasticSolver::solve( Beam* beam, b2UpdateData& updateDate )
 	}
 	else
 	{
-		// make plastic hinge
+		beam->handleHinge( hingeX, mMax, updateData );
 	}
 }
 
