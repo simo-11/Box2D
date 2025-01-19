@@ -19,6 +19,7 @@ Beam::Beam( b2WorldId worldId, b2Vec2 position, float rotation, int beamFlags)
 	m_E = Beam::E;
 	m_fy = Beam::fy;
 	m_Wp = Beam::Wp();
+	m_mMax = 0.f;
 	m_worldId = worldId;
 	m_impl = Beam::GetSelectedImplementation();
 	m_contacts = nullptr;
@@ -342,7 +343,8 @@ void Beam::handleHinge( float x, float m, const b2UpdateData& updateData )
 	b2Transform current=b2Body_GetTransform( m_bodyId );
 	b2Vec2 position=current.p;
 	b2Rot rotation=current.q;
-	if ( x == 0.f || x == L )
+	float hx = 0.5f * m_L;
+	if ( b2AbsFloat( x ) == hx)
 	{
 		b2WorldDef worldDef = b2DefaultWorldDef();
 		b2WorldId worldId = b2CreateWorld( &worldDef );
@@ -350,7 +352,6 @@ void Beam::handleHinge( float x, float m, const b2UpdateData& updateData )
 		bodyDef.position.x = current.p.x + current.q.c * x;
 		bodyDef.position.y = current.p.y + current.q.s * x;
 		b2BodyId groundId = b2CreateBody( worldId, &bodyDef );
-		float hx = 0.5f * m_L;
 		float hh = 0.5f * m_h;
 		b2Polygon box = b2MakeBox( hx, hh );
 		b2ShapeDef shapeDef = b2DefaultShapeDef();
@@ -360,20 +361,24 @@ void Beam::handleHinge( float x, float m, const b2UpdateData& updateData )
 		bodyDef.position = current.p;
 		bodyDef.rotation = current.q;
 		b2BodyId bodyId = b2CreateBody( worldId, &bodyDef );
+		b2CreatePolygonShape( bodyId, &shapeDef, &box );
+		b2Body_SetAwake( bodyId, true );
 		b2Vec2 pivot = { current.p.x + current.q.c * x, current.p.x + current.q.s * x };
 		b2RevoluteJointDef jointDef = b2DefaultRevoluteJointDef();
 		jointDef.bodyIdA = groundId;
 		jointDef.bodyIdB = bodyId;
 		jointDef.enableMotor = true;
+		jointDef.motorSpeed = 1.f;
 		jointDef.maxMotorTorque = m;
 		jointDef.localAnchorA = b2Body_GetLocalPoint( jointDef.bodyIdA, pivot );
 		jointDef.localAnchorB = b2Body_GetLocalPoint( jointDef.bodyIdB, pivot );
 		b2CreateRevoluteJoint( worldId, &jointDef );
 		int subStepCount = 1;
-		b2World_Step( m_worldId, updateData.timeStep, subStepCount);
+		b2World_Step( worldId, updateData.timeStep, subStepCount);
 		b2Transform updated = b2Body_GetTransform( bodyId );
 		position = updated.p;
 		rotation = updated.q;
+		b2DestroyWorld( worldId );
 	}
 	else // split body
 	{
@@ -463,6 +468,7 @@ void RigidPlasticSolver::solve( Beam* beam, const b2UpdateData& updateData )
 			hingeX = p.x;
 		}
 	}
+	beam->m_mMax = mMax;
 	if ( mMaxAbs < beam->m_Wp)
 	{
 		return;

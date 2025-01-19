@@ -69,7 +69,7 @@ public:
 	static BeamImplementation GetSelectedImplementation();
 	static void SetSelectedImplementation( BeamImplementation bi );
 	static void SetSelectedImplementation( const char* );
-	float m_L, m_w, m_h, m_E, m_fy, m_density, m_Wp;
+	float m_L, m_w, m_h, m_E, m_fy, m_density, m_Wp, m_mMax;
 	BeamImplementation m_impl;
 	std::vector<b2ShapeId> m_shapes;
 	std::vector<Load*> m_loads;

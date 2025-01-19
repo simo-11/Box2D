@@ -15,6 +15,9 @@
 
 #include <vector>
 #include <iterator>
+#include <algorithm>
+#include <memory>
+
 // This sample studies stiff to flexible body behaviour.
 class EpBeam : public Sample
 {
@@ -36,7 +39,8 @@ public:
 		m_shapeIdFloor2 = b2_nullShapeId;
 		m_insertV = b2Vec2_zero;
 	}
-	void CreateWorld(){
+	void CreateWorld()
+	{
 		if ( m_groundId.index1 == 0 )
 		{
 			b2BodyDef bodyDef = b2DefaultBodyDef();
@@ -46,7 +50,7 @@ public:
 			b2Vec2 p2 = { 0.0f, -3.f };
 			b2Vec2 p3 = { 40.0f, -2.0f };
 			b2Segment segment = { p1, p2 };
-			m_shapeIdFloor1=b2CreateSegmentShape( m_groundId, &shapeDef, &segment );
+			m_shapeIdFloor1 = b2CreateSegmentShape( m_groundId, &shapeDef, &segment );
 			segment = { p2, p3 };
 			m_shapeIdFloor2 = b2CreateSegmentShape( m_groundId, &shapeDef, &segment );
 		}
@@ -83,9 +87,9 @@ public:
 		{
 			case GLFW_MOD_ALT:
 				AddBeam( p );
-			break;
+				break;
 			default:
-			Sample::MouseDown( p, button, mod );
+				Sample::MouseDown( p, button, mod );
 				break;
 		}
 	}
@@ -116,11 +120,34 @@ public:
 				beam->DoBeamAnalysis( updateData );
 			}
 		}
-		g_draw.DrawString( 5, m_textLine, "Create beams using ALT-MB1 at start of beam");
-		m_textLine += m_textIncrement;
+		if ( !m_beams.empty() )
+		{
+			std::unique_ptr<std::vector<float>> cav( new std::vector<float> );
+			for ( const auto& beam : m_beams )
+			{
+				cav->push_back( beam->m_mMax/beam->m_Wp );
+			}
+			struct
+			{
+				bool operator()( float& a, float& b ) const
+				{
+					return b2AbsFloat( a ) > b2AbsFloat( b );
+				}
+			} customBefore;
+			int cavSize = ( *cav ).size();
+			std::sort( cav->begin(), cav->end(), customBefore );
+			g_draw.DrawString( 5, m_textLine, 
+				"top moment capacity usages: %5.2f %%, %6.2f %%, %6.2f %%", 
+				100.f*( *cav )[0],
+				cavSize > 1 ? 100.f*( *cav )[1] : 0.f, 
+				cavSize > 2 ? 100.f*( *cav )[2] : 0.f );
+		}
+		else
+		{
+			g_draw.DrawString( 5, m_textLine, "Create beams using ALT-MB1 at start of beam" );
+			m_textLine += m_textIncrement;
+		}
 	}
-
-
 	void Restart() override
 	{
 		CreateWorld();
