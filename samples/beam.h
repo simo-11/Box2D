@@ -56,6 +56,7 @@ public:
 	virtual void handleHinge( float x, float m, const b2UpdateData& updateData );
 	void CollectJoints();
 	static void Cleanup();
+	b2JointId FindJointId( float x ) const;
 	/** reset statics that are used for creation */
 	static void reset();
 	static float L, w, h, E, fy,density, rotation;

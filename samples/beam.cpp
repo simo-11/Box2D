@@ -137,7 +137,7 @@ void Beam::reset()
 Beam::L = 10.0f;
 Beam::w = 1.0f;
 Beam::h = 0.5f;
-Beam::density = 7800.f;
+Beam::density = 98000.f;
 Beam::E = 210E9;
 Beam::fy = 350E6;
 Beam::rotation = 0E0;
@@ -246,6 +246,29 @@ void Beam::DoBeamAnalysis( b2UpdateData updateData )
 void Beam::Cleanup()
 {
 	beam::static_cleanup();
+}
+
+b2JointId Beam::FindJointId( float x ) const
+{
+	for ( int i = 0; i < m_jointCount; i++ )
+	{
+		b2JointId jointId = m_joints[i];
+		b2BodyId ba = b2Joint_GetBodyA( jointId );
+		b2Vec2 anchor;
+		if ( ba.index1 == m_bodyId.index1 )
+		{
+			anchor = b2Joint_GetLocalAnchorA( jointId );
+		}
+		else
+		{
+			anchor = b2Joint_GetLocalAnchorB( jointId );
+		}
+		if ( anchor.x == x )
+		{
+			return jointId;
+		}
+	}
+	return b2_nullJointId;
 }
 
 void Beam::CollectLoads( const b2UpdateData& updateData )
@@ -363,7 +386,7 @@ void Beam::handleHinge( float x, float m, const b2UpdateData& updateData )
 		b2BodyId bodyId = b2CreateBody( worldId, &bodyDef );
 		b2CreatePolygonShape( bodyId, &shapeDef, &box );
 		b2Body_SetAwake( bodyId, true );
-		b2Vec2 pivot = { current.p.x + current.q.c * x, current.p.x + current.q.s * x };
+		b2Vec2 pivot = { current.p.x + current.q.c * x, current.p.y + current.q.s * x };
 		b2RevoluteJointDef jointDef = b2DefaultRevoluteJointDef();
 		jointDef.bodyIdA = groundId;
 		jointDef.bodyIdB = bodyId;
@@ -372,13 +395,27 @@ void Beam::handleHinge( float x, float m, const b2UpdateData& updateData )
 		jointDef.maxMotorTorque = m;
 		jointDef.localAnchorA = b2Body_GetLocalPoint( jointDef.bodyIdA, pivot );
 		jointDef.localAnchorB = b2Body_GetLocalPoint( jointDef.bodyIdB, pivot );
-		b2CreateRevoluteJoint( worldId, &jointDef );
+		b2JointId jointId=b2CreateRevoluteJoint( worldId, &jointDef );
 		int subStepCount = 1;
 		b2World_Step( worldId, updateData.timeStep, subStepCount);
 		b2Transform updated = b2Body_GetTransform( bodyId );
-		position = updated.p;
+		float referenceAngle = b2RevoluteJoint_GetAngle( jointId );
 		rotation = updated.q;
 		b2DestroyWorld( worldId );
+		worldId = b2Body_GetWorld( m_bodyId );		
+		{ // create updated joint
+			b2JointId oJointId = FindJointId( x );
+			B2_ASSERT(oJointId.index1!=0);
+			b2Vec2 pivot = position;
+			b2WeldJointDef jointDef = b2DefaultWeldJointDef();
+			jointDef.bodyIdA = m_groundIdStart;
+			jointDef.bodyIdB = m_bodyId;
+			jointDef.referenceAngle = referenceAngle;
+			jointDef.localAnchorA = b2Body_GetLocalPoint( jointDef.bodyIdA, pivot );
+			jointDef.localAnchorB = b2Body_GetLocalPoint( jointDef.bodyIdB, pivot );
+			b2CreateWeldJoint( worldId, &jointDef );
+			b2DestroyJoint(  oJointId);
+		}
 	}
 	else // split body
 	{
