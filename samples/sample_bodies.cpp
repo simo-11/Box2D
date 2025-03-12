@@ -468,6 +468,16 @@ public:
 
 static int sampleCharacter = RegisterSample( "Bodies", "Character", Character::Create );
 
+float FrictionCallback( float, int, float, int )
+{
+	return 0.1f;
+}
+
+float RestitutionCallback( float, int, float, int )
+{
+	return 1.0f;
+}
+
 class Weeble : public Sample
 {
 public:
@@ -479,6 +489,10 @@ public:
 			g_camera.m_center = { 2.3f, 10.0f };
 			g_camera.m_zoom = 25.0f * 0.5f;
 		}
+
+		// Test friction and restitution callbacks
+		b2World_SetFrictionCallback( m_worldId, FrictionCallback );
+		b2World_SetRestitutionCallback( m_worldId, RestitutionCallback );
 
 		b2BodyId groundId = b2_nullBodyId;
 		{
@@ -553,6 +567,17 @@ public:
 		Sample::Step( settings );
 
 		g_draw.DrawCircle( m_explosionPosition, m_explosionRadius, b2_colorAzure );
+
+		// This shows how to get the velocity of a point on a body
+		b2Vec2 localPoint = { 0.0f, 2.0f };
+		b2Vec2 worldPoint = b2Body_GetWorldPoint( m_weebleId, localPoint );
+
+		b2Vec2 v1 = b2Body_GetLocalPointVelocity( m_weebleId, localPoint );
+		b2Vec2 v2 = b2Body_GetWorldPointVelocity( m_weebleId, worldPoint );
+
+		b2Vec2 offset = { 0.05f, 0.0f };
+		g_draw.DrawSegment( worldPoint, worldPoint + v1, b2_colorRed );
+		g_draw.DrawSegment( worldPoint + offset, worldPoint + v2 + offset, b2_colorGreen );
 	}
 
 	static Sample* Create( Settings& settings )
@@ -843,6 +868,7 @@ public:
 
 static int sampleBadBody = RegisterSample( "Bodies", "Bad", BadBody::Create );
 
+// This shows how to set the initial angular velocity to get a specific movement.
 class Pivot : public Sample
 {
 public:
@@ -872,7 +898,7 @@ public:
 			b2BodyDef bodyDef = b2DefaultBodyDef();
 			bodyDef.type = b2_dynamicBody;
 			bodyDef.position = { 0.0f, 3.0f };
-			bodyDef.gravityScale = 0.0f;
+			bodyDef.gravityScale = 1.0f;
 			bodyDef.linearVelocity = v;
 
 			m_bodyId = b2CreateBody( m_worldId, &bodyDef );
@@ -880,7 +906,7 @@ public:
 			m_lever = 3.0f;
 			b2Vec2 r = { 0.0f, -m_lever };
 
-			float omega = b2Cross(v, r) / b2Dot(r, r);
+			float omega = b2Cross( v, r ) / b2Dot( r, r );
 			b2Body_SetAngularVelocity( m_bodyId, omega );
 
 			b2Polygon box = b2MakeBox( 0.1f, m_lever );
@@ -899,7 +925,7 @@ public:
 		b2Vec2 r = b2Body_GetWorldVector( m_bodyId, { 0.0f, -m_lever } );
 
 		b2Vec2 vp = v + b2CrossSV( omega, r );
-		g_draw.DrawString( 5, m_textLine, "pivot velocity = (%g, %g)", vp.x, vp.y);
+		g_draw.DrawString( 5, m_textLine, "pivot velocity = (%g, %g)", vp.x, vp.y );
 		m_textLine += m_textIncrement;
 	}
 

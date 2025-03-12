@@ -200,103 +200,6 @@ static int TestIsValid( void )
 	return 0;
 }
 
-int TestForAmy( void )
-{
-	{
-		b2WorldDef worldDef = b2DefaultWorldDef();
-		b2WorldId world_id = b2CreateWorld( &worldDef );
-
-		b2BodyDef body_def = b2DefaultBodyDef();
-
-		body_def.type = b2_staticBody;
-		body_def.position = ( b2Vec2 ){ 0., 0. };
-		b2BodyId body_id = b2CreateBody( world_id, &body_def );
-		b2Polygon polygon = b2MakeBox( 1., 1. );
-		b2ShapeDef shape_def = b2DefaultShapeDef();
-		b2CreatePolygonShape( body_id, &shape_def, &polygon );
-
-		b2BodyDef simulon_body_def = b2DefaultBodyDef();
-
-		simulon_body_def.position = ( b2Vec2 ){ 0., -7.5 };
-		simulon_body_def.type = b2_dynamicBody;
-
-		b2BodyId simulon_body_id = b2CreateBody( world_id, &simulon_body_def );
-		b2Circle ball = { { 0.0, 0.35 }, 0.5 };
-
-		b2ShapeDef simulon_shape_def = b2DefaultShapeDef();
-		b2CreateCircleShape( simulon_body_id, &simulon_shape_def, &ball );
-
-		b2Polygon the_box = b2MakeRoundedBox( 0.1, 0.1, 0.01 );
-		b2CreatePolygonShape( simulon_body_id, &simulon_shape_def, &the_box );
-		b2BodyDef head_body_def = b2DefaultBodyDef();
-		head_body_def.position = ( b2Vec2 ){ 0., 6. };
-		head_body_def.type = b2_dynamicBody;
-		b2BodyId head_body_id = b2CreateBody( world_id, &head_body_def );
-		b2RevoluteJointDef joint_def5 = b2DefaultRevoluteJointDef();
-		joint_def5.bodyIdA = simulon_body_id;
-		joint_def5.bodyIdB = head_body_id;
-		joint_def5.localAnchorA = ( b2Vec2 ){ 0.0, 0.8 };
-		joint_def5.localAnchorB = ( b2Vec2 ){ 0.0, -0.17 / 2.0 };
-
-		b2JointId revolute_joint_id = b2CreateRevoluteJoint( world_id, &joint_def5 );
-		b2DistanceJointDef joint_def6 = b2DefaultDistanceJointDef();
-		joint_def6.bodyIdA = simulon_body_id;
-		joint_def6.bodyIdB = head_body_id;
-		joint_def6.localAnchorA = ( b2Vec2 ){ 0.0, 1.7 };
-		joint_def6.localAnchorB = ( b2Vec2 ){ 0.0, 0.8 };
-		joint_def6.length = 0.005;
-		joint_def6.hertz = 1.;
-		b2CreateDistanceJoint( world_id, &joint_def6 );
-
-		b2DestroyBody( simulon_body_id );
-
-		b2World_Step( world_id, 1. / 60., 4 );
-
-		b2DestroyWorld( world_id );
-	}
-
-	{
-		b2WorldDef worldDef = b2DefaultWorldDef();
-		b2WorldId world_id = b2CreateWorld( &worldDef );
-
-		b2BodyDef ground_body_def = b2DefaultBodyDef();
-		ground_body_def.type = b2_staticBody;
-		b2BodyId ground_body_id = b2CreateBody( world_id, &ground_body_def );
-
-		b2BodyDef box_body_def = b2DefaultBodyDef();
-		box_body_def.type = b2_dynamicBody;
-		box_body_def.position = ( b2Vec2 ){ 0.0, 0.0 };
-		b2BodyId box_body_id = b2CreateBody( world_id, &box_body_def );
-		b2Polygon polygon = b2MakeBox( 1., 1. );
-		b2ShapeDef shape_def = b2DefaultShapeDef();
-		b2ShapeId box_shape = b2CreatePolygonShape( box_body_id, &shape_def, &polygon );
-
-		b2DistanceJointDef distance_joint_def = b2DefaultDistanceJointDef();
-		distance_joint_def.hertz = 1.;
-		distance_joint_def.dampingRatio = 0.1;
-		distance_joint_def.bodyIdA = ground_body_id;
-		distance_joint_def.bodyIdB = box_body_id;
-		distance_joint_def.minLength = 0.005;
-		distance_joint_def.enableSpring = true;
-		distance_joint_def.enableLimit = false;
-		distance_joint_def.collideConnected = false;
-		distance_joint_def.length = 0.005;
-		b2Body_SetTransform( ground_body_id, ( b2Vec2 ){ 0.0, 0.0 }, ( b2Rot ){ 1., 0. } );
-		distance_joint_def.localAnchorA = ( b2Vec2 ){ 0.0, 0.0 };
-		distance_joint_def.localAnchorB = ( b2Vec2 ){ 0.0, 0.0 };
-		b2JointId distance_joint_id = b2CreateDistanceJoint( world_id, &distance_joint_def );
-
-		b2Body_SetType( box_body_id, b2_staticBody );
-		b2World_Step( world_id, 1. / 60., 4 );
-
-		b2DestroyJoint( distance_joint_id );
-
-		b2DestroyWorld( world_id );
-	}
-
-	return 0;
-}
-
 #define WORLD_COUNT ( B2_MAX_WORLDS / 2 )
 
 int TestWorldRecycle( void )
@@ -423,15 +326,81 @@ int TestWorldCoverage( void )
 	return 0;
 }
 
+static int TestSensor( void )
+{
+	b2WorldDef worldDef = b2DefaultWorldDef();
+	b2WorldId worldId = b2CreateWorld( &worldDef );
+
+	// Wall from x = 1 to x = 2
+	b2BodyDef bodyDef = b2DefaultBodyDef();
+	bodyDef.type = b2_staticBody;
+	bodyDef.position.x = 1.5f;
+	bodyDef.position.y = 11.0f;
+	b2BodyId wallId = b2CreateBody( worldId, &bodyDef );
+	b2Polygon box = b2MakeBox( 0.5f, 10.0f );
+	b2ShapeDef shapeDef = b2DefaultShapeDef();
+	b2CreatePolygonShape( wallId, &shapeDef, &box );
+
+	// Bullet fired towards the wall
+	bodyDef = b2DefaultBodyDef();
+	bodyDef.type = b2_dynamicBody;
+	bodyDef.isBullet = true;
+	bodyDef.gravityScale = 0.0f;
+	bodyDef.position = (b2Vec2){ 7.39814, 4.0 };
+	bodyDef.linearVelocity = (b2Vec2){ -20.0f, 0.0f };
+	b2BodyId bulletId = b2CreateBody( worldId, &bodyDef );
+	shapeDef = b2DefaultShapeDef();
+	shapeDef.isSensor = true;
+	b2Circle circle = { { 0.0f, 0.0f }, 0.1f };
+	b2CreateCircleShape( bulletId, &shapeDef, &circle );
+
+	int beginCount = 0;
+	int endCount = 0;
+
+	while ( true )
+	{
+		float timeStep = 1.0f / 60.0f;
+		int subStepCount = 4;
+		b2World_Step( worldId, timeStep, subStepCount );
+
+		b2Vec2 bulletPos = b2Body_GetPosition( bulletId );
+		//printf( "Bullet pos: %g %g\n", bulletPos.x, bulletPos.y );
+
+		b2SensorEvents events = b2World_GetSensorEvents( worldId );
+
+		if ( events.beginCount > 0 )
+		{
+			beginCount += 1;
+		}
+
+		if ( events.endCount > 0 )
+		{
+			endCount += 1;
+		}
+
+		if ( bulletPos.x < -1.0f )
+		{
+			break;
+		}
+	}
+
+	b2DestroyWorld( worldId );
+
+	ENSURE( beginCount == 1 );
+	ENSURE( endCount == 1 );
+
+	return 0;
+}
+
 int WorldTest( void )
 {
-	RUN_SUBTEST( TestForAmy );
 	RUN_SUBTEST( HelloWorld );
 	RUN_SUBTEST( EmptyWorld );
 	RUN_SUBTEST( DestroyAllBodiesWorld );
 	RUN_SUBTEST( TestIsValid );
 	RUN_SUBTEST( TestWorldRecycle );
 	RUN_SUBTEST( TestWorldCoverage );
+	RUN_SUBTEST( TestSensor );
 
 	return 0;
 }

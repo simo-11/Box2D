@@ -198,6 +198,12 @@ B2_API void b2World_SetUserData( b2WorldId worldId, void* userData );
 /// Get the user data pointer.
 B2_API void* b2World_GetUserData( b2WorldId worldId );
 
+/// Set the friction callback. Passing NULL resets to default.
+B2_API void b2World_SetFrictionCallback( b2WorldId worldId, b2FrictionCallback* callback );
+
+/// Set the restitution callback. Passing NULL resets to default.
+B2_API void b2World_SetRestitutionCallback( b2WorldId worldId, b2RestitutionCallback* callback );
+
 /// Dump memory stats to box2d_memory.txt
 B2_API void b2World_DumpMemoryStats( b2WorldId worldId );
 
@@ -237,6 +243,12 @@ B2_API b2BodyType b2Body_GetType( b2BodyId bodyId );
 /// Change the body type. This is an expensive operation. This automatically updates the mass
 /// properties regardless of the automatic mass setting.
 B2_API void b2Body_SetType( b2BodyId bodyId, b2BodyType type );
+
+/// Set the body name. Up to 31 characters excluding 0 termination.
+B2_API void b2Body_SetName( b2BodyId bodyId, const char* name );
+
+/// Get the body name. May be null.
+B2_API const char* b2Body_GetName( b2BodyId bodyId );
 
 /// Set the user data for a body
 B2_API void b2Body_SetUserData( b2BodyId bodyId, void* userData );
@@ -281,6 +293,12 @@ B2_API void b2Body_SetLinearVelocity( b2BodyId bodyId, b2Vec2 linearVelocity );
 
 /// Set the angular velocity of a body in radians per second
 B2_API void b2Body_SetAngularVelocity( b2BodyId bodyId, float angularVelocity );
+
+/// Get the linear velocity of a local point attached to a body. Usually in meters per second.
+B2_API b2Vec2 b2Body_GetLocalPointVelocity( b2BodyId bodyId, b2Vec2 localPoint );
+
+/// Get the linear velocity of a world point attached to a body. Usually in meters per second.
+B2_API b2Vec2 b2Body_GetWorldPointVelocity( b2BodyId bodyId, b2Vec2 worldPoint );
 
 /// Apply a force at a world point. If the force is not applied at the center of mass,
 /// it will generate a torque and affect the angular velocity. This optionally wakes up the body.
@@ -423,11 +441,6 @@ B2_API void b2Body_SetBullet( b2BodyId bodyId, bool flag );
 /// Is this body a bullet?
 B2_API bool b2Body_IsBullet( b2BodyId bodyId );
 
-/// Enable/disable sensor events on all shapes.
-/// @see b2ShapeDef::enableSensorEvents
-/// @warning changing this at runtime may cause mismatched begin/end touch events
-B2_API void b2Body_EnableSensorEvents( b2BodyId bodyId, bool flag );
-
 /// Enable/disable contact events on all shapes.
 /// @see b2ShapeDef::enableContactEvents
 /// @warning changing this at runtime may cause mismatched begin/end touch events
@@ -545,20 +558,21 @@ B2_API void b2Shape_SetRestitution( b2ShapeId shapeId, float restitution );
 /// Get the shape restitution
 B2_API float b2Shape_GetRestitution( b2ShapeId shapeId );
 
+/// Set the shape material identifier
+/// @see b2ShapeDef::material
+B2_API void b2Shape_SetMaterial( b2ShapeId shapeId, int material );
+
+/// Get the shape material identifier 
+B2_API int b2Shape_GetMaterial( b2ShapeId shapeId );
+
 /// Get the shape filter
 B2_API b2Filter b2Shape_GetFilter( b2ShapeId shapeId );
 
-/// Set the current filter. This is almost as expensive as recreating the shape.
+/// Set the current filter. This is almost as expensive as recreating the shape. This may cause
+/// contacts to be immediately destroyed. However contacts are not created until the next world step.
+/// Sensor overlap state is also not updated until the next world step.
 /// @see b2ShapeDef::filter
 B2_API void b2Shape_SetFilter( b2ShapeId shapeId, b2Filter filter );
-
-/// Enable sensor events for this shape. Only applies to kinematic and dynamic bodies.
-/// @see b2ShapeDef::isSensor
-/// @warning changing this at run-time may lead to lost begin/end events
-B2_API void b2Shape_EnableSensorEvents( b2ShapeId shapeId, bool flag );
-
-/// Returns true if sensor events are enabled
-B2_API bool b2Shape_AreSensorEventsEnabled( b2ShapeId shapeId );
 
 /// Enable contact events for this shape. Only applies to kinematic and dynamic bodies. Ignored for sensors.
 /// @see b2ShapeDef::enableContactEvents
@@ -644,16 +658,21 @@ B2_API int b2Shape_GetSensorCapacity( b2ShapeId shapeId );
 
 /// Get the overlapped shapes for a sensor shape.
 /// @param shapeId the id of a sensor shape
-/// @param overlappedShapes a user allocated array that is filled with the overlapping shapes
+/// @param overlaps a user allocated array that is filled with the overlapping shapes
 /// @param capacity the capacity of overlappedShapes
 /// @returns the number of elements filled in the provided array
 /// @warning do not ignore the return value, it specifies the valid number of elements
-B2_API int b2Shape_GetSensorOverlaps( b2ShapeId shapeId, b2ShapeId* overlappedShapes, int capacity );
+/// @warning overlaps may contain destroyed shapes so use b2Shape_IsValid to confirm each overlap
+B2_API int b2Shape_GetSensorOverlaps( b2ShapeId shapeId, b2ShapeId* overlaps, int capacity );
 
 /// Get the current world AABB
 B2_API b2AABB b2Shape_GetAABB( b2ShapeId shapeId );
 
+/// Get the mass data for a shape
+B2_API b2MassData b2Shape_GetMassData( b2ShapeId shapeId );
+
 /// Get the closest point on a shape to a target point. Target and result are in world space.
+/// todo need sample
 B2_API b2Vec2 b2Shape_GetClosestPoint( b2ShapeId shapeId, b2Vec2 target );
 
 /// Chain Shape
@@ -688,6 +707,13 @@ B2_API void b2Chain_SetRestitution( b2ChainId chainId, float restitution );
 
 /// Get the chain restitution
 B2_API float b2Chain_GetRestitution( b2ChainId chainId );
+
+/// Set the chain material
+/// @see b2ChainDef::material
+B2_API void b2Chain_SetMaterial( b2ChainId chainId, int material );
+
+/// Get the chain material
+B2_API int b2Chain_GetMaterial( b2ChainId chainId );
 
 /// Chain identifier validation. Provides validation for up to 64K allocations.
 B2_API bool b2Chain_IsValid( b2ChainId id );
@@ -739,10 +765,10 @@ B2_API void* b2Joint_GetUserData( b2JointId jointId );
 /// Wake the bodies connect to this joint
 B2_API void b2Joint_WakeBodies( b2JointId jointId );
 
-/// Get the current constraint force for this joint
+/// Get the current constraint force for this joint. Usually in Newtons.
 B2_API b2Vec2 b2Joint_GetConstraintForce( b2JointId jointId );
 
-/// Get the current constraint torque for this joint
+/// Get the current constraint torque for this joint. Usually in Newton * meters.
 B2_API float b2Joint_GetConstraintTorque( b2JointId jointId );
 
 /**

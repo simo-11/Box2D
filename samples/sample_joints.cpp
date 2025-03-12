@@ -469,7 +469,7 @@ public:
 		}
 
 		{
-			b2Circle circle = { 0 };
+			b2Circle circle = { };
 			circle.radius = 2.0f;
 
 			b2BodyDef bodyDef = b2DefaultBodyDef();
@@ -1930,7 +1930,7 @@ public:
 			points[count--] = { 20.0f, 0.0f };
 
 			float hs[10] = { 0.25f, 1.0f, 4.0f, 0.0f, 0.0f, -1.0f, -2.0f, -2.0f, -1.25f, 0.0f };
-			float x = 20.0f, y1 = 0.0f, dx = 5.0f;
+			float x = 20.0f, dx = 5.0f;
 
 			for ( int j = 0; j < 2; ++j )
 			{
@@ -1938,7 +1938,6 @@ public:
 				{
 					float y2 = hs[i];
 					points[count--] = { x + dx, y2 };
-					y1 = y2;
 					x += dx;
 				}
 			}
@@ -2075,11 +2074,11 @@ public:
 
 		m_throttle = 0.0f;
 		m_speed = 35.0f;
-		m_torque = 2.5f;
+		m_torque = 5.0f;
 		m_hertz = 5.0f;
 		m_dampingRatio = 0.7f;
 
-		m_car.Spawn( m_worldId, { 0.0f, 0.0f }, 1.0f, m_hertz, m_dampingRatio, m_torque, NULL );
+		m_car.Spawn( m_worldId, { 0.0f, 0.0f }, 1.0f, m_hertz, m_dampingRatio, m_torque, nullptr );
 	}
 
 	void UpdateUI() override
@@ -2106,7 +2105,7 @@ public:
 			m_car.SetSpeed( m_throttle * m_speed );
 		}
 
-		if ( ImGui::SliderFloat( "Torque", &m_torque, 0.0f, 5.0f, "%.1f" ) )
+		if ( ImGui::SliderFloat( "Torque", &m_torque, 0.0f, 10.0f, "%.1f" ) )
 		{
 			m_car.SetTorque( m_torque );
 		}
@@ -2494,7 +2493,7 @@ public:
 		m_liftJointId = b2CreateDistanceJoint( m_worldId, &distanceDef );
 
 		Car car;
-		car.Spawn( m_worldId, { 0.0f, y + 2.0f }, 1.0f, 3.0f, 0.7f, 0.0f, NULL );
+		car.Spawn( m_worldId, { 0.0f, y + 2.0f }, 1.0f, 3.0f, 0.7f, 0.0f, nullptr );
 	}
 
 	void UpdateUI() override

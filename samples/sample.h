@@ -5,10 +5,9 @@
 
 #include "box2d/id.h"
 #include "box2d/types.h"
+#include "settings.h"
 
 #define ARRAY_COUNT( A ) (int)( sizeof( A ) / sizeof( A[0] ) )
-
-struct Settings;
 
 namespace enki
 {
@@ -21,7 +20,7 @@ constexpr bool g_sampleDebug = false;
 constexpr bool g_sampleDebug = true;
 #endif
 
-constexpr int32_t k_maxContactPoints = 12 * 2048;
+constexpr int k_maxContactPoints = 12 * 2048;
 
 struct ContactPoint
 {
@@ -33,8 +32,8 @@ struct ContactPoint
 	float normalImpulse;
 	float tangentImpulse;
 	float separation;
-	int32_t constraintIndex;
-	int32_t color;
+	int constraintIndex;
+	int color;
 };
 
 class Sample
@@ -42,6 +41,8 @@ class Sample
 public:
 	explicit Sample( Settings& settings );
 	virtual ~Sample();
+
+	void CreateWorld( );
 
 	void DrawTitle( const char* string );
 	virtual void Step( Settings& settings );
@@ -59,8 +60,11 @@ public:
 	*/
 	virtual void Restart(){	}
 
+	void DrawTextLine( const char* text, ... );
 	void ResetProfile();
 	void ShiftOrigin( b2Vec2 newOrigin );
+
+	static int ParsePath( const char* svgPath, b2Vec2 offset, b2Vec2* points, int capacity, float scale, bool reverseOrder );
 
 	friend class DestructionListener;
 	friend class BoundaryListener;
@@ -69,20 +73,20 @@ public:
 	static constexpr int m_maxTasks = 64;
 	static constexpr int m_maxThreads = 64;
 
+	const Settings* m_settings;
 	enki::TaskScheduler* m_scheduler;
 	class SampleTask* m_tasks;
-
-	int32_t m_taskCount;
+	int m_taskCount;
 	int m_threadCount;
 
 	b2BodyId m_groundBodyId;
 
 	// DestructionListener m_destructionListener;
-	int32_t m_textLine;
+	int m_textLine;
 	b2WorldId m_worldId;
 	b2JointId m_mouseJointId;
-	int32_t m_stepCount;
-	int32_t m_textIncrement;
+	int m_stepCount;
+	int m_textIncrement;
 	b2Profile m_maxProfile;
 	b2Profile m_totalProfile;
 };

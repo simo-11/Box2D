@@ -15,6 +15,11 @@
 #include <imgui.h>
 #include <vector>
 
+#ifndef NDEBUG
+extern "C" int b2_toiCalls;
+extern "C" int b2_toiHitCount;
+#endif
+
 // Note: resetting the scene is non-deterministic because the world uses freelists
 class BenchmarkBarrel : public Sample
 {
@@ -216,6 +221,7 @@ public:
 				{
 					m_bodies[index] = b2CreateBody( m_worldId, &bodyDef );
 					circle.radius = RandomFloatRange( 0.25f, 0.75f );
+					shapeDef.rollingResistance = 0.2f;
 					b2CreateCircleShape( m_bodies[index], &shapeDef, &circle );
 				}
 				else if ( m_shapeType == e_capsuleShape )
@@ -225,6 +231,7 @@ public:
 					float length = RandomFloatRange( 0.25f, 1.0f );
 					capsule.center1 = { 0.0f, -0.5f * length };
 					capsule.center2 = { 0.0f, 0.5f * length };
+					shapeDef.rollingResistance = 0.2f;
 					b2CreateCapsuleShape( m_bodies[index], &shapeDef, &capsule );
 				}
 				else if ( m_shapeType == e_mixShape )
@@ -552,7 +559,7 @@ public:
 			settings.enableSleep = false;
 		}
 
-		CreateLargePyramid(m_worldId);
+		CreateLargePyramid( m_worldId );
 	}
 
 	static Sample* Create( Settings& settings )
@@ -619,6 +626,9 @@ public:
 			m_bodies[i] = b2_nullBodyId;
 		}
 
+		m_createTime = 0.0f;
+		m_destroyTime = 0.0f;
+
 		m_baseCount = g_sampleDebug ? 40 : 100;
 		m_iterations = g_sampleDebug ? 1 : 10;
 		m_bodyCount = 0;
@@ -626,6 +636,8 @@ public:
 
 	void CreateScene()
 	{
+		uint64_t ticks = b2GetTicks();
+
 		for ( int i = 0; i < e_maxBodyCount; ++i )
 		{
 			if ( B2_IS_NON_NULL( m_bodies[i] ) )
@@ -634,6 +646,8 @@ public:
 				m_bodies[i] = b2_nullBodyId;
 			}
 		}
+
+		m_destroyTime += b2GetMillisecondsAndReset( &ticks );
 
 		int count = m_baseCount;
 		float rad = 0.5f;
@@ -670,22 +684,28 @@ public:
 			}
 		}
 
+		m_createTime += b2GetMilliseconds( ticks );
+
 		m_bodyCount = index;
+
+		b2World_Step( m_worldId, 1.0f / 60.0f, 4 );
 	}
 
 	void Step( Settings& settings ) override
 	{
-		b2Timer timer = b2CreateTimer();
+		m_createTime = 0.0f;
+		m_destroyTime = 0.0f;
 
 		for ( int i = 0; i < m_iterations; ++i )
 		{
 			CreateScene();
 		}
 
-		float ms = b2GetMilliseconds( &timer );
+		DrawTextLine( "total: create = %g ms, destroy = %g ms", m_createTime, m_destroyTime );
 
-		g_draw.DrawString( 5, m_textLine, "milliseconds = %g", ms );
-		m_textLine += m_textIncrement;
+		float createPerBody = 1000.0f * m_createTime / m_iterations / m_bodyCount;
+		float destroyPerBody = 1000.0f * m_destroyTime / m_iterations / m_bodyCount;
+		DrawTextLine( "body: create = %g us, destroy = %g us", createPerBody, destroyPerBody );
 
 		Sample::Step( settings );
 	}
@@ -695,6 +715,8 @@ public:
 		return new BenchmarkCreateDestroy( settings );
 	}
 
+	float m_createTime;
+	float m_destroyTime;
 	b2BodyId m_bodies[e_maxBodyCount];
 	int m_bodyCount;
 	int m_baseCount;
@@ -800,21 +822,19 @@ public:
 
 	void Step( Settings& settings ) override
 	{
-		float timeStep = settings.hertz > 0.0f ? 1.0f / settings.hertz : float( 0.0f );
-
-		b2Timer timer = b2CreateTimer();
+		uint64_t ticks = b2GetTicks();
 
 		for ( int i = 0; i < m_iterations; ++i )
 		{
 			b2Body_SetAwake( m_bodies[0], m_awake );
 			if ( m_awake )
 			{
-				m_wakeTotal += b2GetMillisecondsAndReset( &timer );
+				m_wakeTotal += b2GetMillisecondsAndReset( &ticks );
 				m_wakeCount += 1;
 			}
 			else
 			{
-				m_sleepTotal += b2GetMillisecondsAndReset( &timer );
+				m_sleepTotal += b2GetMillisecondsAndReset( &ticks );
 				m_sleepCount += 1;
 			}
 			m_awake = !m_awake;
@@ -1114,7 +1134,7 @@ public:
 		b2WorldDef worldDef = b2DefaultWorldDef();
 		m_worldId = b2CreateWorld( &worldDef );
 
-		b2Timer timer = b2CreateTimer();
+		uint64_t ticks = b2GetTicks();
 
 		b2BodyDef bodyDef = b2DefaultBodyDef();
 		b2ShapeDef shapeDef = b2DefaultShapeDef();
@@ -1175,7 +1195,7 @@ public:
 			b2World_RebuildStaticTree( m_worldId );
 		}
 
-		m_buildTime = b2GetMilliseconds( &timer );
+		m_buildTime = b2GetMilliseconds( ticks );
 		m_minTime = 1e6f;
 	}
 
@@ -1301,7 +1321,7 @@ public:
 
 		if ( m_queryType == e_rayCast )
 		{
-			b2Timer timer = b2CreateTimer();
+			uint64_t ticks = b2GetTicks();
 
 			b2RayResult drawResult = {};
 
@@ -1322,7 +1342,7 @@ public:
 				hitCount += result.hit ? 1 : 0;
 			}
 
-			ms = b2GetMilliseconds( &timer );
+			ms = b2GetMilliseconds( ticks );
 
 			m_minTime = b2MinFloat( m_minTime, ms );
 
@@ -1338,7 +1358,7 @@ public:
 		}
 		else if ( m_queryType == e_circleCast )
 		{
-			b2Timer timer = b2CreateTimer();
+			uint64_t ticks = b2GetTicks();
 
 			b2Circle circle = { { 0.0f, 0.0f }, m_radius };
 			CastResult drawResult = {};
@@ -1362,7 +1382,7 @@ public:
 				hitCount += result.hit ? 1 : 0;
 			}
 
-			ms = b2GetMilliseconds( &timer );
+			ms = b2GetMilliseconds( ticks );
 
 			m_minTime = b2MinFloat( m_minTime, ms );
 
@@ -1380,7 +1400,7 @@ public:
 		}
 		else if ( m_queryType == e_overlap )
 		{
-			b2Timer timer = b2CreateTimer();
+			uint64_t ticks = b2GetTicks();
 
 			OverlapResult drawResult = {};
 			b2Vec2 extent = { m_radius, m_radius };
@@ -1404,7 +1424,7 @@ public:
 				hitCount += result.count;
 			}
 
-			ms = b2GetMilliseconds( &timer );
+			ms = b2GetMilliseconds( ticks );
 
 			m_minTime = b2MinFloat( m_minTime, ms );
 
@@ -1473,6 +1493,11 @@ public:
 			g_camera.m_zoom = 42.0f;
 		}
 
+#ifndef NDEBUG
+		b2_toiCalls = 0;
+		b2_toiHitCount = 0;
+#endif
+
 		CreateSpinner( m_worldId );
 	}
 
@@ -1480,10 +1505,17 @@ public:
 	{
 		Sample::Step( settings );
 
-		if ( m_stepCount == 2000 )
+		if ( m_stepCount == 1000 && false )
 		{
-			m_stepCount += 0;
+			// 0.1 : 46544, 25752
+			// 0.25 : 5745, 1947
+			// 0.5 : 2197, 660
+			settings.pause = true;
 		}
+
+#ifndef NDEBUG
+		DrawTextLine( "toi calls, hits = %d, %d", b2_toiCalls, b2_toiHitCount );
+#endif
 	}
 
 	static Sample* Create( Settings& settings )
@@ -1514,14 +1546,14 @@ public:
 
 	void Step( Settings& settings ) override
 	{
-		if (settings.pause == false || settings.singleStep == true)
+		if ( settings.pause == false || settings.singleStep == true )
 		{
 			StepRain( m_worldId, m_stepCount );
 		}
 
 		Sample::Step( settings );
 
-		if (m_stepCount == 1000)
+		if ( m_stepCount % 1000 == 0 )
 		{
 			m_stepCount += 0;
 		}
