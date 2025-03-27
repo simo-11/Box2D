@@ -178,14 +178,16 @@ inline void EpBeam::UpdateUI()
 	static bool beamPropertiesChanged;
 	if ( ImGui::TreeNodeEx( "Beam Properties", ImGuiTreeNodeFlags_CollapsingHeader ) )
 	{
-		if ( ImGui::SliderFloat( "Beam Length", &Beam::L, 1, 20 ) ||
-			 ImGui::SliderFloat( "Beam Height", &Beam::h, Beam::L / 100, Beam::L / 5 ) ||
-			 ImGui::SliderFloat( "Beam Density", &Beam::density, 500, 10000 ) ||
-			 ImGui::SliderFloat( "Beam Young's modulus", &Beam::E, 1E9, 1E12, "%.3E" ) ||
-			 ImGui::SliderFloat( "Beam Yield stress", &Beam::fy, 1E6, 1E9, "%.3E" ) )
-		{
+		if ( ImGui::SliderFloat( "Beam Length", &Beam::L, 1, 20 )) 
 			beamPropertiesChanged = true;
-		}
+		if ( ImGui::SliderFloat( "Beam Height", &Beam::h, Beam::L / 100, Beam::L / 5 ) )
+			beamPropertiesChanged = true;
+		if ( ImGui::SliderFloat( "Beam Density", &Beam::density, 500, 10000 ) )
+			beamPropertiesChanged = true;
+		if ( ImGui::SliderFloat( "Beam Young's modulus", &Beam::E, 1E9, 1E12, "%.3E" ) )
+			beamPropertiesChanged = true;
+		if ( ImGui::SliderFloat( "Beam Yield stress", &Beam::fy, 1E6, 1E9, "%.3E" ) )
+			beamPropertiesChanged = true;
 	}
 	if ( ImGui::TreeNodeEx( "Beam Boundary conditions", ImGuiTreeNodeFlags_CollapsingHeader ) )
 	{

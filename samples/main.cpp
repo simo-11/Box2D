@@ -4,6 +4,10 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define _CRTDBG_MAP_ALLOC
 #define IMGUI_DISABLE_OBSOLETE_FUNCTIONS 1
+#if defined( _WIN32 )
+// https://github.com/glfw/glfw/issues/2247
+#include "windows.h"
+#endif
 
 #include "TaskScheduler.h"
 #include "draw.h"
