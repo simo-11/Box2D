@@ -43,7 +43,7 @@ More complex processes have been developed, one example is https://www.jstor.org
 ## Plastic
  * Wp=w*h^2/4
 
-## Based on minimal 2D FE-solver
+## Based on minimal 2D FE- or ANCF-solver
 
 Meshing e.g. c++ implementation of https://github.com/mapbox/delaunator / https://mapbox.github.io/delaunator/ at https://github.com/delfrrr/delaunator-cpp
 
