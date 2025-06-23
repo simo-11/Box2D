@@ -50,3 +50,15 @@ Meshing e.g. c++ implementation of https://github.com/mapbox/delaunator / https:
 ### Solve
 
 Using e.g. [Eigen](https://eigen.tuxfamily.org/) sample e.g. https://github.com/podgorskiy/MinimalFem
+
+## Wood
+Model earlywood and latewood so that earlywood breaks first and joint can be seen broken as wood does.
+
+ * annual ring 1-2 mm, 75 % earlywood and 25 % latewood
+ * Y about 10 GPa, earlywood about half of latewood so could be modelled as 8 GPa for earlywood and 16 for latewood.
+ * fy about 100 MPa, earlywood about 1/6
+ * variation could be modelled to be about 15 %
+
+Some references for these figures
+ * https://puuinfo.fi/puutieto/puun-ominaisuuksia/lujuusteknisia-ominaisuuksia/
+ * https://www.theseus.fi/bitstream/handle/10024/11739/2008-04-15-12.pdf
